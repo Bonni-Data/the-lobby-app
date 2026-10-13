@@ -1,0 +1,93 @@
+import React from 'react';
+import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, LEVEL_LABEL } from '../lib/data';
+import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
+import { Link } from '../lib/router';
+import { LuCircleCheck, LuCirclePlay, LuTarget } from 'react-icons/lu';
+
+export default function Course({ slug }: { slug: string }) {
+  const data = useAsync(async () => {
+    const [course, progress] = await Promise.all([getCourse(slug), listProgress()]);
+    return { course, progress };
+  }, [slug]);
+
+  return (
+    <Screen>
+      <TopBar back="/academy" />
+      <main className="page page--flush">
+        {data.loading && <Spinner />}
+        {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
+        {data.data && !data.data.course && <Empty title="Corso non trovato" text="Potrebbe essere stato spostato o non è più disponibile." />}
+        {data.data?.course && (() => {
+          const { course: c, progress } = data.data;
+          const total = lessonCount(c);
+          const done = completedIn(c, progress);
+          const next = nextLesson(c, progress);
+          const doneSet = new Set(progress.filter((p) => p.status === 'completed').map((p) => p.lesson_id));
+          return (
+            <>
+              <section className="course-hero">
+                <div className="course-hero__arch" aria-hidden="true" />
+                <span className="course-hero__level">{LEVEL_LABEL[c.level]}</span>
+                <h1 className="course-hero__title">{c.title}</h1>
+                {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
+                <div className="course-hero__progress">
+                  <ArchProgress value={total ? done / total : 0} size={44} />
+                  <span>{done} di {total} lezioni<br />circa {courseMinutes(c)} minuti</span>
+                </div>
+                {next ? (
+                  <ButtonLink to={`/lezione/${next.id}`} block>{done === 0 ? 'Inizia il corso' : 'Continua'}</ButtonLink>
+                ) : total > 0 ? (
+                  <p className="course-hero__done">Hai completato tutte le lezioni.</p>
+                ) : null}
+              </section>
+
+              <div className="page">
+                {c.description && <p className="lede">{c.description}</p>}
+
+                {c.objectives.length > 0 && (
+                  <section className="block">
+                    <h2 className="h-section">Alla fine saprai</h2>
+                    <ul className="objectives">
+                      {c.objectives.map((o, i) => (
+                        <li key={i}><LuTarget aria-hidden="true" />{o}</li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                <section className="block">
+                  <h2 className="h-section">Programma</h2>
+                  {total === 0 && (
+                    <p className="muted">Le lezioni sono visibili dopo l'accesso.</p>
+                  )}
+                  <ol className="modules">
+                    {c.course_modules.map((m) => (
+                      <li key={m.id} className="module">
+                        <h3 className="module__title">{m.title}</h3>
+                        {m.description && <p className="muted small">{m.description}</p>}
+                        <ul className="lessons">
+                          {m.lessons.map((l) => {
+                            const isDone = doneSet.has(l.id);
+                            return (
+                              <li key={l.id}>
+                                <Link to={`/lezione/${l.id}`} className={`lesson-row ${isDone ? 'is-done' : ''}`}>
+                                  {isDone ? <LuCircleCheck className="lesson-row__icon ok" /> : <LuCirclePlay className="lesson-row__icon" />}
+                                  <span className="lesson-row__title">{l.title}</span>
+                                  <span className="lesson-row__time">{formatMinutes(l.duration_seconds)}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              </div>
+            </>
+          );
+        })()}
+      </main>
+    </Screen>
+  );
+}

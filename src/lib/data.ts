@@ -1,0 +1,175 @@
+import { select, upsert, update, rpc, currentSession } from './api';
+
+export type Lesson = {
+  id: string;
+  position: number;
+  title: string;
+  summary?: string | null;
+  duration_seconds?: number | null;
+  video_ref?: string | null;
+  transcript?: string | null;
+  status?: string;
+  module_id?: string;
+};
+export type Module = { id: string; position: number; title: string; description?: string | null; lessons: Lesson[] };
+export type Course = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle?: string | null;
+  description?: string | null;
+  audience?: string | null;
+  level: 'base' | 'intermedio' | 'avanzato';
+  access_level: 'free' | 'premium';
+  objectives: string[];
+  course_modules: Module[];
+};
+export type Progress = { lesson_id: string; status: 'in_progress' | 'completed'; completed_at?: string | null; updated_at: string };
+export type Opportunity = {
+  id: string;
+  title: string;
+  organization?: string | null;
+  category: string;
+  summary?: string | null;
+  location?: string | null;
+  deadline?: string | null;
+  url?: string | null;
+};
+export type QuizQuestion = { id: string; position: number; prompt: string; options: string[] };
+export type Quiz = { id: string; title: string; lesson_id: string; quiz_questions: QuizQuestion[] };
+export type QuizResult = {
+  score: number;
+  max_score: number;
+  details: { question_id: string; correct_option: number | null; chosen: number | null; explanation?: string | null }[];
+};
+
+const COURSE_FIELDS =
+  'id,slug,title,subtitle,description,audience,level,access_level,objectives,' +
+  'course_modules(id,position,title,description,lessons(id,position,title,summary,duration_seconds,status))';
+
+function sortCourse(c: Course): Course {
+  const mods = [...(c.course_modules || [])].sort((a, b) => a.position - b.position);
+  mods.forEach((m) => (m.lessons = [...(m.lessons || [])].sort((a, b) => a.position - b.position)));
+  return { ...c, objectives: c.objectives || [], course_modules: mods };
+}
+
+export async function listCourses(): Promise<Course[]> {
+  const rows = await select<Course>('courses', `select=${COURSE_FIELDS}&status=eq.published&order=created_at.asc`);
+  return rows.map(sortCourse);
+}
+
+export async function getCourse(slug: string): Promise<Course | null> {
+  const rows = await select<Course>('courses', `select=${COURSE_FIELDS}&slug=eq.${encodeURIComponent(slug)}&limit=1`);
+  return rows[0] ? sortCourse(rows[0]) : null;
+}
+
+export type LessonDetail = Lesson & {
+  course_modules: { id: string; title: string; position: number; courses: { slug: string; title: string } };
+  quizzes: { id: string; title: string }[];
+  lesson_assets: { id: string; kind: string; title: string; ref: string }[];
+};
+
+export async function getLesson(id: string): Promise<LessonDetail | null> {
+  const rows = await select<LessonDetail>(
+    'lessons',
+    `select=id,position,title,summary,duration_seconds,video_ref,transcript,status,module_id,` +
+      `course_modules(id,title,position,courses(slug,title)),quizzes(id,title),lesson_assets(id,kind,title,ref)` +
+      `&id=eq.${id}&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+export async function listProgress(): Promise<Progress[]> {
+  if (!currentSession()) return [];
+  return select<Progress>('lesson_progress', 'select=lesson_id,status,completed_at,updated_at&order=updated_at.desc');
+}
+
+export async function setProgress(lessonId: string, status: 'in_progress' | 'completed') {
+  const s = currentSession();
+  if (!s) return;
+  await upsert(
+    'lesson_progress',
+    {
+      user_id: s.user.id,
+      lesson_id: lessonId,
+      status,
+      completed_at: status === 'completed' ? new Date().toISOString() : null,
+    },
+    'user_id,lesson_id',
+  );
+}
+
+export async function getQuiz(id: string): Promise<Quiz | null> {
+  const rows = await select<Quiz>('quizzes', `select=id,title,lesson_id,quiz_questions(id,position,prompt,options)&id=eq.${id}&limit=1`);
+  const q = rows[0];
+  if (!q) return null;
+  q.quiz_questions = [...q.quiz_questions].sort((a, b) => a.position - b.position);
+  return q;
+}
+
+export function submitQuiz(quizId: string, answers: Record<string, number>) {
+  return rpc<QuizResult>('submit_quiz_attempt', { p_quiz_id: quizId, p_answers: answers });
+}
+
+export async function listAttempts() {
+  if (!currentSession()) return [];
+  return select<{ quiz_id: string; score: number; max_score: number; created_at: string }>(
+    'quiz_attempts',
+    'select=quiz_id,score,max_score,created_at&order=created_at.desc',
+  );
+}
+
+export async function listOpportunities(): Promise<Opportunity[]> {
+  return select<Opportunity>(
+    'opportunities',
+    'select=id,title,organization,category,summary,location,deadline,url&status=eq.published&order=deadline.asc.nullslast',
+  );
+}
+
+export async function getProfile() {
+  const s = currentSession();
+  if (!s) return null;
+  const rows = await select<{ id: string; display_name: string | null }>('profiles', `select=id,display_name&id=eq.${s.user.id}`);
+  return rows[0] ?? null;
+}
+
+export async function saveDisplayName(name: string) {
+  const s = currentSession();
+  if (!s) return;
+  await update('profiles', `id=eq.${s.user.id}`, { display_name: name });
+}
+
+export async function assertEmailAvailable(email: string) {
+  await rpc('assert_email_available', { p_email: email });
+}
+
+// ---------- helpers ----------
+export function lessonCount(c: Course) {
+  return c.course_modules.reduce((n, m) => n + m.lessons.length, 0);
+}
+
+export function courseMinutes(c: Course) {
+  const secs = c.course_modules.reduce((n, m) => n + m.lessons.reduce((k, l) => k + (l.duration_seconds || 0), 0), 0);
+  return Math.max(1, Math.round(secs / 60));
+}
+
+export function completedIn(c: Course, progress: Progress[]) {
+  const done = new Set(progress.filter((p) => p.status === 'completed').map((p) => p.lesson_id));
+  return c.course_modules.reduce((n, m) => n + m.lessons.filter((l) => done.has(l.id)).length, 0);
+}
+
+export function nextLesson(c: Course, progress: Progress[]): Lesson | null {
+  const done = new Set(progress.filter((p) => p.status === 'completed').map((p) => p.lesson_id));
+  for (const m of c.course_modules) for (const l of m.lessons) if (!done.has(l.id)) return l;
+  return null;
+}
+
+export const LEVEL_LABEL: Record<string, string> = { base: 'Base', intermedio: 'Intermedio', avanzato: 'Avanzato' };
+export const CATEGORY_LABEL: Record<string, string> = {
+  bando: 'Bando',
+  tirocinio: 'Tirocinio',
+  lavoro: 'Lavoro',
+  evento: 'Evento',
+  finanziamento: 'Finanziamento',
+  formazione: 'Formazione',
+};

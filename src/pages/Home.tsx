@@ -1,0 +1,109 @@
+import React from 'react';
+import { useAuth } from '../lib/auth';
+import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, CATEGORY_LABEL } from '../lib/data';
+import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
+import { Link } from '../lib/router';
+
+export default function Home() {
+  const { displayName } = useAuth();
+  const data = useAsync(async () => {
+    const [courses, progress, opps, attempts] = await Promise.all([
+      listCourses(),
+      listProgress(),
+      listOpportunities().catch(() => []),
+      listAttempts().catch(() => []),
+    ]);
+    return { courses, progress, opps, attempts };
+  }, []);
+
+  const first = (displayName || '').split(' ')[0];
+
+  return (
+    <Screen>
+      <TopBar />
+      <main className="page">
+        <h1 className="h-hello">{first ? `Ciao, ${first}.` : 'Ciao.'}</h1>
+
+        {data.loading && <Spinner />}
+        {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
+
+        {data.data && (() => {
+          const { courses, progress, opps, attempts } = data.data;
+          const started = courses.filter((c) => completedIn(c, progress) > 0);
+          const focus = started.find((c) => completedIn(c, progress) < lessonCount(c)) || courses[0];
+          const doneLessons = progress.filter((p) => p.status === 'completed').length;
+          return (
+            <>
+              {focus && (() => {
+                const total = lessonCount(focus);
+                const done = completedIn(focus, progress);
+                const next = nextLesson(focus, progress);
+                const finished = total > 0 && done === total;
+                return (
+                  <section className="resume" aria-label="Riprendi">
+                    <ArchProgress value={total ? done / total : 0} size={64} />
+                    <div className="resume__body">
+                      <span className="resume__kicker">{done === 0 ? 'Inizia da qui' : finished ? 'Corso completato' : 'Riprendi il corso'}</span>
+                      <h2 className="resume__title">{focus.title}</h2>
+                      <span className="resume__meta">{done} di {total} lezioni</span>
+                      {next ? (
+                        <ButtonLink to={`/lezione/${next.id}`}>{done === 0 ? 'Inizia la prima lezione' : 'Continua'}</ButtonLink>
+                      ) : (
+                        <ButtonLink to={`/corso/${focus.slug}`} variant="secondary">Rivedi il corso</ButtonLink>
+                      )}
+                    </div>
+                  </section>
+                );
+              })()}
+
+              <p className="stats-line">
+                <span><strong>{doneLessons}</strong> lezioni completate</span>
+                <span><strong>{attempts.length}</strong> quiz svolti</span>
+                <span><strong>{started.length}</strong> corsi iniziati</span>
+              </p>
+
+              <section className="block">
+                <div className="block__head">
+                  <h2 className="h-section">Corsi</h2>
+                  <Link to="/academy" className="link-quiet">Vedi tutti</Link>
+                </div>
+                <div className="doors-row">
+                  {courses.map((c) => (
+                    <Link key={c.id} to={`/corso/${c.slug}`} className="door-card">
+                      <DoorCover title={c.title} level={LEVEL_LABEL[c.level]} />
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <blockquote className="quote">
+                <p>La sovranità appartiene al popolo, che la esercita nelle forme e nei limiti della Costituzione.</p>
+                <cite>Costituzione italiana, articolo 1</cite>
+              </blockquote>
+
+              <section className="block">
+                <div className="block__head">
+                  <h2 className="h-section">Opportunità</h2>
+                  <Link to="/opportunita" className="link-quiet">Apri</Link>
+                </div>
+                {opps.length === 0 ? (
+                  <p className="muted">Le prime opportunità selezionate arrivano a breve: bandi, tirocini e programmi europei.</p>
+                ) : (
+                  <ul className="opp-list">
+                    {opps.slice(0, 3).map((o) => (
+                      <li key={o.id} className="opp">
+                        <span className="chip">{CATEGORY_LABEL[o.category] || o.category}</span>
+                        <strong>{o.title}</strong>
+                        {o.deadline && <span className="opp__deadline">Scade il {formatDate(o.deadline)}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
+          );
+        })()}
+      </main>
+    </Screen>
+  );
+}
