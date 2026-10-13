@@ -1,5 +1,5 @@
 // The Lobby service worker: app shell offline, network-first for pages, never caches API calls.
-const CACHE = 'thelobby-v1';
+const CACHE = 'thelobby-v2';
 const SHELL = ['./', './index.html', './app.js', './app.css', './manifest.webmanifest', './icons/favicon.svg', './icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {
