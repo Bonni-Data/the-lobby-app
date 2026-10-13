@@ -1,11 +1,13 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, CATEGORY_LABEL } from '../lib/data';
+import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, PREMIUM_PRICE } from '../lib/data';
 import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
+import { TagChip } from '../components/opps';
 import { Link } from '../lib/router';
+import { LuKeyRound, LuArrowRight } from 'react-icons/lu';
 
 export default function Home() {
-  const { displayName } = useAuth();
+  const { displayName, plan } = useAuth();
   const data = useAsync(async () => {
     const [courses, progress, opps, attempts] = await Promise.all([
       listCourses(),
@@ -70,7 +72,7 @@ export default function Home() {
                 <div className="doors-row">
                   {courses.map((c) => (
                     <Link key={c.id} to={`/corso/${c.slug}`} className="door-card">
-                      <DoorCover title={c.title} level={LEVEL_LABEL[c.level]} />
+                      <DoorCover title={c.title} level={LEVEL_LABEL[c.level] + (c.access_level === 'premium' ? ' · Premium' : '')} />
                     </Link>
                   ))}
                 </div>
@@ -87,19 +89,36 @@ export default function Home() {
                   <Link to="/opportunita" className="link-quiet">Apri</Link>
                 </div>
                 {opps.length === 0 ? (
-                  <p className="muted">Le prime opportunità selezionate arrivano a breve: bandi, tirocini e programmi europei.</p>
+                  <p className="muted">Ogni mattina alle 7 arrivano nuove occasioni: viaggi, tirocini e programmi europei.</p>
                 ) : (
                   <ul className="opp-list">
-                    {opps.slice(0, 3).map((o) => (
-                      <li key={o.id} className="opp">
-                        <span className="chip">{CATEGORY_LABEL[o.category] || o.category}</span>
-                        <strong>{o.title}</strong>
-                        {o.deadline && <span className="opp__deadline">Scade il {formatDate(o.deadline)}</span>}
+                    {opps.filter((o) => !o.locked).slice(0, 3).map((o) => (
+                      <li key={o.id}>
+                        <Link to="/opportunita" className="opp">
+                          <TagChip tag={o.tag} />
+                          <strong>{o.title}</strong>
+                          {o.deadline && <span className="opp__deadline">Scade il {formatDate(o.deadline)}</span>}
+                        </Link>
                       </li>
                     ))}
                   </ul>
                 )}
+                {!plan.premium && opps.some((o) => o.locked) && (
+                  <p className="small muted opp-more">
+                    + altre {opps.filter((o) => o.locked).length} con <Link to="/premium" className="link-quiet">Premium</Link>
+                  </p>
+                )}
               </section>
+
+              {!plan.premium && (
+                <Link to="/premium" className="teaser">
+                  <span className="teaser__arch" aria-hidden="true" />
+                  <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · {PREMIUM_PRICE} al mese</span>
+                  <strong className="teaser__title">La sala riservata.</strong>
+                  <span className="teaser__text">Cene a numero chiuso, incontri con Andrea, lezioni esclusive e tutte le opportunità.</span>
+                  <span className="teaser__go">Scopri cosa c'è dentro <LuArrowRight aria-hidden="true" /></span>
+                </Link>
+              )}
             </>
           );
         })()}

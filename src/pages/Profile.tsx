@@ -3,12 +3,12 @@ import { useAuth } from '../lib/auth';
 import { auth } from '../lib/api';
 import { listProgress, listAttempts, saveDisplayName } from '../lib/data';
 import { Button, Screen, TopBar, useAsync, toast } from '../components/ui';
-import { navigate } from '../lib/router';
+import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound } from 'react-icons/lu';
 
 export default function Profile() {
-  const { session, displayName, setDisplayName } = useAuth();
+  const { session, displayName, setDisplayName, plan } = useAuth();
   const stats = useAsync(async () => {
     const [p, a] = await Promise.all([listProgress(), listAttempts()]);
     const best = a.reduce((m, x) => Math.max(m, x.max_score ? x.score / x.max_score : 0), 0);
@@ -75,6 +75,12 @@ export default function Profile() {
         </section>
 
         <ul className="menu">
+          <li>
+            <Link to="/premium" className="menu__link">
+              <span><LuKeyRound /> Piano</span>
+              <em className={plan.premium ? 'is-premium' : ''}>{plan.premium ? 'Premium' : plan.waitlist ? 'Free · in lista Premium' : 'Free · scopri Premium'}</em>
+            </Link>
+          </li>
           <li><span><LuShieldCheck /> Informativa privacy</span><em>in preparazione</em></li>
           <li><span><LuFileText /> Termini di servizio</span><em>in preparazione</em></li>
         </ul>

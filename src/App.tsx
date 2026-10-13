@@ -13,6 +13,7 @@ import Lesson from './pages/Lesson';
 import Quiz from './pages/Quiz';
 import Opportunities from './pages/Opportunities';
 import Profile from './pages/Profile';
+import Premium from './pages/Premium';
 
 // Supabase email links land with tokens in the fragment: adopt them before routing.
 (function adoptEmailLink() {
@@ -47,6 +48,7 @@ function Routes() {
   if (path === '/academy') return <Academy />;
   if (path === '/opportunita') return <Opportunities />;
   if (path === '/profilo') return <Profile />;
+  if (path === '/premium') return <Premium />;
   let p;
   if ((p = match('/corso/:slug', path))) return <Course slug={p.slug} />;
   if ((p = match('/lezione/:id', path))) return <Lesson id={p.id} />;

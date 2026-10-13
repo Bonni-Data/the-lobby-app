@@ -204,6 +204,16 @@ export async function upsert<T = any>(table: string, rows: any, onConflict?: str
   }, token);
 }
 
+/** Insert that silently skips rows already present (ON CONFLICT DO NOTHING). */
+export async function insertIgnore(table: string, rows: any): Promise<void> {
+  const token = await validToken();
+  await raw(`/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' },
+    body: JSON.stringify(rows),
+  }, token);
+}
+
 export async function update<T = any>(table: string, filter: string, patch: any): Promise<T[]> {
   const token = await validToken();
   return raw(`/rest/v1/${table}?${filter}`, {

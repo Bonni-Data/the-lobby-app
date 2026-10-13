@@ -1,4 +1,4 @@
-import { select, upsert, update, rpc, currentSession } from './api';
+import { select, upsert, update, rpc, insertIgnore, currentSession } from './api';
 
 export type Lesson = {
   id: string;
@@ -25,15 +25,34 @@ export type Course = {
   course_modules: Module[];
 };
 export type Progress = { lesson_id: string; status: 'in_progress' | 'completed'; completed_at?: string | null; updated_at: string };
+export type OppTag = 'viaggio' | 'lavoro' | 'sviluppo';
 export type Opportunity = {
   id: string;
-  title: string;
+  title: string | null;
   organization?: string | null;
   category: string;
+  tag: OppTag;
   summary?: string | null;
+  requirements?: string | null;
+  covered?: string | null;
   location?: string | null;
   deadline?: string | null;
+  deadline_note?: string | null;
+  opens_on?: string | null;
   url?: string | null;
+  source?: string | null;
+  is_new: boolean;
+  locked: boolean;
+};
+export type Plan = { premium: boolean; waitlist: boolean };
+export type PremiumEvent = {
+  id: string;
+  kind: 'cena' | 'incontro' | 'lezione' | 'evento';
+  title: string;
+  summary?: string | null;
+  starts_at?: string | null;
+  location?: string | null;
+  seats?: number | null;
 };
 export type QuizQuestion = { id: string; position: number; prompt: string; options: string[] };
 export type Quiz = { id: string; title: string; lesson_id: string; quiz_questions: QuizQuestion[] };
@@ -119,10 +138,27 @@ export async function listAttempts() {
   );
 }
 
+/** Ranked feed: free members get the first 3 in full, the rest come back locked. */
 export async function listOpportunities(): Promise<Opportunity[]> {
-  return select<Opportunity>(
-    'opportunities',
-    'select=id,title,organization,category,summary,location,deadline,url&status=eq.published&order=deadline.asc.nullslast',
+  if (!currentSession()) return [];
+  return (await rpc<Opportunity[]>('opportunities_feed', {})) || [];
+}
+
+export async function getPlan(): Promise<Plan> {
+  if (!currentSession()) return { premium: false, waitlist: false };
+  return rpc<Plan>('my_plan', {});
+}
+
+export async function joinWaitlist() {
+  const s = currentSession();
+  if (!s) return;
+  await insertIgnore('premium_waitlist', { user_id: s.user.id });
+}
+
+export async function listPremiumEvents(): Promise<PremiumEvent[]> {
+  return select<PremiumEvent>(
+    'premium_events',
+    'select=id,kind,title,summary,starts_at,location,seats&status=eq.published&order=starts_at.asc.nullslast',
   );
 }
 
@@ -172,4 +208,20 @@ export const CATEGORY_LABEL: Record<string, string> = {
   evento: 'Evento',
   finanziamento: 'Finanziamento',
   formazione: 'Formazione',
+  volontariato: 'Volontariato',
+  concorso: 'Concorso',
+  programma: 'Programma',
 };
+export const TAG_LABEL: Record<OppTag, string> = { viaggio: 'Viaggio gratis', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
+export const PREMIUM_PRICE = '12,90 €';
+export const FREE_OPPORTUNITIES = 3;
+
+/** Days left until a YYYY-MM-DD date (local), or null. */
+export function daysUntil(date?: string | null): number | null {
+  if (!date) return null;
+  const [y, m, d] = date.split('-').map(Number);
+  const end = new Date(y, m - 1, d).getTime();
+  const t = new Date();
+  const today = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
+  return Math.round((end - today) / 86400000);
+}

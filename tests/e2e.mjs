@@ -31,6 +31,7 @@ const course2 = {
 let loggedIn = false;
 let progress = [];
 let attempts = [];
+let waitlisted = false;
 const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
 let failures = [];
@@ -103,7 +104,10 @@ async function mock(route) {
     ] });
   }
   if (path === '/rest/v1/quiz_attempts') return json(200, attempts);
-  if (path === '/rest/v1/opportunities') return json(200, globalThis.__opps || []);
+  if (path === '/rest/v1/rpc/opportunities_feed') return json(200, globalThis.__opps || []);
+  if (path === '/rest/v1/rpc/my_plan') return json(200, { premium: false, waitlist: waitlisted });
+  if (path === '/rest/v1/premium_waitlist') { waitlisted = true; return route.fulfill({ status: 201, body: '' }); }
+  if (path === '/rest/v1/premium_events') return json(200, []);
   if (path === '/rest/v1/profiles') {
     if (req.method() === 'PATCH') return json(200, [{ id: uid, display_name: body.display_name }]);
     return json(200, [{ id: uid, display_name: 'Andrea Bonazzi' }]);
@@ -195,13 +199,42 @@ await shot('08-quiz-result');
 await page.goto(base + '#/opportunita');
 await page.waitForSelector('.empty');
 await shot('09-opps-empty');
+const opp = (id, tag, extra = {}) => ({ id, tag, category: 'programma', is_new: false, locked: false, title: null, organization: null, summary: null,
+    requirements: null, covered: null, location: null, deadline: null, deadline_note: null, opens_on: null, url: null, source: null, ...extra });
 globalThis.__opps = [
-  { id: 'o1', title: 'Tirocini Schuman al Parlamento europeo', organization: 'Parlamento europeo', category: 'tirocinio', summary: 'Cinque mesi retribuiti a Bruxelles o Lussemburgo.', location: 'Bruxelles', deadline: new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10), url: 'https://example.com' },
-  { id: 'o2', title: 'Servizio civile universale', organization: 'Dipartimento per le politiche giovanili', category: 'bando', summary: 'Progetti di 12 mesi in enti pubblici e terzo settore.', location: 'Italia', deadline: new Date(Date.now() + 40 * 86400000).toISOString().slice(0, 10), url: 'https://example.com' },
+  opp('o1', 'viaggio', { title: 'Delegato giovane all’Assemblea generale ONU', organization: 'SIOI', category: 'bando', is_new: true,
+    summary: 'Rappresenti i giovani italiani a New York, dentro la settimana più importante dell’ONU.', requirements: '18-26 anni, cittadinanza italiana, inglese C1',
+    covered: 'Viaggio e alloggio pagati', location: 'New York', deadline: new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10), deadline_note: 'ore 12:00', url: 'https://example.com/1' }),
+  opp('o2', 'lavoro', { title: 'Tirocini Schuman al Parlamento europeo', organization: 'Parlamento europeo', category: 'tirocinio',
+    summary: 'Cinque mesi dentro il Parlamento, a Bruxelles o Lussemburgo.', requirements: 'Laurea, 18+ anni, inglese o francese', covered: 'Borsa di circa 1.500 € al mese',
+    location: 'Bruxelles', deadline: new Date(Date.now() + 40 * 86400000).toISOString().slice(0, 10), url: 'https://example.com/2' }),
+  opp('o3', 'sviluppo', { title: 'Corpo europeo di solidarietà', organization: 'Commissione europea', category: 'volontariato',
+    summary: 'Volontariato in Europa da 2 a 12 mesi: impari, viaggi, conosci gente.', requirements: '18-30 anni', location: 'Varie città UE', url: 'https://example.com/3' }),
+  opp('o4', 'sviluppo', { locked: true, deadline: new Date(Date.now() + 9 * 86400000).toISOString().slice(0, 10) }),
+  opp('o5', 'lavoro', { locked: true, deadline: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10) }),
 ];
 await page.reload();
 await page.waitForSelector('.opp-card');
+await check(page.locator('.opp-card--locked').count().then((n) => n === 2), 'two locked cards');
+await check(page.textContent('.nudge__title').then((t) => t.includes('Altre 2')), 'premium nudge count');
 await shot('10-opps');
+await page.click('.chip--btn:has-text("Viaggio gratis")');
+await check(page.locator('.opp-card').count().then((n) => n === 1), 'tag filter');
+
+// 9b. Home shows the 3 free ones + Premium teaser
+await page.click('.tabbar__item:has-text("Home")');
+await page.waitForSelector('.teaser');
+await check(page.locator('.opp-list li').count().then((n) => n === 3), 'home shows 3 free opportunities');
+await shot('10b-home-opps');
+
+// 9c. Premium page + waitlist
+await page.click('.tabbar__item:has-text("Premium")');
+await page.waitForSelector('.premium-hero');
+await shot('10c-premium');
+await page.click('button:has-text("Voglio entrare")');
+await page.waitForSelector('.premium-hero__status');
+await check(page.textContent('.premium-hero__status').then((t) => t.includes('Sei in lista')), 'waitlist joined');
+await shot('10d-premium-waitlist');
 
 // 10. Profile + logout
 await page.click('.tabbar__item:has-text("Profilo")');

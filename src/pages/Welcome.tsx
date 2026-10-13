@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync } from '../components/ui';
 import { listCourses, LEVEL_LABEL } from '../lib/data';
-import { LuLandmark, LuGraduationCap, LuCompass } from 'react-icons/lu';
+import { LuLandmark, LuGraduationCap, LuCompass, LuKeyRound } from 'react-icons/lu';
 
 export default function Welcome() {
   const courses = useAsync(() => listCourses(), []);
@@ -18,9 +18,9 @@ export default function Welcome() {
         <div className="welcome__brand">
           <Wordmark tone="ivory" size={44} />
         </div>
-        <p className="welcome__tagline">Le istituzioni, viste da dentro.</p>
+        <p className="welcome__tagline">Il primo investimento sei tu.</p>
         <p className="welcome__lead">
-          Corsi brevi su come funzionano davvero Comuni, Parlamento ed Europa, con le opportunità per costruirci una carriera.
+          Pochi minuti al giorno per capire come funzionano davvero Comuni, Parlamento ed Europa. E ogni mattina, nuove porte da aprire.
         </p>
         <div className="welcome__ctas">
           <ButtonLink to="/accedi?tab=registrati" variant="primary" block>
@@ -52,8 +52,15 @@ export default function Welcome() {
           <li>
             <LuCompass aria-hidden="true" />
             <div>
-              <strong>Opportunità selezionate</strong>
-              <span>Bandi, tirocini e programmi europei, con le scadenze in vista.</span>
+              <strong>Occasioni ogni mattina</strong>
+              <span>Viaggi, tirocini e programmi europei, aggiornati ogni giorno alle 7.</span>
+            </div>
+          </li>
+          <li>
+            <LuKeyRound aria-hidden="true" />
+            <div>
+              <strong>La sala riservata</strong>
+              <span>Con Premium: cene, incontri dal vivo e lezioni esclusive.</span>
             </div>
           </li>
         </ul>
@@ -65,7 +72,7 @@ export default function Welcome() {
           <div className="doors-row">
             {courses.data.map((c) => (
               <a key={c.id} href="#/accedi?tab=registrati" className="door-card">
-                <DoorCover title={c.title} level={LEVEL_LABEL[c.level]} />
+                <DoorCover title={c.title} level={LEVEL_LABEL[c.level] + (c.access_level === 'premium' ? ' · Premium' : '')} />
               </a>
             ))}
           </div>

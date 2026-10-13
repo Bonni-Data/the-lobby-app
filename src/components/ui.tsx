@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useLocation } from '../lib/router';
-import { LuHouse, LuLibrary, LuCompass, LuUser, LuArrowLeft, LuWifiOff } from 'react-icons/lu';
+import { LuHouse, LuLibrary, LuCompass, LuUser, LuArrowLeft, LuWifiOff, LuKeyRound } from 'react-icons/lu';
 
 /* ---------- Brand ---------- */
 
@@ -73,6 +73,7 @@ export function TabBar() {
     { to: '/home', label: 'Home', icon: <LuHouse />, active: path === '/home' || path === '/' },
     { to: '/academy', label: 'Academy', icon: <LuLibrary />, active: path.startsWith('/academy') || path.startsWith('/corso') || path.startsWith('/lezione') || path.startsWith('/quiz') },
     { to: '/opportunita', label: 'Opportunità', icon: <LuCompass />, active: path.startsWith('/opportunita') },
+    { to: '/premium', label: 'Premium', icon: <LuKeyRound />, active: path.startsWith('/premium') },
     { to: '/profilo', label: 'Profilo', icon: <LuUser />, active: path.startsWith('/profilo') },
   ];
   return (

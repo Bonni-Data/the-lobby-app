@@ -1,31 +1,37 @@
-import React, { useMemo, useState } from 'react';
-import { listOpportunities, CATEGORY_LABEL } from '../lib/data';
-import { Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
-import { LuExternalLink, LuMapPin, LuCalendar } from 'react-icons/lu';
+import React, { useState } from 'react';
+import { listOpportunities, OppTag, TAG_LABEL, FREE_OPPORTUNITIES } from '../lib/data';
+import { useAuth } from '../lib/auth';
+import { Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
+import { OppCard, LockedCard, PremiumNudge } from '../components/opps';
+
+const FILTERS: ('tutte' | OppTag)[] = ['tutte', 'viaggio', 'lavoro', 'sviluppo'];
 
 export default function Opportunities() {
-  const data = useAsync(() => listOpportunities(), []);
-  const [cat, setCat] = useState('tutte');
+  const { plan } = useAuth();
+  const data = useAsync(() => listOpportunities(), [plan.premium]);
+  const [tag, setTag] = useState<'tutte' | OppTag>('tutte');
 
-  const cats = useMemo(() => {
-    const set = new Set((data.data || []).map((o) => o.category));
-    return ['tutte', ...Array.from(set)];
-  }, [data.data]);
-
-  const items = (data.data || []).filter((o) => cat === 'tutte' || o.category === cat);
+  const all = data.data || [];
+  const items = all.filter((o) => tag === 'tutte' || o.tag === tag);
+  const open = items.filter((o) => !o.locked);
+  const locked = items.filter((o) => o.locked);
+  const lockedTotal = all.filter((o) => o.locked).length;
 
   return (
     <Screen>
       <TopBar />
       <main className="page">
         <h1 className="h-page">Opportunità</h1>
-        <p className="muted">Bandi, tirocini e programmi selezionati, con la scadenza sempre in vista.</p>
+        <p className="muted">
+          Aggiornate ogni mattina alle 7.{' '}
+          {!plan.premium && lockedTotal > 0 && `Le prime ${FREE_OPPORTUNITIES} sono per tutti, la lista completa è Premium.`}
+        </p>
 
-        {cats.length > 2 && (
+        {all.length > 0 && (
           <div className="chips" role="group" aria-label="Filtra per tipo">
-            {cats.map((c) => (
-              <button key={c} className={`chip chip--btn ${cat === c ? 'is-on' : ''}`} onClick={() => setCat(c)} aria-pressed={cat === c}>
-                {c === 'tutte' ? 'Tutte' : CATEGORY_LABEL[c] || c}
+            {FILTERS.map((f) => (
+              <button key={f} className={`chip chip--btn ${tag === f ? 'is-on' : ''}`} onClick={() => setTag(f)} aria-pressed={tag === f}>
+                {f === 'tutte' ? 'Tutte' : TAG_LABEL[f]}
               </button>
             ))}
           </div>
@@ -33,38 +39,25 @@ export default function Opportunities() {
 
         {data.loading && <Spinner />}
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
-        {data.data && items.length === 0 && (
-          <Empty
-            title="In preparazione"
-            text="Stiamo selezionando le prime opportunità. Le trovi qui appena pubblicate, con scadenze e requisiti."
-          />
+        {data.data && all.length === 0 && (
+          <Empty title="In arrivo" text="Stiamo selezionando le prime opportunità. Ogni mattina alle 7 la lista si aggiorna." />
+        )}
+        {data.data && all.length > 0 && items.length === 0 && (
+          <Empty title="Niente qui, per oggi" text="In questa categoria non c'è nulla di aperto. Domattina la lista si aggiorna." />
         )}
 
         <ul className="opp-cards">
-          {items.map((o) => {
-            const days = o.deadline ? Math.ceil((new Date(o.deadline).getTime() - Date.now()) / 86400000) : null;
-            return (
-              <li key={o.id} className="opp-card">
-                <div className="opp-card__top">
-                  <span className="chip">{CATEGORY_LABEL[o.category] || o.category}</span>
-                  {days !== null && days >= 0 && days <= 14 && <span className="chip chip--urgent">{days === 0 ? 'Scade oggi' : `${days} giorni`}</span>}
-                </div>
-                <h2 className="opp-card__title">{o.title}</h2>
-                {o.organization && <p className="opp-card__org">{o.organization}</p>}
-                {o.summary && <p className="opp-card__sum">{o.summary}</p>}
-                <p className="opp-card__meta">
-                  {o.deadline && (<span><LuCalendar /> Scadenza {formatDate(o.deadline)}</span>)}
-                  {o.location && (<span><LuMapPin /> {o.location}</span>)}
-                </p>
-                {o.url && (
-                  <a className="btn btn--secondary btn--block" href={o.url} target="_blank" rel="noopener noreferrer">
-                    Vai al bando <LuExternalLink />
-                  </a>
-                )}
-              </li>
-            );
-          })}
+          {open.map((o) => <OppCard key={o.id} o={o} />)}
         </ul>
+
+        {locked.length > 0 && (
+          <>
+            <PremiumNudge count={locked.length} />
+            <ul className="opp-cards opp-cards--locked">
+              {locked.slice(0, 6).map((o) => <LockedCard key={o.id} o={o} />)}
+            </ul>
+          </>
+        )}
       </main>
     </Screen>
   );

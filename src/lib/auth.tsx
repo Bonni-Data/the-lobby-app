@@ -1,14 +1,17 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, currentSession, onSession, refresh } from './api';
-import { getProfile } from './data';
+import { getProfile, getPlan, Plan } from './data';
 
 type AuthState = {
   session: Session | null;
   displayName: string;
   setDisplayName: (n: string) => void;
+  plan: Plan;
+  setPlan: (p: Plan) => void;
 };
 
-const Ctx = createContext<AuthState>({ session: null, displayName: '', setDisplayName: () => {} });
+const FREE: Plan = { premium: false, waitlist: false };
+const Ctx = createContext<AuthState>({ session: null, displayName: '', setDisplayName: () => {}, plan: FREE, setPlan: () => {} });
 
 function nameFrom(s: Session | null) {
   const meta = s?.user?.user_metadata || {};
@@ -18,10 +21,12 @@ function nameFrom(s: Session | null) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(currentSession());
   const [displayName, setDisplayName] = useState<string>(nameFrom(currentSession()));
+  const [plan, setPlan] = useState<Plan>(FREE);
 
   useEffect(() => onSession((s) => {
     setSession(s);
     setDisplayName(nameFrom(s));
+    if (!s) setPlan(FREE);
   }), []);
 
   // Refresh an expired stored session on start-up.
@@ -35,10 +40,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getProfile()
       .then((p) => p?.display_name && setDisplayName(p.display_name))
       .catch(() => {});
+    getPlan().then(setPlan).catch(() => {});
   }, [session?.user?.id]);
 
-  const set = useCallback((n: string) => setDisplayName(n), []);
-  return <Ctx.Provider value={{ session, displayName, setDisplayName: set }}>{children}</Ctx.Provider>;
+  const setName = useCallback((n: string) => setDisplayName(n), []);
+  const setP = useCallback((p: Plan) => setPlan(p), []);
+  return (
+    <Ctx.Provider value={{ session, displayName, setDisplayName: setName, plan, setPlan: setP }}>{children}</Ctx.Provider>
+  );
 }
 
 export function useAuth() {

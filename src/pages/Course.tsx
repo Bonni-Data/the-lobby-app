@@ -2,9 +2,11 @@ import React from 'react';
 import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, LEVEL_LABEL } from '../lib/data';
 import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
-import { LuCircleCheck, LuCirclePlay, LuTarget } from 'react-icons/lu';
+import { useAuth } from '../lib/auth';
+import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound } from 'react-icons/lu';
 
 export default function Course({ slug }: { slug: string }) {
+  const { plan } = useAuth();
   const data = useAsync(async () => {
     const [course, progress] = await Promise.all([getCourse(slug), listProgress()]);
     return { course, progress };
@@ -23,18 +25,23 @@ export default function Course({ slug }: { slug: string }) {
           const done = completedIn(c, progress);
           const next = nextLesson(c, progress);
           const doneSet = new Set(progress.filter((p) => p.status === 'completed').map((p) => p.lesson_id));
+          const locked = c.access_level === 'premium' && !plan.premium;
           return (
             <>
               <section className="course-hero">
                 <div className="course-hero__arch" aria-hidden="true" />
-                <span className="course-hero__level">{LEVEL_LABEL[c.level]}</span>
+                <span className="course-hero__level">
+                  {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'}
+                </span>
                 <h1 className="course-hero__title">{c.title}</h1>
                 {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
                 <div className="course-hero__progress">
                   <ArchProgress value={total ? done / total : 0} size={44} />
                   <span>{done} di {total} lezioni<br />circa {courseMinutes(c)} minuti</span>
                 </div>
-                {next ? (
+                {locked ? (
+                  <ButtonLink to="/premium" block><LuKeyRound aria-hidden="true" /> Sblocca con Premium</ButtonLink>
+                ) : next ? (
                   <ButtonLink to={`/lezione/${next.id}`} block>{done === 0 ? 'Inizia il corso' : 'Continua'}</ButtonLink>
                 ) : total > 0 ? (
                   <p className="course-hero__done">Hai completato tutte le lezioni.</p>
@@ -58,7 +65,9 @@ export default function Course({ slug }: { slug: string }) {
                 <section className="block">
                   <h2 className="h-section">Programma</h2>
                   {total === 0 && (
-                    <p className="muted">Le lezioni sono visibili dopo l'accesso.</p>
+                    <p className="muted">
+                      {locked ? 'Le lezioni di questo corso sono riservate agli abbonati Premium.' : 'Le lezioni di questo corso arrivano a breve.'}
+                    </p>
                   )}
                   <ol className="modules">
                     {c.course_modules.map((m) => (
