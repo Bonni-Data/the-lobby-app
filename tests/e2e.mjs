@@ -58,6 +58,7 @@ async function mock(route) {
   }
   if (path === '/auth/v1/signup') {
     if (taken.has(body.email)) return json(422, { code: 422, error_code: 'user_already_exists', msg: 'User already registered' });
+    if (!body.data?.terms_accepted_at) failures.push('FAIL signup without terms metadata');
     taken.add(body.email); users[body.email] = body.password; loggedIn = true;
     return json(200, session(body.email, body.data?.full_name));
   }
@@ -144,6 +145,11 @@ await page.fill('input[autocomplete="new-password"] >> nth=0', 'qualcosa123');
 await page.fill('input[autocomplete="new-password"] >> nth=1', 'qualcosa123');
 await page.click('button[type="submit"]');
 await page.waitForSelector('.alert');
+await check(page.textContent('.alert').then((t) => t.includes('accetta i Termini')), 'terms acceptance required');
+await page.check('.check input');
+await page.click('button[type="submit"]');
+await page.waitForSelector('.alert:has-text("già registrata")');
+await page.waitForSelector('.alert');
 await check(page.textContent('.alert').then((t) => t.includes('già registrata')), 'email già registrata message');
 await check(page.getAttribute('.segmented button[aria-selected="true"]', 'aria-selected').then(() => page.textContent('.segmented .is-on')).then((t) => t.trim() === 'Accedi'), 'switched to Accedi tab');
 await shot('02-signup-email-taken');
@@ -160,6 +166,7 @@ await page.fill('input[autocomplete="given-name"]', 'Giulia Rossi');
 await page.fill('input[type="email"]', 'giulia@example.com');
 await page.fill('input[autocomplete="new-password"] >> nth=0', 'password456');
 await page.fill('input[autocomplete="new-password"] >> nth=1', 'password456');
+await page.check('.check input');
 await page.click('button[type="submit"]');
 await page.waitForSelector('.h-hello');
 await page.waitForSelector('.resume');
@@ -218,7 +225,7 @@ await page.waitForSelector('.opp-card');
 await check(page.locator('.opp-card--locked').count().then((n) => n === 2), 'two locked cards');
 await check(page.textContent('.nudge__title').then((t) => t.includes('Altre 2')), 'premium nudge count');
 await shot('10-opps');
-await page.click('.chip--btn:has-text("Viaggio gratis")');
+await page.click('.chip--btn:has-text("Viaggi")');
 await check(page.locator('.opp-card').count().then((n) => n === 1), 'tag filter');
 
 // 9b. Home shows the 3 free ones + Premium teaser
@@ -244,6 +251,16 @@ await shot('11-profile');
 await page.click('button:has-text("Esci")');
 await page.waitForSelector('.welcome__hero');
 await check(page.evaluate(() => localStorage.getItem('thelobby.session') === null), 'session cleared on logout');
+
+// 10e. Legal pages are public
+await page.goto(base + '#/privacy');
+await page.waitForSelector('.legal h2');
+await check(page.textContent('.legal').then((t) => t.includes('Andrea Bonazzi') && t.includes('Garante')), 'privacy page content');
+await shot('13-privacy');
+await page.goto(base + '#/termini');
+await page.waitForSelector('.legal h2');
+await check(page.textContent('.legal').then((t) => t.includes('Non le organizza, non le finanzia')), 'terms opportunity clause');
+await shot('14-termini');
 
 // 11. Protected route redirects to Accedi when logged out
 await page.goto(base + '#/academy');

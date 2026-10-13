@@ -81,8 +81,8 @@ export default function Profile() {
               <em className={plan.premium ? 'is-premium' : ''}>{plan.premium ? 'Premium' : plan.waitlist ? 'Free · Premium prenotato' : 'Free · prenota Premium'}</em>
             </Link>
           </li>
-          <li><span><LuShieldCheck /> Informativa privacy</span><em>in preparazione</em></li>
-          <li><span><LuFileText /> Termini di servizio</span><em>in preparazione</em></li>
+          <li><Link to="/privacy" className="menu__link"><span><LuShieldCheck /> Informativa privacy</span><em>Leggi</em></Link></li>
+          <li><Link to="/termini" className="menu__link"><span><LuFileText /> Termini di servizio</span><em>Leggi</em></Link></li>
         </ul>
 
         <Button variant="secondary" block onClick={logout}>

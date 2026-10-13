@@ -53,8 +53,8 @@ export default function Welcome() {
           <li>
             <LuCompass aria-hidden="true" />
             <div>
-              <strong>Occasioni ogni mattina</strong>
-              <span>Viaggi, tirocini e programmi europei, aggiornati ogni giorno alle 7.</span>
+              <strong>Tutte le opportunità, in un solo posto</strong>
+              <span>Bandi, tirocini, programmi e viaggi spesati dagli enti: li cerchiamo noi sulle fonti ufficiali, ogni mattina alle 7.</span>
             </div>
           </li>
           <li>
@@ -88,6 +88,10 @@ export default function Welcome() {
       <footer className="welcome__footer">
         <ArchMark size={20} />
         <span>The Lobby Academy · fondata da Andrea Bonazzi</span>
+        <nav className="welcome__legal" aria-label="Note legali">
+          <a href="#/privacy">Privacy</a>
+          <a href="#/termini">Termini</a>
+        </nav>
       </footer>
     </div>
   );

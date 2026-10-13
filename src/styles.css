@@ -580,3 +580,21 @@ img, svg, video { display: block; max-width: 100%; }
 .founder-note { display: grid; grid-template-columns: 46px 1fr; gap: 14px; align-items: start; margin: -6px 0 30px; }
 .founder-note p { margin: 0 0 4px; font-family: var(--f-serif); font-style: italic; font-size: 18px; line-height: 1.35; }
 .founder-note > div > span { font-size: 13px; color: var(--muted); }
+
+/* ---------- Legal pages ---------- */
+.legal h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.15; margin: 26px 0 8px; }
+.legal p, .legal li { font-size: 15.5px; }
+.legal ul { padding-left: 20px; margin: 0 0 12px; display: grid; gap: 8px; }
+.legal a { color: var(--coral-deep); text-underline-offset: 3px; }
+.legal__links { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); }
+
+.check { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 1.45; cursor: pointer; }
+.check input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--coral-deep); }
+.check a { text-underline-offset: 3px; }
+
+.welcome__footer { flex-wrap: wrap; }
+.welcome__legal { display: flex; gap: 14px; margin-left: auto; }
+.welcome__legal a { color: var(--muted); text-underline-offset: 3px; }
+
+.opp-disclaimer { margin: 26px 0 0; padding: 14px 16px; border-radius: var(--r-s); background: #ebe5da; font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+.opp-card__facts .is-covered em { font-style: normal; font-weight: 500; color: var(--muted); }

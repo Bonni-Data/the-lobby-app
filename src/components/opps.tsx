@@ -41,7 +41,7 @@ export function OppCard({ o }: { o: Opportunity }) {
       {(o.covered || o.requirements) && (
         <ul className="opp-card__facts">
           {o.covered && (
-            <li className="is-covered"><LuCircleCheck aria-hidden="true" /> {o.covered}</li>
+            <li className="is-covered"><LuCircleCheck aria-hidden="true" /> <span><em>Offerto dall'ente:</em> {o.covered}</span></li>
           )}
           {o.requirements && (
             <li><LuUserCheck aria-hidden="true" /> {o.requirements}</li>
@@ -60,7 +60,7 @@ export function OppCard({ o }: { o: Opportunity }) {
       </p>
       {o.url && (
         <a className="btn btn--secondary btn--block" href={o.url} target="_blank" rel="noopener noreferrer">
-          Vai al bando <LuExternalLink aria-hidden="true" />
+          Candidati sul sito ufficiale <LuExternalLink aria-hidden="true" />
         </a>
       )}
     </li>
@@ -93,7 +93,7 @@ export function PremiumNudge({ count }: { count: number }) {
       <h2 className="nudge__title">
         {count === 1 ? 'Un’altra occasione ti aspetta.' : `Altre ${count} occasioni ti aspettano.`}
       </h2>
-      <p className="nudge__text">Con Premium vedi la lista completa, aggiornata ogni mattina. {PREMIUM_PRICE} al mese.</p>
+      <p className="nudge__text">Con Premium apri l'archivio completo: tutte le opportunità pubbliche in un solo posto, aggiornate ogni mattina. {PREMIUM_PRICE} al mese.</p>
       <ButtonLink to="/premium" variant="primary">Prenota Premium</ButtonLink>
     </aside>
   );

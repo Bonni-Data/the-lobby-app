@@ -15,9 +15,9 @@ const FEATURES = [
     icon: <LuCompass />,
     kicker: 'Ogni mattina alle 7',
     title: 'Tutte le opportunità. Non solo 3.',
-    text: 'Chi è free vede le prime tre. Tu apri la lista completa, verificata sulle fonti ufficiali e aggiornata ogni giorno: arrivi prima, scegli meglio.',
+    text: 'Le opportunità pubbliche sono sparse su decine di siti. Noi le cerchiamo ogni giorno sulle fonti ufficiali e le mettiamo in un unico archivio: chi è free ne vede tre, tu le vedi tutte. Arrivi prima, scegli meglio.',
     tags: [
-      { icon: <LuPlane />, label: 'Viaggi pagati verso eventi ONU e UE' },
+      { icon: <LuPlane />, label: 'Viaggi spesati dagli enti verso eventi ONU e UE' },
       { icon: <LuBriefcase />, label: 'Tirocini retribuiti nelle istituzioni' },
       { icon: <LuSprout />, label: 'Programmi e fondi per crescere' },
     ],
@@ -47,7 +47,7 @@ const FEATURES = [
 
 const COMPARE: { label: string; free: string | boolean; premium: string | boolean }[] = [
   { label: 'Corsi base e quiz', free: true, premium: true },
-  { label: 'Opportunità ogni mattina', free: 'Le prime 3', premium: 'Tutte' },
+  { label: 'Archivio opportunità, aggiornato ogni mattina', free: 'Le prime 3', premium: 'Tutte' },
   { label: 'Lezioni premium e masterclass', free: false, premium: true },
   { label: 'Cene della Lobby', free: false, premium: true },
   { label: 'Incontri con Andrea', free: false, premium: true },
@@ -56,7 +56,8 @@ const COMPARE: { label: string; free: string | boolean; premium: string | boolea
 const FAQ = [
   { q: 'Devo pagare adesso?', a: 'No. Oggi prenoti soltanto il tuo posto. Quando Premium apre ti scriviamo e decidi tu se attivarlo.' },
   { q: 'Quanto costa?', a: `${PREMIUM_PRICE} al mese, circa ${PER_DAY} al giorno. Disdici quando vuoi.` },
-  { q: 'Cosa si sblocca quando attivo?', a: 'Tutto, subito: la lista completa delle opportunità, le lezioni premium, le cene e gli incontri in calendario.' },
+  { q: 'Cosa si sblocca quando attivo?', a: 'Tutto, subito: l’archivio completo delle opportunità, le lezioni premium, le cene e gli incontri in calendario.' },
+  { q: 'Chi paga i viaggi delle opportunità?', a: 'Gli enti che le pubblicano, quando il bando lo prevede. THE LOBBY non organizza né finanzia le opportunità: le cerca, le verifica sulle fonti ufficiali e te le mette tutte in un solo posto. Ti candidi direttamente sul sito dell’ente.' },
   { q: 'Perché prenotare ora?', a: 'Chi è in lista viene avvisato per primo, prima che Premium apra a tutti.' },
 ];
 

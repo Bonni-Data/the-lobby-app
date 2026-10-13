@@ -98,7 +98,7 @@ export default function Home() {
                   <Link to="/opportunita" className="link-quiet">Apri</Link>
                 </div>
                 {opps.length === 0 ? (
-                  <p className="muted">Ogni mattina alle 7 arrivano nuove occasioni: viaggi, tirocini e programmi europei.</p>
+                  <p className="muted">Ogni mattina alle 7 raccogliamo in un solo posto bandi, tirocini, programmi e viaggi spesati dagli enti.</p>
                 ) : (
                   <ul className="opp-list">
                     {opps.filter((o) => !o.locked).slice(0, 3).map((o) => (

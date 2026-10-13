@@ -212,7 +212,7 @@ export const CATEGORY_LABEL: Record<string, string> = {
   concorso: 'Concorso',
   programma: 'Programma',
 };
-export const TAG_LABEL: Record<OppTag, string> = { viaggio: 'Viaggio gratis', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
+export const TAG_LABEL: Record<OppTag, string> = { viaggio: 'Viaggio spesato', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
 export const PREMIUM_PRICE = '12,90 €';
 export const FREE_OPPORTUNITIES = 3;
 

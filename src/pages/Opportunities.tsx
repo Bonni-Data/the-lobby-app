@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { listOpportunities, OppTag, TAG_LABEL, FREE_OPPORTUNITIES } from '../lib/data';
+import { listOpportunities, OppTag, FREE_OPPORTUNITIES } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
 import { OppCard, LockedCard, PremiumNudge } from '../components/opps';
 
 const FILTERS: ('tutte' | OppTag)[] = ['tutte', 'viaggio', 'lavoro', 'sviluppo'];
+const FILTER_LABEL: Record<string, string> = { tutte: 'Tutte', viaggio: 'Viaggi', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
 
 export default function Opportunities() {
   const { plan } = useAuth();
@@ -23,15 +24,15 @@ export default function Opportunities() {
       <main className="page">
         <h1 className="h-page">Opportunità</h1>
         <p className="muted">
-          Aggiornate ogni mattina alle 7.{' '}
-          {!plan.premium && lockedTotal > 0 && `Le prime ${FREE_OPPORTUNITIES} sono per tutti, la lista completa è Premium.`}
+          Bandi, tirocini, programmi e viaggi pubblicati da istituzioni ed enti, raccolti in un solo posto e aggiornati ogni mattina alle 7.{' '}
+          {!plan.premium && lockedTotal > 0 && `Le prime ${FREE_OPPORTUNITIES} sono per tutti, l'archivio completo è Premium.`}
         </p>
 
         {all.length > 0 && (
           <div className="chips" role="group" aria-label="Filtra per tipo">
             {FILTERS.map((f) => (
               <button key={f} className={`chip chip--btn ${tag === f ? 'is-on' : ''}`} onClick={() => setTag(f)} aria-pressed={tag === f}>
-                {f === 'tutte' ? 'Tutte' : TAG_LABEL[f]}
+                {FILTER_LABEL[f]}
               </button>
             ))}
           </div>
@@ -57,6 +58,13 @@ export default function Opportunities() {
               {locked.slice(0, 6).map((o) => <LockedCard key={o.id} o={o} />)}
             </ul>
           </>
+        )}
+        {all.length > 0 && (
+          <p className="opp-disclaimer">
+            THE LOBBY non organizza né finanzia queste opportunità: le cerca e le raccoglie dalle fonti ufficiali. Viaggi, rimborsi
+            e borse sono offerti dagli enti che le pubblicano, secondo i loro bandi. Prima di candidarti verifica sempre i dettagli
+            sulla pagina ufficiale.
+          </p>
         )}
       </main>
     </Screen>

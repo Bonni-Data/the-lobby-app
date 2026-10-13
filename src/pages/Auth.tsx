@@ -38,6 +38,7 @@ export default function Auth() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ text: string; emailTaken?: boolean } | null>(null);
   const [checkInbox, setCheckInbox] = useState(false);
+  const [accept, setAccept] = useState(false);
 
   function switchTab(t: Tab) {
     setTab(t);
@@ -56,6 +57,7 @@ export default function Auth() {
       if (name.trim().length < 2) return setError({ text: 'Scrivi il tuo nome.' });
       if (password.length < 8) return setError({ text: 'La password deve avere almeno 8 caratteri.' });
       if (password !== confirm) return setError({ text: 'Le due password non coincidono.' });
+      if (!accept) return setError({ text: "Per creare l'account accetta i Termini di servizio." });
     } else if (!password) {
       return setError({ text: 'Inserisci la password.' });
     }
@@ -161,6 +163,16 @@ export default function Auth() {
             </label>
           )}
 
+          {tab === 'registrati' && (
+            <label className="check">
+              <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} />
+              <span>
+                Accetto i <a href="#/termini" target="_blank" rel="noopener">Termini di servizio</a> e ho letto
+                l'<a href="#/privacy" target="_blank" rel="noopener">Informativa privacy</a>.
+              </span>
+            </label>
+          )}
+
           {error && (
             <div className="alert" role="alert">
               {error.text}
@@ -176,9 +188,7 @@ export default function Auth() {
               Password dimenticata?
             </Link>
           )}
-          {tab === 'registrati' && (
-            <p className="tiny muted">Creando l'account accetti i Termini e l'Informativa privacy (in preparazione).</p>
-          )}
+
         </form>
       </div>
     </div>

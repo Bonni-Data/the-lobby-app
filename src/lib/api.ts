@@ -1,5 +1,5 @@
 // Minimal Supabase client (Auth + PostgREST) built on fetch, no dependencies.
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, TERMS_VERSION } from '../config';
 
 export type User = { id: string; email: string; user_metadata?: Record<string, any> };
 export type Session = {
@@ -128,7 +128,7 @@ export const auth = {
   async signUp(email: string, password: string, fullName: string) {
     const body = await raw('/auth/v1/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password, data: { full_name: fullName } }),
+      body: JSON.stringify({ email, password, data: { full_name: fullName, terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() } }),
     });
     const s = toSession(body);
     if (s) save(s);
