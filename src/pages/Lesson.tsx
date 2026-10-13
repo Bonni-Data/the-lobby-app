@@ -3,6 +3,7 @@ import { getLesson, getCourse, listProgress, setProgress, Lesson as L } from '..
 import { Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, toast, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
 import { LuCircleCheck, LuFileText, LuLink, LuPresentation, LuChevronDown } from 'react-icons/lu';
+import { TeacherLine } from '../components/founder';
 
 export default function Lesson({ id }: { id: string }) {
   const data = useAsync(async () => {
@@ -70,7 +71,7 @@ export default function Lesson({ id }: { id: string }) {
                   {lesson.course_modules.title}
                 </p>
                 <h1 className="h-title">{lesson.title}</h1>
-                <p className="muted small">{formatMinutes(lesson.duration_seconds)}</p>
+                <TeacherLine label={formatMinutes(lesson.duration_seconds)} />
                 {lesson.summary && <p className="lede">{lesson.summary}</p>}
 
                 {lesson.transcript && (

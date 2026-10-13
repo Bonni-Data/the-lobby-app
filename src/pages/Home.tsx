@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth';
 import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, PREMIUM_PRICE } from '../lib/data';
 import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
 import { TagChip } from '../components/opps';
+import { FounderAvatar } from '../components/founder';
 import { Link } from '../lib/router';
 import { LuKeyRound, LuArrowRight } from 'react-icons/lu';
 
@@ -47,7 +48,7 @@ export default function Home() {
                     <div className="resume__body">
                       <span className="resume__kicker">{done === 0 ? 'Inizia da qui' : finished ? 'Corso completato' : 'Riprendi il corso'}</span>
                       <h2 className="resume__title">{focus.title}</h2>
-                      <span className="resume__meta">{done} di {total} lezioni</span>
+                      <span className="resume__meta">{done} di {total} lezioni · con Andrea Bonazzi</span>
                       {next ? (
                         <ButtonLink to={`/lezione/${next.id}`}>{done === 0 ? 'Inizia la prima lezione' : 'Continua'}</ButtonLink>
                       ) : (
@@ -82,6 +83,14 @@ export default function Home() {
                 <p>La sovranità appartiene al popolo, che la esercita nelle forme e nei limiti della Costituzione.</p>
                 <cite>Costituzione italiana, articolo 1</cite>
               </blockquote>
+
+              <section className="founder-note">
+                <FounderAvatar size="m" />
+                <div>
+                  <p>“Ogni lezione che completi è un passo da cittadino a protagonista. Ci vediamo dentro.”</p>
+                  <span>Andrea Bonazzi, founder e docente</span>
+                </div>
+              </section>
 
               <section className="block">
                 <div className="block__head">

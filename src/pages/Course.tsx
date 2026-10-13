@@ -3,6 +3,7 @@ import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMi
 import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
 import { useAuth } from '../lib/auth';
+import { TeacherLine } from '../components/founder';
 import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound } from 'react-icons/lu';
 
 export default function Course({ slug }: { slug: string }) {
@@ -35,6 +36,7 @@ export default function Course({ slug }: { slug: string }) {
                 </span>
                 <h1 className="course-hero__title">{c.title}</h1>
                 {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
+                <TeacherLine tone="ivory" />
                 <div className="course-hero__progress">
                   <ArchProgress value={total ? done / total : 0} size={44} />
                   <span>{done} di {total} lezioni<br />circa {courseMinutes(c)} minuti</span>

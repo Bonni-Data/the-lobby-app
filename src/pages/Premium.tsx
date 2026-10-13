@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { listPremiumEvents, joinWaitlist, PremiumEvent, PREMIUM_PRICE } from '../lib/data';
 import { Button, Screen, Spinner, TopBar, toast, useAsync } from '../components/ui';
+import { FounderCard } from '../components/founder';
 import {
   LuCompass, LuUtensils, LuHandshake, LuGraduationCap, LuCheck, LuMinus, LuMapPin, LuUsers, LuCalendarClock, LuPlane, LuBriefcase, LuSprout, LuChevronDown,
 } from 'react-icons/lu';
@@ -26,21 +27,21 @@ const FEATURES = [
     icon: <LuUtensils />,
     kicker: 'A numero chiuso',
     title: 'Le cene della Lobby.',
-    text: 'Pochi posti, un tavolo, conversazioni vere. Persone, storie e percorsi che non trovi in nessun feed, e contatti che restano.',
+    text: 'Pochi posti, un tavolo, Andrea a fare gli onori di casa. Persone, storie e percorsi che non trovi in nessun feed, e contatti che restano.',
   },
   {
     n: '03',
     icon: <LuHandshake />,
     kicker: 'Dal vivo e online',
     title: 'Faccia a faccia con Andrea.',
-    text: 'Domande dirette, risposte vere: cosa studiare, a quale porta bussare, come prepararti a un bando o a un colloquio nelle istituzioni.',
+    text: 'Il founder di THE LOBBY, senza filtri. Domande dirette, risposte vere: cosa studiare, a quale porta bussare, come prepararti a un bando o a un colloquio nelle istituzioni.',
   },
   {
     n: '04',
     icon: <LuGraduationCap />,
     kicker: 'Per andare a fondo',
     title: 'Lezioni premium.',
-    text: 'Masterclass e corsi avanzati per andare oltre le basi: bandi europei, lavoro nelle istituzioni, comunicazione pubblica. Dove il corso base si ferma, tu vai avanti.',
+    text: 'Masterclass e corsi avanzati tenuti da Andrea per andare oltre le basi: bandi europei, lavoro nelle istituzioni, comunicazione pubblica.',
   },
 ];
 
@@ -123,7 +124,7 @@ export default function Premium() {
 
       <main className="page">
         <p className="premium-intro">
-          Hai deciso di investire su di te. Premium è il posto dove quell’investimento rende: più occasioni, più persone giuste, più strumenti.
+          Hai scelto di non restare a guardare. Premium è dove quella scelta diventa esperienza: più occasioni, più persone giuste, più strumenti per contare.
         </p>
 
         <ol className="features">
@@ -146,6 +147,8 @@ export default function Premium() {
             </li>
           ))}
         </ol>
+
+        <FounderCard title="Dall'altra parte del tavolo" />
 
         <section className="block">
           <h2 className="h-section">Free o Premium</h2>
@@ -172,7 +175,8 @@ export default function Premium() {
 
         <section className="premium-close">
           <span className="premium-close__arch" aria-hidden="true" />
-          <h2 className="premium-close__title">Il primo investimento sei tu.</h2>
+          <h2 className="premium-close__title">Non guardare la politica da fuori. Entra.</h2>
+          <p className="premium-close__sign">Andrea Bonazzi, founder di THE LOBBY</p>
           <p className="premium-close__price"><strong>{PREMIUM_PRICE}</strong> al mese · disdici quando vuoi</p>
           {cta('bottom')}
         </section>

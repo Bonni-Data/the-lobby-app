@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync } from '../components/ui';
 import { listCourses, LEVEL_LABEL } from '../lib/data';
+import { FounderCard } from '../components/founder';
 import { LuLandmark, LuGraduationCap, LuCompass, LuKeyRound } from 'react-icons/lu';
 
 export default function Welcome() {
@@ -18,9 +19,9 @@ export default function Welcome() {
         <div className="welcome__brand">
           <Wordmark tone="ivory" size={44} />
         </div>
-        <p className="welcome__tagline">Il primo investimento sei tu.</p>
+        <p className="welcome__tagline">Cittadini si nasce.<br />Protagonisti si diventa.</p>
         <p className="welcome__lead">
-          Pochi minuti al giorno per capire come funzionano davvero Comuni, Parlamento ed Europa. E ogni mattina, nuove porte da aprire.
+          Pochi minuti al giorno per capire come funzionano davvero Comuni, Parlamento ed Europa. Perché chi conosce le regole può cambiare le cose.
         </p>
         <div className="welcome__ctas">
           <ButtonLink to="/accedi?tab=registrati" variant="primary" block>
@@ -66,6 +67,10 @@ export default function Welcome() {
         </ul>
       </section>
 
+      <div className="welcome__section">
+        <FounderCard />
+      </div>
+
       {courses.data && courses.data.length > 0 && (
         <section className="welcome__section">
           <h2 className="h-section">I primi corsi</h2>
@@ -76,13 +81,13 @@ export default function Welcome() {
               </a>
             ))}
           </div>
-          <p className="muted small">Registrati gratis per entrare nei corsi.</p>
+          <p className="muted small">Lezioni tenute da Andrea Bonazzi. Registrati gratis per entrare.</p>
         </section>
       )}
 
       <footer className="welcome__footer">
         <ArchMark size={20} />
-        <span>The Lobby Academy</span>
+        <span>The Lobby Academy · fondata da Andrea Bonazzi</span>
       </footer>
     </div>
   );

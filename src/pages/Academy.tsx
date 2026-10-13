@@ -3,6 +3,7 @@ import { listCourses, listProgress, completedIn, lessonCount, courseMinutes, LEV
 import { DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
 import { Link } from '../lib/router';
 import { LuSearch } from 'react-icons/lu';
+import { TeacherLine } from '../components/founder';
 
 const LEVELS = [
   { id: 'tutti', label: 'Tutti' },
@@ -35,6 +36,7 @@ export default function Academy() {
       <main className="page">
         <h1 className="h-page">Academy</h1>
         <p className="muted">Ogni corso è una porta: entri, segui le lezioni, verifichi con un quiz.</p>
+        <TeacherLine label="founder e docente di tutti i corsi" />
 
         <label className="search">
           <LuSearch aria-hidden="true" />
