@@ -94,7 +94,7 @@ export function PremiumNudge({ count }: { count: number }) {
         {count === 1 ? 'Un’altra occasione ti aspetta.' : `Altre ${count} occasioni ti aspettano.`}
       </h2>
       <p className="nudge__text">Con Premium vedi la lista completa, aggiornata ogni mattina. {PREMIUM_PRICE} al mese.</p>
-      <ButtonLink to="/premium" variant="primary">Scopri Premium</ButtonLink>
+      <ButtonLink to="/premium" variant="primary">Prenota Premium</ButtonLink>
     </aside>
   );
 }

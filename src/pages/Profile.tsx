@@ -78,7 +78,7 @@ export default function Profile() {
           <li>
             <Link to="/premium" className="menu__link">
               <span><LuKeyRound /> Piano</span>
-              <em className={plan.premium ? 'is-premium' : ''}>{plan.premium ? 'Premium' : plan.waitlist ? 'Free · in lista Premium' : 'Free · scopri Premium'}</em>
+              <em className={plan.premium ? 'is-premium' : ''}>{plan.premium ? 'Premium' : plan.waitlist ? 'Free · Premium prenotato' : 'Free · prenota Premium'}</em>
             </Link>
           </li>
           <li><span><LuShieldCheck /> Informativa privacy</span><em>in preparazione</em></li>

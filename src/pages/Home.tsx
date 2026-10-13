@@ -116,7 +116,7 @@ export default function Home() {
                   <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · {PREMIUM_PRICE} al mese</span>
                   <strong className="teaser__title">La sala riservata.</strong>
                   <span className="teaser__text">Cene a numero chiuso, incontri con Andrea, lezioni esclusive e tutte le opportunità.</span>
-                  <span className="teaser__go">Scopri cosa c'è dentro <LuArrowRight aria-hidden="true" /></span>
+                  <span className="teaser__go">Prenota il tuo posto <LuArrowRight aria-hidden="true" /></span>
                 </Link>
               )}
             </>

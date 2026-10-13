@@ -30,7 +30,7 @@ export default function Premium() {
     try {
       await joinWaitlist();
       setPlan({ ...plan, waitlist: true });
-      toast('Fatto: ti avvisiamo appena Premium apre.');
+      toast('Posto prenotato. Ti scriviamo appena Premium apre.');
     } catch {
       toast('Non è andata. Riprova tra poco.');
     } finally {
@@ -52,11 +52,16 @@ export default function Premium() {
         {plan.premium ? (
           <p className="premium-hero__status"><LuCheck aria-hidden="true" /> Sei dentro. Benvenuto nella sala riservata.</p>
         ) : plan.waitlist ? (
-          <p className="premium-hero__status"><LuCheck aria-hidden="true" /> Sei in lista: ti avvisiamo appena Premium apre.</p>
+          <p className="premium-hero__status">
+            <LuCheck aria-hidden="true" />
+            <span>Posto prenotato a {PREMIUM_PRICE} al mese. Ti scriviamo appena Premium apre e decidi tu se attivarlo.</span>
+          </p>
         ) : (
           <div className="premium-hero__cta">
-            <Button onClick={join} loading={busy} block>Voglio entrare</Button>
-            <p className="premium-hero__note">Gli abbonamenti aprono a breve. Mettiti in lista, nessun pagamento adesso.</p>
+            <Button onClick={join} loading={busy} block>Prenota il tuo posto</Button>
+            <p className="premium-hero__note">
+              Premium apre a breve a {PREMIUM_PRICE} al mese, disdici quando vuoi. Oggi prenoti soltanto: nessun pagamento adesso, ti scriviamo all'apertura.
+            </p>
           </div>
         )}
       </section>

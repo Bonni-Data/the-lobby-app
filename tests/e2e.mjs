@@ -231,9 +231,9 @@ await shot('10b-home-opps');
 await page.click('.tabbar__item:has-text("Premium")');
 await page.waitForSelector('.premium-hero');
 await shot('10c-premium');
-await page.click('button:has-text("Voglio entrare")');
+await page.click('button:has-text("Prenota il tuo posto")');
 await page.waitForSelector('.premium-hero__status');
-await check(page.textContent('.premium-hero__status').then((t) => t.includes('Sei in lista')), 'waitlist joined');
+await check(page.textContent('.premium-hero__status').then((t) => t.includes('Posto prenotato a 12,90 €')), 'waitlist joined');
 await shot('10d-premium-waitlist');
 
 // 10. Profile + logout
