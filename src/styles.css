@@ -931,3 +931,35 @@ img, svg, video { display: block; max-width: 100%; }
 .lesson-text ol li::marker { font-family: var(--f-display); font-weight: 700; color: var(--coral-deep); }
 .lesson-text li > ul { margin: 6px 0 0; gap: 4px; }
 .lesson-text ul li::marker { color: var(--coral-deep); }
+
+/* ---------- Video lessons (Bunny Stream) ---------- */
+.player--embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-connect__steps { margin: 0 0 6px; padding-left: 20px; display: grid; gap: 6px; font-size: 14.5px; }
+.video-connect__steps a { color: var(--coral-deep); font-weight: 600; }
+.video-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 4px 0 6px; font-size: 14px; color: var(--muted); }
+.video-summary strong { color: var(--navy); font-size: 18px; font-family: var(--f-display); }
+.video-summary .link-quiet { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; }
+.video-tip { display: flex; gap: 6px; align-items: center; margin: 0 0 18px; }
+.vcourse { margin: 0 0 24px; }
+.vcourse .h-section { font-size: 21px; }
+.vlessons { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.vlesson { padding: 14px 16px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-m); display: grid; gap: 8px; }
+.vlesson--live { border-color: #b9d5c4; }
+.vlesson--ready { border-color: var(--coral); }
+.vlesson__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.vlesson__title { font-size: 15.5px; line-height: 1.3; }
+.vlesson__meta { font-size: 13px; color: var(--muted); }
+.vlesson__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.vlesson__actions .btn { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+.vlesson__actions .btn svg { margin-right: 6px; }
+.vlesson__progress { display: grid; gap: 6px; }
+.vlesson__progress > span { display: block; height: 6px; border-radius: 6px; background: var(--coral); transition: width .3s ease; }
+.vlesson__progress { background: linear-gradient(var(--line), var(--line)) no-repeat 0 0 / 100% 6px; border-radius: 6px; }
+.vlesson__progress small { font-size: 12.5px; color: var(--muted); }
+.vchip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #ebe5da; color: var(--navy); }
+.vchip--live { background: #e4ecdf; color: #2c5440; }
+.vchip--ready { background: var(--coral); color: var(--navy); }
+.vchip--processing, .vchip--uploading { background: var(--navy); color: var(--ivory); }
+.vchip--error { background: #ffe1da; color: #8c2a17; }
+.spin { animation: spin 1.2s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

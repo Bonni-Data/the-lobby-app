@@ -27,7 +27,7 @@ function CourseRow({ c, progress, admin }: { c: Course; progress: Progress[]; ad
       <Link to={`/corso/${c.slug}`} className={`course-row ${coming ? 'is-coming' : ''}`}>
         <DoorCover title={c.title} small />
         <div className="course-row__body">
-          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}{coming && <em className="chip chip--soon">In arrivo</em>}{drafts > 0 && <em className="chip chip--draft">Bozza da validare</em>}</span>
+          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}{coming && <em className="chip chip--soon">In arrivo</em>}{drafts > 0 && <em className="chip chip--draft">{c.access_level === 'premium' ? 'Video da caricare' : 'Bozza da validare'}</em>}</span>
           <strong className="course-row__title">{c.title}</strong>
           {c.subtitle && <span className="course-row__sub">{c.subtitle}</span>}
           <span className="course-row__meta">

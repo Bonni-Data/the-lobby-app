@@ -223,6 +223,12 @@ export async function update<T = any>(table: string, filter: string, patch: any)
   }, token);
 }
 
+/** Calls a Supabase Edge Function as the signed-in user. */
+export async function invoke<T = any>(fn: string, body: Record<string, any>): Promise<T> {
+  const token = await validToken();
+  return raw(`/functions/v1/${fn}`, { method: 'POST', body: JSON.stringify(body) }, token);
+}
+
 export async function rpc<T = any>(fn: string, args: Record<string, any>): Promise<T> {
   const token = await validToken();
   return raw(`/rest/v1/rpc/${fn}`, { method: 'POST', body: JSON.stringify(args) }, token);

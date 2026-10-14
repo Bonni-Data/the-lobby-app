@@ -62,6 +62,7 @@ export function Privacy() {
       <p>Ci appoggiamo a fornitori che trattano i dati come responsabili del trattamento, solo per erogare il servizio:</p>
       <ul>
         <li><strong>Supabase</strong> (database, autenticazione ed email di servizio): i dati sono ospitati nell'Unione europea, a Francoforte.</li>
+        <li><strong>Bunny.net</strong> (BunnyWay d.o.o., Slovenia): ospita e trasmette le video lezioni. Quando guardi un video riceve dati tecnici come l'indirizzo IP e il tipo di dispositivo.</li>
         <li><strong>GitHub</strong> (pubblicazione delle pagine dell'app): può trattare dati tecnici come l'indirizzo IP, anche negli Stati Uniti.</li>
         <li><strong>Google Fonts</strong> (caratteri tipografici): per mostrarti i caratteri il browser contatta i server di Google, che ricevono il tuo indirizzo IP.</li>
         <li><strong>FormSubmit</strong> (inoltro email): quando invii una candidatura a Premium, ne inoltra una copia alla casella di THE LOBBY. Può trattare i dati anche fuori dall'UE.</li>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Course, draftCount, lessonCount, publishCourse } from '../lib/data';
-import { Button, toast } from './ui';
+import { Button, ButtonLink, toast } from './ui';
 import { LuEyeOff, LuSend } from 'react-icons/lu';
 
 /** Founder-only box: course is a draft, review it and publish in two taps. */
@@ -9,12 +9,21 @@ export function DraftPanel({ course, onPublished, compact }: { course: Course; o
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   if (drafts === 0) return null;
+  if (course.access_level === 'premium') {
+    return (
+      <section className={`draft-panel ${compact ? 'draft-panel--compact' : ''}`} aria-label="Video da caricare">
+        <span className="draft-panel__kicker"><LuEyeOff aria-hidden="true" /> In preparazione · visibile solo a te</span>
+        <p className="draft-panel__text">Le lezioni Premium vanno online una alla volta: carichi il video, Bunny lo prepara e tu premi Pubblica.</p>
+        <ButtonLink to="/admin?sezione=video" block={!compact}>Vai ai video</ButtonLink>
+      </section>
+    );
+  }
 
   async function publish() {
     setBusy(true);
     try {
       const n = await publishCourse(course.slug);
-      toast(`Pubblicato: ${n} lezioni ora visibili a tutti.`);
+      toast(n === 1 ? 'Pubblicato: 1 lezione ora visibile a tutti.' : `Pubblicato: ${n} lezioni ora visibili a tutti.`);
       setConfirm(false);
       onPublished();
     } catch {

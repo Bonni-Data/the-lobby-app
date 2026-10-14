@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import {
   listApplications, reviewApplication, Application, ApplicationStatus, listEvents, eventAttendees, createDinner, archiveEvent, EventItem,
   listCourses, draftCount, lessonCount,
 } from '../lib/data';
 import { DraftPanel } from '../components/drafts';
+import { VideoTab } from '../components/videoAdmin';
 import { Link, useLocation } from '../lib/router';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock, LuBookOpenCheck, LuArrowRight } from 'react-icons/lu';
@@ -159,8 +160,8 @@ function DinnersTab() {
 function CoursesTab() {
   const list = useAsync(() => listCourses(), []);
   const all = list.data || [];
-  const drafts = all.filter((c) => draftCount(c) > 0);
-  const live = all.filter((c) => draftCount(c) === 0 && lessonCount(c) > 0);
+  const drafts = all.filter((c) => c.access_level !== 'premium' && draftCount(c) > 0);
+  const live = all.filter((c) => c.access_level !== 'premium' && draftCount(c) === 0 && lessonCount(c) > 0);
   return (
     <>
       <p className="muted">Testi e quiz dei corsi gratuiti, scritti per te da validare. Li vedi solo tu finché non premi Pubblica.</p>
@@ -202,7 +203,10 @@ export default function Admin() {
   const [tab, setTab] = useState<ApplicationStatus>('pending');
   const { query } = useLocation();
   const start = query.get('sezione');
-  const [area, setArea] = useState<'candidature' | 'cene' | 'corsi'>(start === 'corsi' || start === 'cene' ? start : 'candidature');
+  type Area = 'candidature' | 'cene' | 'corsi' | 'video';
+  const pick = (v: string | null): Area => (v === 'corsi' || v === 'cene' || v === 'video' ? v : 'candidature');
+  const [area, setArea] = useState<Area>(pick(start));
+  useEffect(() => { if (start) setArea(pick(start)); }, [start]);
   const all = data.data || [];
   const items = all.filter((a) => a.status === tab);
 
@@ -219,8 +223,9 @@ export default function Admin() {
               <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>
               <button role="tab" aria-selected={area === 'cene'} className={area === 'cene' ? 'is-on' : ''} onClick={() => setArea('cene')}>Cene</button>
               <button role="tab" aria-selected={area === 'corsi'} className={area === 'corsi' ? 'is-on' : ''} onClick={() => setArea('corsi')}>Corsi</button>
+              <button role="tab" aria-selected={area === 'video'} className={area === 'video' ? 'is-on' : ''} onClick={() => setArea('video')}>Video</button>
             </div>
-            {area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : (<>
+            {area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : area === 'video' ? <VideoTab /> : (<>
             <p className="muted">Leggi il percorso di chi vuole entrare in Premium e decidi tu chi è pronto per il prossimo livello.</p>
             <div className="chips" role="group" aria-label="Filtra per stato">
               {TABS.map((t) => (

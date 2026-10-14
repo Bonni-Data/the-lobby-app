@@ -1,4 +1,4 @@
-import { select, upsert, update, rpc, currentSession } from './api';
+import { select, upsert, update, rpc, invoke, currentSession } from './api';
 import { NOTIFY_ENDPOINT, APP_URL } from '../config';
 
 export type Lesson = {
@@ -11,7 +11,9 @@ export type Lesson = {
   transcript?: string | null;
   status?: string;
   module_id?: string;
+  video_status?: VideoStatus;
 };
+export type VideoStatus = 'uploading' | 'processing' | 'ready' | 'error' | null;
 export type Module = { id: string; position: number; title: string; description?: string | null; lessons: Lesson[] };
 export type Course = {
   id: string;
@@ -111,7 +113,7 @@ export type LessonDetail = Lesson & {
 export async function getLesson(id: string): Promise<LessonDetail | null> {
   const rows = await select<LessonDetail>(
     'lessons',
-    `select=id,position,title,summary,duration_seconds,video_ref,transcript,status,module_id,` +
+    `select=id,position,title,summary,duration_seconds,video_ref,video_status,transcript,status,module_id,` +
       `course_modules(id,title,position,courses(slug,title,access_level)),quizzes(id,title),lesson_assets(id,kind,title,ref)` +
       `&id=eq.${id}&limit=1`,
   );
@@ -263,6 +265,35 @@ export function draftCount(c: Course) {
 /** Admin: publish every draft lesson of a course and take it out of «in arrivo». */
 export async function publishCourse(slug: string) {
   return rpc<number>('publish_course', { p_slug: slug });
+}
+
+/* ---------- Video lessons (Bunny Stream through the `video` edge function) ---------- */
+export type VideoLesson = { id: string; position: number; title: string; status: string; video_ref: string | null; video_status: VideoStatus; duration_seconds: number | null };
+export type VideoCourse = { id: string; slug: string; title: string; course_modules: { id: string; position: number; title: string; lessons: VideoLesson[] }[] };
+
+export async function listVideoCourses(): Promise<VideoCourse[]> {
+  const rows = await select<VideoCourse>(
+    'courses',
+    'select=id,slug,title,course_modules(id,position,title,lessons(id,position,title,status,video_ref,video_status,duration_seconds))' +
+      '&access_level=eq.premium&status=eq.published&order=position.asc.nullslast',
+  );
+  return rows.map((c) => ({
+    ...c,
+    course_modules: [...c.course_modules].sort((a, b) => a.position - b.position).map((m) => ({ ...m, lessons: [...m.lessons].sort((a, b) => a.position - b.position) })),
+  }));
+}
+
+export const videoApi = {
+  status: () => invoke<{ connected: boolean; libraryId: string | null }>('video', { action: 'status' }),
+  connect: (accountKey: string) => invoke<{ connected: boolean; libraryId: string }>('video', { action: 'connect', accountKey }),
+  createUpload: (lessonId: string) =>
+    invoke<{ videoId: string; libraryId: string; expires: number; signature: string }>('video', { action: 'create-upload', lessonId }),
+  check: (lessonId: string) => invoke<{ status: VideoStatus | 'none'; progress: number; length: number }>('video', { action: 'check', lessonId }),
+  play: (lessonId: string) => invoke<{ url: string; expires: number }>('video', { action: 'play', lessonId }),
+};
+
+export async function publishLesson(lessonId: string) {
+  await rpc('publish_lesson', { p_lesson: lessonId });
 }
 
 export const LEVEL_LABEL: Record<string, string> = { base: 'Base', intermedio: 'Intermedio', avanzato: 'Avanzato' };

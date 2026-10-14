@@ -5,6 +5,7 @@ import { Link } from '../lib/router';
 import { LuCircleCheck, LuFileText, LuLink, LuPresentation, LuChevronDown, LuEyeOff } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 import { Prose } from '../components/prose';
+import { BunnyPlayer } from '../components/videoAdmin';
 
 export default function Lesson({ id }: { id: string }) {
   const data = useAsync(async () => {
@@ -54,7 +55,9 @@ export default function Lesson({ id }: { id: string }) {
           const quiz = lesson.quizzes?.[0];
           return (
             <>
-              {lesson.video_ref ? (
+              {lesson.video_ref?.startsWith('bunny:') ? (
+                <BunnyPlayer lessonId={lesson.id} />
+              ) : lesson.video_ref ? (
                 <div className="player" aria-label="Video della lezione">
                   <video controls playsInline preload="metadata" src={lesson.video_ref} />
                 </div>
@@ -72,7 +75,9 @@ export default function Lesson({ id }: { id: string }) {
                 {lesson.status === 'draft' && (
                   <p className="draft-banner">
                     <LuEyeOff aria-hidden="true" /> Bozza visibile solo a te.{' '}
-                    <Link to={`/corso/${lesson.course_modules.courses.slug}`}>Pubblica dal corso</Link>
+                    {lesson.course_modules.courses.access_level === 'premium'
+                      ? <Link to="/admin?sezione=video">Pubblica dalla sezione Video</Link>
+                      : <Link to={`/corso/${lesson.course_modules.courses.slug}`}>Pubblica dal corso</Link>}
                   </p>
                 )}
                 <p className="crumb">

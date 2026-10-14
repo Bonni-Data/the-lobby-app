@@ -35,6 +35,9 @@ let waitlisted = false;
 let approved = false;
 let isAdmin = false;
 let draftPublished = false;
+let videoConnected = false;
+let video = { ref: null, status: null, published: false };
+let tusPatched = 0;
 let myApp = null;
 const apps = [];
 const events = [{ id: 'e0', kind: 'cena', title: 'Cena della Lobby: l’Europa vista da Bruxelles', summary: 'Una sera per parlare di carriere europee.', starts_at: new Date(Date.now() + 9 * 86400000).toISOString(), location: 'Milano, Brera', seats: 12, yes_count: 0, my_response: null }];
@@ -74,6 +77,23 @@ async function mock(route) {
     return json(400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
   }
   if (path === '/auth/v1/logout') { loggedIn = false; return route.fulfill({ status: 204 }); }
+  if (path === '/rest/v1/courses' && url.searchParams.get('access_level') === 'eq.premium') {
+    return json(200, [{ id: 'c3', slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', course_modules: [{ id: 'm3', position: 1, title: '[TEST] Dal bando alla candidatura',
+      lessons: [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', status: video.published ? 'published' : 'draft', video_ref: video.ref, video_status: video.status, duration_seconds: 420 }] }] }]);
+  }
+  if (path === '/functions/v1/video') {
+    if (!isAdmin && body.action !== 'play') return json(403, { error: 'forbidden' });
+    if (body.action === 'status') return json(200, { connected: videoConnected, libraryId: videoConnected ? '123' : null });
+    if (body.action === 'connect') {
+      if (!String(body.accountKey).startsWith('bunny-')) return json(400, { error: 'bad_key' });
+      videoConnected = true;
+      return json(200, { connected: true, libraryId: '123' });
+    }
+    if (body.action === 'create-upload') { video.ref = 'bunny:vid-1'; video.status = 'uploading'; return json(200, { videoId: 'vid-1', libraryId: '123', expires: 9999999999, signature: 'sig' }); }
+    if (body.action === 'check') { video.status = 'ready'; return json(200, { status: 'ready', progress: 100, length: 300 }); }
+    if (body.action === 'play') return json(200, { url: 'about:blank', expires: 9999999999 });
+  }
+  if (path === '/rest/v1/rpc/publish_lesson') { video.published = true; return route.fulfill({ status: 204 }); }
   if (path === '/rest/v1/courses') {
     const withLessons = (c, ls) => ({ ...c, course_modules: c.course_modules.map((m) => ({ ...m, lessons: loggedIn ? ls : [] })) });
     const course3 = { id: 'c3', slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', subtitle: 'Corso Premium di prova', description: 'Mock premium', audience: null,
@@ -88,6 +108,10 @@ async function mock(route) {
   }
   if (path === '/rest/v1/lessons') {
     const id = (url.searchParams.get('id') || '').replace('eq.', '');
+    if (id === 'pl1' && loggedIn) {
+      return json(200, [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', summary: 'Video lezione', duration_seconds: 300, status: 'published', video_ref: video.ref, video_status: video.status, transcript: null, module_id: 'm3',
+        course_modules: { id: 'm3', title: '[TEST] Dal bando alla candidatura', position: 1, courses: { slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', access_level: 'premium' } }, quizzes: [], lesson_assets: [] }]);
+    }
     const l = lessons.find((x) => x.id === id);
     if (!l || !loggedIn) return json(200, []);
     return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\n\n## Passi\n\n1. **Uno**: primo passo.\n2. Secondo passo.\n\n- Kit:\n  - CV\n  - SPID\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
@@ -176,6 +200,20 @@ page.on('console', (m) => m.type() === 'error' && !/fonts|ERR_|Failed to load re
 page.on('pageerror', (e) => consoleErrors.push('PAGEERROR ' + e.message));
 await page.route('**/*.supabase.co/**', mock);
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+await page.route('https://video.bunnycdn.com/**', (r) => {
+  const q = r.request();
+  const h = { 'Tus-Resumable': '1.0.0', 'Access-Control-Allow-Origin': '*', 'Access-Control-Expose-Headers': 'Location, Upload-Offset' };
+  if (q.method() === 'POST') {
+    if (!q.headers()['authorizationsignature'] || !q.headers()['videoid']) failures.push('FAIL tus create without bunny headers');
+    return r.fulfill({ status: 201, headers: { ...h, Location: 'https://video.bunnycdn.com/tusupload/abc' } });
+  }
+  if (q.method() === 'PATCH') {
+    const at = Number(q.headers()['upload-offset']) + (q.postDataBuffer()?.length || 0);
+    tusPatched += 1;
+    return r.fulfill({ status: 204, headers: { ...h, 'Upload-Offset': String(at) } });
+  }
+  return r.fulfill({ status: 200, headers: { ...h, 'Upload-Offset': '0' } });
+});
 await page.route('https://formsubmit.co/**', (r) => { notified.push(r.request().postDataJSON()); return r.fulfill({ status: 200, contentType: 'application/json', body: '{"success":"true"}' }); });
 
 const base = `http://localhost:${PORT}/`;
@@ -350,6 +388,27 @@ await page.click('.appcard button:has-text("Sì, pubblica")');
 await page.waitForSelector('text=Nessun corso in attesa di validazione');
 await check(Promise.resolve(draftPublished), 'publish_course called');
 await check(page.locator('.live-list li:has-text("[TEST] Corso in bozza")').count().then((n) => n === 1), 'published course listed');
+
+// 9e-ter. Founder connects Bunny, uploads a Premium video and publishes the lesson
+await page.goto(base + '#/admin?sezione=video');
+await page.waitForSelector('.video-connect');
+await shot('10g4-video-connect');
+await page.fill('.video-connect input', 'wrong-key-1234567890-abc');
+await page.click('.video-connect button:has-text("Collega")');
+await page.waitForSelector('.video-connect .alert');
+await page.fill('.video-connect input', 'bunny-account-key-1234567890');
+await page.click('.video-connect button:has-text("Collega")');
+await page.waitForSelector('.vlesson');
+await page.setInputFiles('.vlesson input[type=file]', { name: 'lezione.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(300000, 1) });
+await page.waitForSelector('.vlesson button:has-text("Pubblica")', { timeout: 20000 });
+await check(Promise.resolve(tusPatched > 0), 'video sent with tus');
+await shot('10g5-video-ready');
+await page.click('.vlesson button:has-text("Pubblica")');
+await page.waitForSelector('.vchip--live');
+await check(Promise.resolve(video.published), 'premium lesson published');
+await page.goto(base + '#/lezione/pl1');
+await page.waitForSelector('.player--embed iframe');
+await shot('10g6-video-player');
 isAdmin = false;
 
 // 9f. Dinners: locked for free members, RSVP for Premium
