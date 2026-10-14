@@ -42,9 +42,9 @@ const FEATURES = [
   {
     n: '04',
     icon: <LuGraduationCap />,
-    kicker: 'Per andare a fondo',
-    title: 'Lezioni premium.',
-    text: 'Masterclass e corsi avanzati tenuti da Andrea per andare oltre le basi: bandi europei, lavoro nelle istituzioni, comunicazione pubblica.',
+    kicker: 'Video lezioni con Andrea',
+    title: 'Le masterclass, in video.',
+    text: 'Le lezioni Premium le registra Andrea in prima persona: niente avatar, niente voce sintetica. Lui, la sua esperienza e i casi veri, da guardare quando vuoi. Dietro le quinte delle istituzioni, public speaking, executive presence, networking e molto altro.',
     link: { to: '/academy?sezione=premium', label: 'Vai ai corsi Premium' },
   },
 ];
@@ -58,7 +58,7 @@ const STEPS = [
 const COMPARE: { label: string; free: string | boolean; premium: string | boolean }[] = [
   { label: 'Corsi base e quiz', free: true, premium: true },
   { label: 'Archivio opportunità, aggiornato ogni mattina', free: 'Le prime 3', premium: 'Tutte' },
-  { label: 'Lezioni premium e masterclass', free: false, premium: true },
+  { label: 'Video masterclass registrate da Andrea', free: false, premium: true },
   { label: 'Cene della Lobby', free: false, premium: true },
   { label: 'Incontri con Andrea', free: false, premium: true },
 ];
@@ -67,6 +67,7 @@ const FAQ = [
   { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
   { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
   { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
+  { q: 'Come sono fatte le lezioni Premium?', a: 'Sono video lezioni registrate da Andrea in prima persona, non da un avatar: esperienza diretta, casi veri e consigli pratici, da guardare quando vuoi.' },
   { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },
   { q: 'E se non vengo selezionato?', a: 'Ricevi un riscontro e puoi ricandidarti dopo 30 giorni, quando il tuo percorso sarà cresciuto.' },
   { q: 'Chi paga i viaggi delle opportunità?', a: 'Gli enti che le pubblicano, quando il bando lo prevede. THE LOBBY non organizza né finanzia le opportunità: le cerca, le verifica sulle fonti ufficiali e te le mette tutte in un solo posto. Ti candidi direttamente sul sito dell’ente.' },
@@ -228,7 +229,7 @@ export default function Premium() {
         <ul className="premium-badges">
           <li>Gratuito</li>
           <li>Su selezione</li>
-          <li>Valutato da Andrea</li>
+          <li>Video lezioni di Andrea</li>
         </ul>
         {status('top')}
       </section>

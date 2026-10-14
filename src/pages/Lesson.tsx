@@ -62,7 +62,9 @@ export default function Lesson({ id }: { id: string }) {
                 <div className="lesson-cover">
                   <span className="lesson-cover__arch" aria-hidden="true" />
                   <span className="lesson-cover__kicker">Lezione {idx + 1} di {flat.length || 1}</span>
-                  <span className="lesson-cover__note">Da leggere in 5 minuti · il video con Andrea è in arrivo</span>
+                  <span className="lesson-cover__note">
+                    {lesson.course_modules.courses.access_level === 'premium' ? 'Video lezione di Andrea in arrivo' : 'Lezione da leggere in 5 minuti'}
+                  </span>
                 </div>
               )}
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { ButtonLink, Screen, TopBar } from '../components/ui';
-import { FounderAvatar } from '../components/founder';
+import { ButtonLink, Screen, TopBar, CountUp } from '../components/ui';
+import { PHOTO_CUT } from '../components/founder';
 import { LuLandmark, LuFlag, LuGlobe, LuExternalLink } from 'react-icons/lu';
 
 const STATS = [
@@ -47,8 +47,12 @@ export default function Story() {
     <Screen nav={!!session}>
       <TopBar back={session ? '/home' : '/'} title="Chi è Andrea" />
       <section className="story-hero">
-        <span className="story-hero__arch" aria-hidden="true" />
-        <FounderAvatar size="l" />
+        <div className="story-portrait" aria-hidden="true">
+          <svg className="story-portrait__arch" viewBox="0 0 300 380" preserveAspectRatio="xMidYMax meet">
+            <path d="M20 380V150a130 130 0 0 1 260 0v230" />
+          </svg>
+          <img src={PHOTO_CUT} alt="" />
+        </div>
         <span className="story-hero__kicker">Founder e docente di THE LOBBY</span>
         <h1 className="story-hero__name">Andrea Bonazzi</h1>
         <p className="story-hero__line">Dieci anni dentro le istituzioni. Ora apre le porte a tutti.</p>
@@ -62,7 +66,7 @@ export default function Story() {
       <main className="page">
         <ul className="story-stats">
           {STATS.map((s) => (
-            <li key={s.label}><strong>{s.n}</strong><span>{s.label}</span></li>
+            <li key={s.label}><strong><CountUp to={Number(s.n)} /></strong><span>{s.label}</span></li>
           ))}
         </ul>
 

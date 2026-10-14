@@ -1,20 +1,31 @@
 import React from 'react';
-import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync } from '../components/ui';
+import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync, useReveal } from '../components/ui';
 import { listCourses, courseLabel } from '../lib/data';
 import { FounderCard } from '../components/founder';
 import { LuLandmark, LuGraduationCap, LuCompass, LuKeyRound } from 'react-icons/lu';
 
 export default function Welcome() {
   const courses = useAsync(() => listCourses(), []);
+  const ref = React.useRef<HTMLDivElement>(null);
+  useReveal(ref);
 
   return (
-    <div className="welcome">
+    <div className="welcome" ref={ref}>
       <section className="welcome__hero">
         <div className="welcome__arch" aria-hidden="true">
           <svg viewBox="0 0 300 380" preserveAspectRatio="xMidYMax meet">
+            <defs>
+              <radialGradient id="beam" cx="50%" cy="100%" r="75%">
+                <stop offset="0%" stopColor="#FF7058" stopOpacity="0.55" />
+                <stop offset="60%" stopColor="#FF7058" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#FF7058" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <path className="welcome__beam" d="M80 380V170a70 70 0 0 1 140 0v210Z" fill="url(#beam)" />
             <path className="welcome__arch-outer" d="M20 380V150a130 130 0 0 1 260 0v230" />
             <path className="welcome__arch-inner" d="M80 380V170a70 70 0 0 1 140 0v210" />
           </svg>
+          <span className="sparks">{Array.from({ length: 7 }).map((_, i) => <i key={i} />)}</span>
         </div>
         <div className="welcome__brand">
           <Wordmark tone="ivory" size={44} />
@@ -61,7 +72,7 @@ export default function Welcome() {
             <LuKeyRound aria-hidden="true" />
             <div>
               <strong>La sala riservata</strong>
-              <span>Premium è gratuito e su selezione: cene, incontri dal vivo con Andrea e lezioni esclusive.</span>
+              <span>Premium è gratuito e su selezione: video lezioni registrate da Andrea, cene e incontri dal vivo.</span>
             </div>
           </li>
         </ul>

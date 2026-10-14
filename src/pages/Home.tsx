@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
 import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, courseLabel } from '../lib/data';
-import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
+import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate, Ticker } from '../components/ui';
 import { TagChip } from '../components/opps';
-import { FounderAvatar } from '../components/founder';
+import { FounderBox } from '../components/founder';
 import { Link } from '../lib/router';
 import { LuKeyRound, LuArrowRight } from 'react-icons/lu';
 
@@ -25,7 +25,7 @@ export default function Home() {
     <Screen>
       <TopBar />
       <main className="page">
-        <h1 className="h-hello">{first ? `Ciao, ${first}.` : 'Ciao.'}</h1>
+        <h1 className="h-hello">{first ? <>Ciao, <span className="h-hello__name">{first}</span>.</> : 'Ciao.'}</h1>
 
         {data.loading && <Spinner />}
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
@@ -71,6 +71,19 @@ export default function Home() {
                 );
               })()}
 
+              <Ticker
+                label="Oggi nella Lobby"
+                items={[
+                  ...(opps.length > 0 ? [`${opps.length} opportunità aperte`] : []),
+                  ...opps.filter((o) => !o.locked).slice(0, 3).map((o) => `${o.title}${o.deadline ? ` · scade il ${formatDate(o.deadline)}` : ''}`),
+                  ...(opps.some((o) => o.tag === 'viaggio') ? [`${opps.filter((o) => o.tag === 'viaggio').length} viaggi spesati dagli enti`] : []),
+                  'Carta Giovani Nazionale: richiedila gratis',
+                  ...courses.filter((c) => lessonCount(c) > 0).slice(0, 2).map((c) => `Corso: ${c.title}`),
+                ]}
+              />
+
+              <FounderBox />
+
               <p className="stats-line">
                 <span><strong>{doneLessons}</strong> lezioni completate</span>
                 <span><strong>{attempts.length}</strong> quiz svolti</span>
@@ -96,13 +109,7 @@ export default function Home() {
                 <cite>Costituzione italiana, articolo 1</cite>
               </blockquote>
 
-              <section className="founder-note">
-                <FounderAvatar size="m" />
-                <div>
-                  <p>“Ogni lezione che completi è un passo da cittadino a protagonista. Ci vediamo dentro.”</p>
-                  <span>Andrea Bonazzi, founder e docente · <a href="#/andrea">la sua storia</a></span>
-                </div>
-              </section>
+
 
               <section className="block">
                 <div className="block__head">
@@ -136,7 +143,7 @@ export default function Home() {
                   <span className="teaser__arch" aria-hidden="true" />
                   <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · gratuito, su selezione</span>
                   <strong className="teaser__title">La sala riservata.</strong>
-                  <span className="teaser__text">Cene a numero chiuso, incontri con Andrea, lezioni esclusive e tutte le opportunità. Non si compra: si conquista.</span>
+                  <span className="teaser__text">Video lezioni registrate da Andrea, cene a numero chiuso, incontri e tutte le opportunità. Non si compra: si conquista.</span>
                   <span className="teaser__go">{plan.application?.status === 'pending' ? 'Candidatura in valutazione' : 'Candidati'} <LuArrowRight aria-hidden="true" /></span>
                 </Link>
               )}

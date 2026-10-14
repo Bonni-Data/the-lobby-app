@@ -1,4 +1,8 @@
 import React from 'react';
+import { Link } from '../lib/router';
+
+export const PHOTO_FACE = './img/andrea-face.webp';
+export const PHOTO_CUT = './img/andrea-cut.webp';
 
 export const FOUNDER = {
   name: 'Andrea Bonazzi',
@@ -10,12 +14,32 @@ export const FOUNDER = {
     'Due volte consigliere comunale e candidato sindaco a Rozzano, ambasciatore della Lombardia per l’Anno europeo dei giovani, dieci anni di impegno civico. Di professione è formatore in un grande gruppo bancario internazionale. In THE LOBBY tiene le lezioni, sceglie le opportunità e guida la community.',
 };
 
-/** Arch-shaped portrait placeholder with initials (swap for a photo later). */
+/** Arch-shaped portrait of Andrea. */
 export function FounderAvatar({ size = 'm' }: { size?: 's' | 'm' | 'l' }) {
   return (
     <span className={`founder-avatar founder-avatar--${size}`} aria-hidden="true">
-      {FOUNDER.initials}
+      <img src={PHOTO_FACE} alt="" loading="lazy" decoding="async" />
     </span>
+  );
+}
+
+/** Home box: who Andrea is, with a link to the full story. */
+export function FounderBox() {
+  return (
+    <Link to="/andrea" className="founder-box" aria-label="Chi è Andrea Bonazzi: leggi la sua storia">
+      <div className="founder-box__text">
+        <span className="founder-box__kicker">Il tuo docente</span>
+        <strong className="founder-box__name">Andrea Bonazzi</strong>
+        <span className="founder-box__line">
+          Due volte consigliere comunale, candidato sindaco, ambasciatore europeo dei giovani. Dieci anni dentro le istituzioni.
+        </span>
+        <span className="founder-box__go">Scopri la sua storia →</span>
+      </div>
+      <div className="founder-box__photo" aria-hidden="true">
+        <span className="founder-box__arch" />
+        <img src={PHOTO_CUT} alt="" loading="lazy" decoding="async" />
+      </div>
+    </Link>
   );
 }
 

@@ -160,7 +160,7 @@ async function mock(route) {
 }
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }).catch(() => chromium.launch());
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'it-IT' });
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'it-IT', reducedMotion: process.env.MOTION ? 'no-preference' : 'reduce' });
 const page = await ctx.newPage();
 const consoleErrors = [];
 page.on('console', (m) => m.type() === 'error' && !/fonts|ERR_|Failed to load resource/.test(m.text()) && consoleErrors.push(m.text()));

@@ -5,7 +5,7 @@ import {
 import { useAuth } from '../lib/auth';
 import { ButtonLink, DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link, useLocation } from '../lib/router';
-import { LuSearch, LuLock, LuKeyRound, LuTarget } from 'react-icons/lu';
+import { LuSearch, LuLock, LuKeyRound, LuTarget, LuPlay } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 
 const LEVELS = [
@@ -50,7 +50,7 @@ function PreviewCard({ c, outline }: { c: Course; outline: OutlineLesson[] }) {
     <li className="preview">
       <div className="preview__head">
         <span className="preview__level">{LEVEL_LABEL[c.level]} · Premium</span>
-        <span className="preview__lock"><LuLock aria-hidden="true" /> Anteprima</span>
+        <span className="preview__lock"><LuPlay aria-hidden="true" /> Video con Andrea</span>
       </div>
       <h3 className="preview__title">{c.title}</h3>
       {c.subtitle && <p className="preview__sub">{c.subtitle}</p>}
@@ -162,6 +162,10 @@ export default function Academy() {
                 {plan.premium
                   ? 'Sei dentro: tutti i corsi Premium sono sbloccati. Buona strada.'
                   : 'Dove il corso base si ferma, Premium va avanti. Ecco un’anteprima di cosa ti aspetta dentro.'}
+              </p>
+              <p className="academy-premium__video">
+                <span className="academy-premium__play" aria-hidden="true"><LuPlay /></span>
+                Video lezioni registrate da Andrea in prima persona
               </p>
             </section>
 

@@ -107,9 +107,44 @@ export function TopBar({ title, back, right }: { title?: string; back?: string; 
   );
 }
 
+const REVEAL =
+  '.feature, .opp-card, .pinned, .course-row, .timeline li, .dinner, .preview, .press li, .learned li, .steps li, .story-stats li, ' +
+  '.perks li, .pillars li, .founder, .founder-box, .letter, .why, .teaser, .nudge, .premium-close, .academy-premium, .event, .appcard, ' +
+  '.resume, .quote, .block__head, .door-card, .faq details, .cmp, .lesson-text > *';
+
+/** Fade-up elements as they scroll into view (re-scans when async content arrives). */
+export function useReveal(root: React.RefObject<HTMLElement>) {
+  useEffect(() => {
+    const el = root.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+      }),
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+    );
+    const scan = () => {
+      el.querySelectorAll<HTMLElement>(REVEAL).forEach((n) => {
+        if (n.dataset.rv) return;
+        n.dataset.rv = '1';
+        const sibs = n.parentElement ? Array.from(n.parentElement.children) : [];
+        n.style.setProperty('--rv-delay', `${Math.min(sibs.indexOf(n), 5) * 70}ms`);
+        n.classList.add('reveal');
+        io.observe(n);
+      });
+    };
+    scan();
+    const mo = new MutationObserver(scan);
+    mo.observe(el, { childList: true, subtree: true });
+    return () => { io.disconnect(); mo.disconnect(); };
+  }, []);
+}
+
 export function Screen({ children, nav = true, className = '' }: { children: React.ReactNode; nav?: boolean; className?: string }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  useReveal(ref);
   return (
-    <div className={`screen ${nav ? 'screen--nav' : ''} ${className}`}>
+    <div ref={ref} className={`screen ${nav ? 'screen--nav' : ''} ${className}`}>
       {children}
       {nav && <TabBar />}
     </div>
@@ -219,4 +254,48 @@ export function formatMinutes(seconds?: number | null) {
 export function formatDate(iso?: string | null) {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/** Number that counts up the first time it scrolls into view. */
+export function CountUp({ to, duration = 1100 }: { to: number; duration?: number }) {
+  const [n, setN] = useState(0);
+  const ref = React.useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || typeof IntersectionObserver === 'undefined') { setN(to); return; }
+    let raf = 0;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      const t0 = performance.now();
+      const tick = (t: number) => {
+        const p = Math.min(1, (t - t0) / duration);
+        setN(Math.round(to * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    });
+    io.observe(el);
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, [to]);
+  return <span ref={ref}>{n}</span>;
+}
+
+/** Endless horizontal ticker. */
+export function Ticker({ label, items }: { label: string; items: React.ReactNode[] }) {
+  if (items.length === 0) return null;
+  const row = items.map((it, i) => <span className="ticker__item" key={i}>{it}</span>);
+  return (
+    <div className="ticker" aria-label={label}>
+      <span className="ticker__label">{label}</span>
+      <div className="ticker__viewport">
+        <div className="ticker__track">
+          {row}
+          <span aria-hidden="true" className="ticker__dup">{items.map((it, i) => <span className="ticker__item" key={i}>{it}</span>)}</span>
+        </div>
+      </div>
+    </div>
+  );
 }
