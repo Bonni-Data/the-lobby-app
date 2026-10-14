@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import {
   listApplications, reviewApplication, Application, ApplicationStatus, listEvents, eventAttendees, createDinner, archiveEvent, EventItem,
+  listCourses, draftCount, lessonCount,
 } from '../lib/data';
+import { DraftPanel } from '../components/drafts';
+import { Link, useLocation } from '../lib/router';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
-import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock } from 'react-icons/lu';
+import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock, LuBookOpenCheck, LuArrowRight } from 'react-icons/lu';
 
 const TABS: { id: ApplicationStatus; label: string }[] = [
   { id: 'pending', label: 'Da valutare' },
@@ -153,11 +156,53 @@ function DinnersTab() {
   );
 }
 
+function CoursesTab() {
+  const list = useAsync(() => listCourses(), []);
+  const all = list.data || [];
+  const drafts = all.filter((c) => draftCount(c) > 0);
+  const live = all.filter((c) => draftCount(c) === 0 && lessonCount(c) > 0);
+  return (
+    <>
+      <p className="muted">Testi e quiz dei corsi gratuiti, scritti per te da validare. Li vedi solo tu finché non premi Pubblica.</p>
+      {list.loading && <Spinner />}
+      {list.error && <ErrorState message={list.error} onRetry={list.reload} />}
+      {list.data && drafts.length === 0 && (
+        <div className="center-state"><LuBookOpenCheck size={28} /><p>Nessun corso in attesa di validazione.</p></div>
+      )}
+      {drafts.length > 0 && <h2 className="h-section">Da validare ({drafts.length})</h2>}
+      <ul className="appcards">
+        {drafts.map((c) => (
+          <li key={c.id} className="appcard">
+            <div className="appcard__head">
+              <div>
+                <strong className="appcard__name">{c.title}</strong>
+                <span className="muted small">{draftCount(c) === 1 ? '1 lezione' : `${draftCount(c)} lezioni`} con quiz in bozza</span>
+              </div>
+              <Link to={`/corso/${c.slug}`} className="link-quiet">Rileggi <LuArrowRight aria-hidden="true" /></Link>
+            </div>
+            <DraftPanel course={c} onPublished={list.reload} compact />
+          </li>
+        ))}
+      </ul>
+      {live.length > 0 && (
+        <>
+          <h2 className="h-section">Pubblicati ({live.length})</h2>
+          <ul className="live-list">
+            {live.map((c) => <li key={c.id}><Link to={`/corso/${c.slug}`}>{c.title}</Link> <span className="muted small">{lessonCount(c) === 1 ? '1 lezione' : `${lessonCount(c)} lezioni`}</span></li>)}
+          </ul>
+        </>
+      )}
+    </>
+  );
+}
+
 export default function Admin() {
   const { plan } = useAuth();
   const data = useAsync(() => (plan.admin ? listApplications() : Promise.resolve([] as Application[])), [plan.admin]);
   const [tab, setTab] = useState<ApplicationStatus>('pending');
-  const [area, setArea] = useState<'candidature' | 'cene'>('candidature');
+  const { query } = useLocation();
+  const start = query.get('sezione');
+  const [area, setArea] = useState<'candidature' | 'cene' | 'corsi'>(start === 'corsi' || start === 'cene' ? start : 'candidature');
   const all = data.data || [];
   const items = all.filter((a) => a.status === tab);
 
@@ -173,8 +218,9 @@ export default function Admin() {
             <div className="section-tabs" role="tablist" aria-label="Sezioni">
               <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>
               <button role="tab" aria-selected={area === 'cene'} className={area === 'cene' ? 'is-on' : ''} onClick={() => setArea('cene')}>Cene</button>
+              <button role="tab" aria-selected={area === 'corsi'} className={area === 'corsi' ? 'is-on' : ''} onClick={() => setArea('corsi')}>Corsi</button>
             </div>
-            {area === 'cene' ? <DinnersTab /> : (<>
+            {area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : (<>
             <p className="muted">Leggi il percorso di chi vuole entrare in Premium e decidi tu chi è pronto per il prossimo livello.</p>
             <div className="chips" role="group" aria-label="Filtra per stato">
               {TABS.map((t) => (

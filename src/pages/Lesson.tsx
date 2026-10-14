@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getLesson, getCourse, listProgress, setProgress, Lesson as L } from '../lib/data';
 import { Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, toast, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
-import { LuCircleCheck, LuFileText, LuLink, LuPresentation, LuChevronDown } from 'react-icons/lu';
+import { LuCircleCheck, LuFileText, LuLink, LuPresentation, LuChevronDown, LuEyeOff } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 import { Prose } from '../components/prose';
 
@@ -69,6 +69,12 @@ export default function Lesson({ id }: { id: string }) {
               )}
 
               <div className="page">
+                {lesson.status === 'draft' && (
+                  <p className="draft-banner">
+                    <LuEyeOff aria-hidden="true" /> Bozza visibile solo a te.{' '}
+                    <Link to={`/corso/${lesson.course_modules.courses.slug}`}>Pubblica dal corso</Link>
+                  </p>
+                )}
                 <p className="crumb">
                   <Link to={`/corso/${lesson.course_modules.courses.slug}`}>{lesson.course_modules.courses.title}</Link>
                   <span aria-hidden="true">/</span>

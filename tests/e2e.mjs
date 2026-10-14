@@ -34,6 +34,7 @@ let attempts = [];
 let waitlisted = false;
 let approved = false;
 let isAdmin = false;
+let draftPublished = false;
 let myApp = null;
 const apps = [];
 const events = [{ id: 'e0', kind: 'cena', title: 'Cena della Lobby: l’Europa vista da Bruxelles', summary: 'Una sera per parlare di carriere europee.', starts_at: new Date(Date.now() + 9 * 86400000).toISOString(), location: 'Milano, Brera', seats: 12, yes_count: 0, my_response: null }];
@@ -77,8 +78,11 @@ async function mock(route) {
     const withLessons = (c, ls) => ({ ...c, course_modules: c.course_modules.map((m) => ({ ...m, lessons: loggedIn ? ls : [] })) });
     const course3 = { id: 'c3', slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', subtitle: 'Corso Premium di prova', description: 'Mock premium', audience: null,
       level: 'avanzato', access_level: 'premium', objectives: ['Leggere un bando europeo', 'Capire cosa cercano i valutatori'], course_modules: [{ id: 'm3', position: 1, title: '[TEST] Dal bando alla candidatura', lessons: [] }] };
+    const course4 = { id: 'c4', slug: 'test-bozza', title: '[TEST] Corso in bozza', subtitle: 'Testi da validare', description: 'Mock draft', audience: null, coming_soon: !draftPublished,
+      level: 'base', access_level: 'free', objectives: [], course_modules: [{ id: 'm4', position: 1, title: '[TEST] Modulo bozza', lessons: [] }] };
     const all = [withLessons(course, lessons), withLessons(course2, [{ id: 'p1', position: 1, title: 'Camera e Senato', duration_seconds: 300, status: 'published' }]),
-      withLessons(course3, approved ? [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420, status: 'published' }] : [])];
+      withLessons(course3, approved ? [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420, status: 'published' }] : []),
+      withLessons(course4, isAdmin || draftPublished ? [{ id: 'd1', position: 1, title: '[TEST] Lezione in bozza', duration_seconds: 300, status: draftPublished ? 'published' : 'draft' }] : [])];
     const slug = url.searchParams.get('slug');
     return json(200, slug ? all.filter((c) => 'eq.' + c.slug === slug) : all);
   }
@@ -86,7 +90,7 @@ async function mock(route) {
     const id = (url.searchParams.get('id') || '').replace('eq.', '');
     const l = lessons.find((x) => x.id === id);
     if (!l || !loggedIn) return json(200, []);
-    return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
+    return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\n\n## Passi\n\n1. **Uno**: primo passo.\n2. Secondo passo.\n\n- Kit:\n  - CV\n  - SPID\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
       course_modules: { id: 'm1', title: '[TEST] Modulo 1', position: 1, courses: { slug: 'test-comune', title: course.title } },
       quizzes: id === 'l1' ? [{ id: 'q1', title: '[TEST] Quiz lezione 1' }] : [], lesson_assets: [] }]);
   }
@@ -143,6 +147,11 @@ async function mock(route) {
       { module_id: 'm3', lesson_id: 'pl1', lesson_position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420 },
       { module_id: 'm3', lesson_id: 'pl2', lesson_position: 2, title: '[TEST] Gli errori che fanno scartare una candidatura', duration_seconds: 360 },
     ] : []);
+  }
+  if (path === '/rest/v1/rpc/publish_course') {
+    if (!isAdmin || body.p_slug !== 'test-bozza') return json(400, { code: 'P0001', message: 'forbidden' });
+    draftPublished = true;
+    return json(200, 1);
   }
   if (path === '/rest/v1/rpc/review_premium_application') {
     const a = apps.find((x) => x.id === body.p_id);
@@ -232,6 +241,8 @@ await shot('05-course');
 await page.click('text=Inizia il corso');
 await page.waitForSelector('.lesson-cover');
 await check(page.textContent('.lesson-text').then((t) => t.includes('Trascrizione di prova')), 'lesson text rendered');
+await check(page.locator('.lesson-text ol li').count().then((n) => n === 2), 'numbered list rendered');
+await check(page.locator('.lesson-text li > ul li').count().then((n) => n === 2), 'nested list rendered');
 await page.click('text=Segna come completata');
 await page.waitForSelector('text=Completata');
 await shot('06-lesson');
@@ -322,6 +333,23 @@ await page.fill('.admin-form input >> nth=2', 'Milano');
 await page.click('button:has-text("Pubblica la cena")');
 await page.waitForSelector('.appcard:has-text("Cena di prova")');
 await shot('10g-admin-cene');
+
+// 9e-bis. Founder reviews and publishes a draft course
+await page.goto(base + '#/academy');
+await page.waitForSelector('.course-row');
+await check(page.locator('.chip--draft:has-text("Bozza da validare")').count().then((n) => n === 1), 'academy shows draft badge to founder');
+await page.goto(base + '#/corso/test-bozza');
+await page.waitForSelector('.draft-panel');
+await check(page.locator('.lesson-row .chip--draft').count().then((n) => n === 1), 'draft lesson tagged');
+await shot('10g2-course-draft');
+await page.goto(base + '#/admin?sezione=corsi');
+await page.waitForSelector('.appcard .draft-panel');
+await shot('10g3-admin-corsi');
+await page.click('.appcard button:has-text("Pubblica il corso")');
+await page.click('.appcard button:has-text("Sì, pubblica")');
+await page.waitForSelector('text=Nessun corso in attesa di validazione');
+await check(Promise.resolve(draftPublished), 'publish_course called');
+await check(page.locator('.live-list li:has-text("[TEST] Corso in bozza")').count().then((n) => n === 1), 'published course listed');
 isAdmin = false;
 
 // 9f. Dinners: locked for free members, RSVP for Premium

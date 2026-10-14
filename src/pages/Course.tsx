@@ -4,6 +4,7 @@ import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, u
 import { Link } from '../lib/router';
 import { useAuth } from '../lib/auth';
 import { TeacherLine } from '../components/founder';
+import { DraftPanel } from '../components/drafts';
 import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock } from 'react-icons/lu';
 
 export default function Course({ slug }: { slug: string }) {
@@ -58,6 +59,7 @@ export default function Course({ slug }: { slug: string }) {
               </section>
 
               <div className="page">
+                {plan.admin && <DraftPanel course={c} onPublished={data.reload} />}
                 {c.description && <p className="lede">{c.description}</p>}
 
                 {c.objectives.length > 0 && (
@@ -99,7 +101,7 @@ export default function Course({ slug }: { slug: string }) {
                               <li key={l.id}>
                                 <Link to={`/lezione/${l.id}`} className={`lesson-row ${isDone ? 'is-done' : ''}`}>
                                   {isDone ? <LuCircleCheck className="lesson-row__icon ok" /> : <LuCirclePlay className="lesson-row__icon" />}
-                                  <span className="lesson-row__title">{l.title}</span>
+                                  <span className="lesson-row__title">{l.title}{l.status === 'draft' && <em className="chip chip--draft">Bozza</em>}</span>
                                   <span className="lesson-row__time">{formatMinutes(l.duration_seconds)}</span>
                                 </Link>
                               </li>

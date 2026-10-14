@@ -255,6 +255,16 @@ export function nextLesson(c: Course, progress: Progress[]): Lesson | null {
   return null;
 }
 
+/** Lessons still waiting for the founder's approval (only the admin can see them). */
+export function draftCount(c: Course) {
+  return c.course_modules.reduce((n, m) => n + m.lessons.filter((l) => l.status === 'draft').length, 0);
+}
+
+/** Admin: publish every draft lesson of a course and take it out of «in arrivo». */
+export async function publishCourse(slug: string) {
+  return rpc<number>('publish_course', { p_slug: slug });
+}
+
 export const LEVEL_LABEL: Record<string, string> = { base: 'Base', intermedio: 'Intermedio', avanzato: 'Avanzato' };
 export const CATEGORY_LABEL: Record<string, string> = {
   bando: 'Bando',

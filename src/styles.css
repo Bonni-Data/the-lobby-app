@@ -908,3 +908,26 @@ img, svg, video { display: block; max-width: 100%; }
   .story-portrait__arch path { stroke-dashoffset: 0; }
   .ticker__track { animation: none; }
 }
+
+/* ---------- Founder review: draft courses ---------- */
+.chip--draft { margin-left: 8px; font-style: normal; background: var(--navy); color: var(--ivory); padding: 1px 8px; font-size: 11.5px; vertical-align: 1px; }
+.draft-panel { display: grid; gap: 10px; margin: 0 0 22px; padding: 16px 18px; border-radius: var(--r-m); border: 1.5px dashed var(--coral); background: #fff4f1; }
+.draft-panel--compact { margin: 0; padding: 12px 14px; }
+.draft-panel__kicker { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f-display); font-weight: 700; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--coral-deep); }
+.draft-panel__text { margin: 0; font-size: 14.5px; color: var(--navy); }
+.draft-panel__confirm { display: grid; gap: 10px; font-weight: 600; font-size: 14.5px; }
+.draft-panel__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.draft-panel .btn svg { margin-right: 6px; }
+.draft-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; padding: 10px 14px; border-radius: var(--r-s); background: #fff4f1; border: 1px dashed var(--coral); font-size: 14px; font-weight: 600; color: var(--navy); }
+.draft-banner svg { color: var(--coral-deep); }
+.draft-banner a { color: var(--coral-deep); }
+.live-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.live-list li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.live-list a { color: var(--navy); font-weight: 600; text-decoration: none; }
+.appcard__head .link-quiet { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.appcards + .h-section { margin-top: 28px; }
+.live-list .small { white-space: nowrap; }
+.lesson-text ol { margin: 0 0 16px; padding-left: 22px; display: grid; gap: 8px; }
+.lesson-text ol li::marker { font-family: var(--f-display); font-weight: 700; color: var(--coral-deep); }
+.lesson-text li > ul { margin: 6px 0 0; gap: 4px; }
+.lesson-text ul li::marker { color: var(--coral-deep); }

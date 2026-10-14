@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  listCourses, listProgress, completedIn, lessonCount, courseMinutes, courseOutline, LEVEL_LABEL, Course, Progress, OutlineLesson,
+  listCourses, listProgress, completedIn, lessonCount, draftCount, courseMinutes, courseOutline, LEVEL_LABEL, Course, Progress, OutlineLesson,
 } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { ButtonLink, DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
@@ -17,16 +17,17 @@ const LEVELS = [
 
 const COMING = ['Bandi europei: leggerli, scriverli, vincerli', 'Lavorare nelle istituzioni: concorsi, tirocini, colloqui', 'Comunicazione pubblica e parlare in pubblico'];
 
-function CourseRow({ c, progress }: { c: Course; progress: Progress[] }) {
+function CourseRow({ c, progress, admin }: { c: Course; progress: Progress[]; admin?: boolean }) {
   const total = lessonCount(c);
   const done = completedIn(c, progress);
   const coming = c.coming_soon && total === 0;
+  const drafts = admin ? draftCount(c) : 0;
   return (
     <li>
       <Link to={`/corso/${c.slug}`} className={`course-row ${coming ? 'is-coming' : ''}`}>
         <DoorCover title={c.title} small />
         <div className="course-row__body">
-          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}{coming && <em className="chip chip--soon">In arrivo</em>}</span>
+          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}{coming && <em className="chip chip--soon">In arrivo</em>}{drafts > 0 && <em className="chip chip--draft">Bozza da validare</em>}</span>
           <strong className="course-row__title">{c.title}</strong>
           {c.subtitle && <span className="course-row__sub">{c.subtitle}</span>}
           <span className="course-row__meta">
@@ -149,7 +150,7 @@ export default function Academy() {
                 <Empty title="Nessun corso trovato" text="Prova con un'altra parola o un altro livello." />
               ) : (
                 <ul className="course-list">
-                  {free.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} />)}
+                  {free.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} admin={plan.admin} />)}
                 </ul>
               )}
             </section>
@@ -176,7 +177,7 @@ export default function Academy() {
               </div>
             ) : plan.premium ? (
               <ul className="course-list">
-                {premium.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} />)}
+                {premium.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} admin={plan.admin} />)}
               </ul>
             ) : (
               <ul className="previews">
