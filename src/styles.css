@@ -779,3 +779,9 @@ img, svg, video { display: block; max-width: 100%; }
 .press strong { font-family: var(--f-display); font-weight: 600; font-size: 19px; line-height: 1.15; }
 .press__go { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--coral-deep); }
 .story-note { margin: 0 0 18px; padding: 14px 16px; border-radius: var(--r-s); background: #ebe5da; font-size: 14px; color: var(--muted); }
+
+/* Pinned national youth card */
+.pinned { margin: 0 0 16px; padding: 18px; display: grid; gap: 6px; background: #fff; border: 2px solid var(--navy); border-radius: var(--r-l) var(--r-l) var(--r-m) var(--r-m); box-shadow: 0 6px 0 -2px var(--coral); }
+.pinned .btn { margin-top: 8px; }
+.chip--pinned { background: var(--navy); color: var(--ivory); }
+.chip--free { background: #e4ecdf; color: #2c5440; }

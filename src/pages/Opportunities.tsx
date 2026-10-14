@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { listOpportunities, OppTag, FREE_OPPORTUNITIES } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
-import { OppCard, LockedCard, PremiumNudge } from '../components/opps';
+import { OppCard, LockedCard, PremiumNudge, YouthCardPinned } from '../components/opps';
 import { DinnersSection } from '../components/dinners';
 import { useLocation, navigate } from '../lib/router';
 import { LuLock } from 'react-icons/lu';
@@ -52,6 +52,8 @@ export default function Opportunities() {
             ))}
           </div>
         )}
+
+        <YouthCardPinned />
 
         {data.loading && <Spinner />}
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}

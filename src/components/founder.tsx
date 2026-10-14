@@ -7,7 +7,7 @@ export const FOUNDER = {
   quote:
     'Ho fondato THE LOBBY perché capire come funzionano le istituzioni non può essere un privilegio di pochi. Ti porto dentro, una porta alla volta.',
   bio:
-    'Due volte consigliere comunale e candidato sindaco a Rozzano, ambasciatore della Lombardia per l’Anno europeo dei giovani, dieci anni di impegno civico. Formatore di professione, in THE LOBBY tiene le lezioni, sceglie le opportunità e guida la community.',
+    'Due volte consigliere comunale e candidato sindaco a Rozzano, ambasciatore della Lombardia per l’Anno europeo dei giovani, dieci anni di impegno civico. Di professione è formatore in un grande gruppo bancario internazionale. In THE LOBBY tiene le lezioni, sceglie le opportunità e guida la community.',
 };
 
 /** Arch-shaped portrait placeholder with initials (swap for a photo later). */

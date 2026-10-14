@@ -12,11 +12,11 @@ const STATS = [
 ];
 
 const TIMELINE = [
-  { when: 'Gli inizi', title: 'Dai banchi di scuola alla politica', text: 'A Rozzano, giovanissimo, comincia dieci anni di attivismo nel Movimento 5 Stelle: assemblee, banchetti, consigli comunali seguiti dal pubblico.' },
+  { when: 'Gli inizi', title: 'Dai banchi di scuola alla politica', text: 'A Rozzano, giovanissimo, comincia dieci anni di impegno civico e politico: assemblee, banchetti, consigli comunali seguiti dal pubblico.' },
   { when: '2022', title: 'Ambasciatore della Lombardia per l’Anno europeo dei giovani', text: 'A 21 anni l’Agenzia Italiana per la Gioventù lo nomina ambasciatore: porta Erasmus+ e il Corpo europeo di solidarietà in scuole e università.' },
   { when: 'In consiglio', title: 'Consigliere comunale a Rozzano', text: 'Dai banchi dell’opposizione impara come si decide davvero in un Comune: bilancio, mozioni, commissioni, rapporto con i cittadini.' },
   { when: '2024', title: 'Candidato sindaco a 23 anni', text: 'Si candida a guidare la sua città con un programma su lavoro, ambiente e innovazione: “serve un cambiamento”.' },
-  { when: 'Secondo mandato', title: 'Di nuovo in consiglio, capogruppo', text: 'Rieletto consigliere comunale, guida il gruppo del Movimento 5 Stelle e lavora alle alleanze per il futuro della città.' },
+  { when: 'Secondo mandato', title: 'Di nuovo in consiglio, capogruppo', text: 'Rieletto consigliere comunale, diventa capogruppo in consiglio e lavora sui temi che contano per il futuro della città.' },
   { when: 'Oggi', title: 'Fonda THE LOBBY', text: 'Mette dieci anni di esperienza al servizio di tutti: un’academy per capire le istituzioni e trovare le opportunità che offrono.' },
 ];
 
@@ -36,20 +36,8 @@ const PRESS = [
   {
     outlet: 'Il Giorno',
     date: '15 settembre 2023',
-    title: 'Il 23enne Andrea Bonazzi candidato sindaco a Rozzano: «Serve un cambiamento»',
+    title: 'A 23 anni candidato sindaco a Rozzano: «Serve un cambiamento»',
     url: 'https://www.ilgiorno.it/milano/cronaca/verso-le-amministrative-il-23enne-andrea-bonazzi-e-il-candidato-dei-5-stelle-serve-un-cambiamento-8e3dea75',
-  },
-  {
-    outlet: 'Calcio e Finanza',
-    date: '27 febbraio 2024',
-    title: 'Rozzano, in consiglio comunale la mozione sullo stadio presentata da Bonazzi',
-    url: 'https://www.calcioefinanza.it/?p=146129',
-  },
-  {
-    outlet: 'Il Giorno',
-    date: '25 febbraio 2025',
-    title: 'Rozzano al voto: il capogruppo Bonazzi e la nuova alleanza',
-    url: 'https://www.ilgiorno.it/milano/cronaca/rozzano-al-voto-la-scelta-c8114fc9',
   },
 ];
 
@@ -66,7 +54,7 @@ export default function Story() {
         <p className="story-hero__line">Dieci anni dentro le istituzioni. Ora apre le porte a tutti.</p>
         <ul className="story-hero__roles">
           <li>Consigliere comunale</li>
-          <li>Ex candidato sindaco</li>
+          <li>Candidato sindaco 2024</li>
           <li>Ambasciatore europeo dei giovani 2022</li>
         </ul>
       </section>
@@ -82,8 +70,8 @@ export default function Story() {
           <h2 className="h-section">La sua storia</h2>
           <p>
             Andrea è nato e cresciuto a Rozzano, alle porte di Milano. Ha cominciato a occuparsi di vita pubblica ai tempi della
-            scuola e non ha più smesso: dieci anni di attivismo nel Movimento 5 Stelle, due mandati da consigliere comunale e, a 23
-            anni, la candidatura a sindaco della sua città.
+            scuola e non ha più smesso: dieci anni di impegno civico e politico, due mandati da consigliere comunale e, a 23 anni, la
+            candidatura a sindaco della sua città.
           </p>
           <p>
             Nel 2022 è stato scelto come ambasciatore della Lombardia per l’Anno europeo dei giovani. Da lì l’Europa è diventata
@@ -92,7 +80,8 @@ export default function Story() {
           </p>
           <p>
             In questi anni ha imparato a conoscere dall’interno la macchina comunale, quella nazionale e quella europea. Di
-            professione si occupa di formazione: aiutare le persone a crescere è il suo mestiere. THE LOBBY mette insieme le due cose.
+            professione è formatore in un grande gruppo bancario internazionale: aiutare le persone a crescere è il suo mestiere.
+            THE LOBBY mette insieme le due cose.
           </p>
         </section>
 

@@ -98,3 +98,30 @@ export function PremiumNudge({ count }: { count: number }) {
     </aside>
   );
 }
+
+/** Always-on card: national youth card, free for everyone 18-35. */
+export const CGN_URL = 'https://ioapp.it/carta-giovani-nazionale';
+
+export function YouthCardPinned() {
+  return (
+    <aside className="pinned" aria-label="Sempre attiva: Carta Giovani Nazionale">
+      <div className="opp-card__top">
+        <span className="chip chip--pinned">Sempre attiva</span>
+        <span className="chip chip--free">Gratis</span>
+      </div>
+      <h2 className="opp-card__title">Carta Giovani Nazionale</h2>
+      <p className="opp-card__org">Dipartimento per le Politiche Giovanili · app IO</p>
+      <p className="opp-card__sum">
+        Sconti e vantaggi riservati a chi ha tra 18 e 35 anni: trasporti, cultura, sport, viaggi e molto altro. Sotto i 31 anni
+        vale anche come carta europea EYCA.
+      </p>
+      <ul className="opp-card__facts">
+        <li><LuUserCheck aria-hidden="true" /> Dai 18 ai 35 anni, serve solo l’app IO</li>
+        <li className="is-covered"><LuCircleCheck aria-hidden="true" /> <span>Si attiva subito dopo la verifica dell’età</span></li>
+      </ul>
+      <a className="btn btn--primary btn--block" href={CGN_URL} target="_blank" rel="noopener noreferrer">
+        Richiedila sull’app IO <LuExternalLink aria-hidden="true" />
+      </a>
+    </aside>
+  );
+}
