@@ -1,5 +1,5 @@
 import React from 'react';
-import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, courseOutline, LEVEL_LABEL, OutlineLesson } from '../lib/data';
+import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, courseOutline, LEVEL_LABEL, CATEGORY_NAME, categoryOf, OutlineLesson } from '../lib/data';
 import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
 import { useAuth } from '../lib/auth';
@@ -36,7 +36,7 @@ export default function Course({ slug }: { slug: string }) {
               <section className="course-hero">
                 <div className="course-hero__arch" aria-hidden="true" />
                 <span className="course-hero__level">
-                  {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'}{coming && ' · In arrivo'}
+                  {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'}{coming && ' · In arrivo'}
                 </span>
                 <h1 className="course-hero__title">{c.title}</h1>
                 {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}

@@ -15,7 +15,7 @@ await new Promise((r) => setTimeout(r, 800));
 
 const uid = '11111111-1111-1111-1111-111111111111';
 const course = {
-  id: 'c1', slug: 'test-comune', title: '[TEST] Come funziona davvero un Comune', subtitle: 'Corso di prova per il prototipo',
+  id: 'c1', slug: 'test-comune', category: 'comune', title: '[TEST] Come funziona davvero un Comune', subtitle: 'Corso di prova per il prototipo',
   description: 'CORSO DI PROVA. Contenuto segnaposto per collaudare catalogo, player, progressi e quiz.', audience: null,
   level: 'base', access_level: 'free', objectives: ['Collaudare il flusso end-to-end', 'Capire chi decide in un Comune'],
   course_modules: [{ id: 'm1', position: 1, title: '[TEST] Modulo 1', description: null, lessons: [] }],
@@ -24,7 +24,7 @@ const lessons = [
   { id: 'l1', position: 1, title: '[TEST] Lezione 1', summary: 'Lezione di prova, senza video reale', duration_seconds: 60, status: 'published' },
   { id: 'l2', position: 2, title: '[TEST] Lezione 2', summary: 'Seconda lezione di prova', duration_seconds: 240, status: 'published' },
 ];
-const course2 = {
+const course2 = { category: 'italia',
   id: 'c2', slug: 'parlamento', title: 'Il Parlamento in 20 minuti', subtitle: 'Come nasce una legge', description: 'Mock', audience: null,
   level: 'intermedio', access_level: 'free', objectives: [], course_modules: [{ id: 'm2', position: 1, title: 'Le Camere', lessons: [] }],
 };
@@ -96,9 +96,9 @@ async function mock(route) {
   if (path === '/rest/v1/rpc/publish_lesson') { video.published = true; return route.fulfill({ status: 204 }); }
   if (path === '/rest/v1/courses') {
     const withLessons = (c, ls) => ({ ...c, course_modules: c.course_modules.map((m) => ({ ...m, lessons: loggedIn ? ls : [] })) });
-    const course3 = { id: 'c3', slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', subtitle: 'Corso Premium di prova', description: 'Mock premium', audience: null,
+    const course3 = { id: 'c3', slug: 'test-masterclass', category: 'europa', title: '[TEST] Masterclass: bandi europei', subtitle: 'Corso Premium di prova', description: 'Mock premium', audience: null,
       level: 'avanzato', access_level: 'premium', objectives: ['Leggere un bando europeo', 'Capire cosa cercano i valutatori'], course_modules: [{ id: 'm3', position: 1, title: '[TEST] Dal bando alla candidatura', lessons: [] }] };
-    const course4 = { id: 'c4', slug: 'test-bozza', title: '[TEST] Corso in bozza', subtitle: 'Testi da validare', description: 'Mock draft', audience: null, coming_soon: !draftPublished,
+    const course4 = { id: 'c4', slug: 'test-bozza', category: 'comune', title: '[TEST] Corso in bozza', subtitle: 'Testi da validare', description: 'Mock draft', audience: null, coming_soon: !draftPublished,
       level: 'base', access_level: 'free', objectives: [], course_modules: [{ id: 'm4', position: 1, title: '[TEST] Modulo bozza', lessons: [] }] };
     const all = [withLessons(course, lessons), withLessons(course2, [{ id: 'p1', position: 1, title: 'Camera e Senato', duration_seconds: 300, status: 'published' }]),
       withLessons(course3, approved ? [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420, status: 'published' }] : []),
@@ -268,10 +268,15 @@ await page.click('.tabbar__item:has-text("Academy")');
 await page.waitForSelector('.course-row');
 await page.waitForSelector('.preview');
 await check(page.textContent('.preview').then((t) => t.includes('Come si legge un bando europeo')), 'premium course preview shows lesson titles');
+await check(page.locator('.cat-section').count().then((n) => n === 3), 'courses grouped by area');
+await check(page.locator('.course-row .cover--small').count().then((n) => n > 0), 'light course covers');
 await shot('04-academy');
+await page.click('.chips .chip--btn:has-text("Comune")');
+await check(page.locator('.cat-section').count().then((n) => n === 1), 'area filter');
+await shot('04b-academy-comune');
 
 // 6. Course
-await page.click('.course-row >> nth=0');
+await page.click('.course-row:has-text("Come funziona davvero un Comune")');
 await page.waitForSelector('.course-hero');
 await shot('05-course');
 

@@ -52,15 +52,20 @@ export function ArchProgress({ value, size = 56, label }: { value: number; size?
   );
 }
 
-/** Course cover shaped as a doorway. */
+/** Course cover: white card with the coral arch logo (light and welcoming, never a dark slab). */
 export function DoorCover({ title, level, small }: { title: string; level?: string; small?: boolean }) {
-  return (
-    <div className={`door ${small ? 'door--small' : ''}`}>
-      <div className="door__inner">
-        <span className="door__keystone" />
-        {level && <span className="door__level">{level}</span>}
-        {!small && <span className="door__title">{title}</span>}
+  if (small) {
+    return (
+      <div className="cover cover--small" aria-hidden="true">
+        <ArchMark size={22} />
       </div>
+    );
+  }
+  return (
+    <div className="cover">
+      <span className="cover__mark"><ArchMark size={30} /></span>
+      {level && <span className="cover__label">{level}</span>}
+      <span className="cover__title">{title}</span>
     </div>
   );
 }
