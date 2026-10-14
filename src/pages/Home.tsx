@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL } from '../lib/data';
+import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, courseLabel } from '../lib/data';
 import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
 import { TagChip } from '../components/opps';
 import { FounderAvatar } from '../components/founder';
@@ -33,10 +33,22 @@ export default function Home() {
         {data.data && (() => {
           const { courses, progress, opps, attempts } = data.data;
           const started = courses.filter((c) => completedIn(c, progress) > 0);
-          const focus = started.find((c) => completedIn(c, progress) < lessonCount(c)) || courses[0];
+          const focus = started.find((c) => completedIn(c, progress) < lessonCount(c)) || courses.find((c) => lessonCount(c) > 0);
+          const firstComing = courses.find((c) => c.coming_soon && lessonCount(c) === 0);
           const doneLessons = progress.filter((p) => p.status === 'completed').length;
           return (
             <>
+              {!focus && firstComing && (
+                <section className="resume" aria-label="In arrivo">
+                  <ArchProgress value={0} size={64} />
+                  <div className="resume__body">
+                    <span className="resume__kicker">Il primo corso sta arrivando</span>
+                    <h2 className="resume__title">{firstComing.title}</h2>
+                    <span className="resume__meta">{firstComing.subtitle}</span>
+                    <ButtonLink to={`/corso/${firstComing.slug}`} variant="secondary">Guarda il programma</ButtonLink>
+                  </div>
+                </section>
+              )}
               {focus && (() => {
                 const total = lessonCount(focus);
                 const done = completedIn(focus, progress);
@@ -71,9 +83,9 @@ export default function Home() {
                   <Link to="/academy" className="link-quiet">Vedi tutti</Link>
                 </div>
                 <div className="doors-row">
-                  {courses.map((c) => (
+                  {courses.slice(0, 8).map((c) => (
                     <Link key={c.id} to={`/corso/${c.slug}`} className="door-card">
-                      <DoorCover title={c.title} level={LEVEL_LABEL[c.level] + (c.access_level === 'premium' ? ' · Premium' : '')} />
+                      <DoorCover title={c.title} level={courseLabel(c)} />
                     </Link>
                   ))}
                 </div>

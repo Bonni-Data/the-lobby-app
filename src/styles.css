@@ -785,3 +785,17 @@ img, svg, video { display: block; max-width: 100%; }
 .pinned .btn { margin-top: 8px; }
 .chip--pinned { background: var(--navy); color: var(--ivory); }
 .chip--free { background: #e4ecdf; color: #2c5440; }
+.chip--soon { margin-left: 8px; font-style: normal; background: #ffe1da; color: #8c2a17; padding: 1px 8px; font-size: 11.5px; vertical-align: 1px; }
+.course-row.is-coming .bar { display: none; }
+
+/* ---------- Lesson text ---------- */
+.lesson-cover { position: relative; overflow: hidden; display: grid; gap: 4px; padding: 22px var(--gutter) 20px; background: var(--navy); color: var(--ivory); }
+.lesson-cover__arch { position: absolute; right: -40px; top: 10px; width: 120px; height: 170px; border: 2px solid rgba(255, 112, 88, 0.5); border-bottom: 0; border-radius: 999px 999px 0 0; }
+.lesson-cover__kicker { position: relative; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--coral); }
+.lesson-cover__note { position: relative; font-size: 14px; color: rgba(244, 240, 232, 0.8); }
+.lesson-text { margin: 8px 0 26px; font-size: 16.5px; line-height: 1.65; }
+.lesson-text h2 { font-family: var(--f-display); font-weight: 600; font-size: 23px; line-height: 1.15; margin: 26px 0 8px; }
+.lesson-text p { margin: 0 0 14px; }
+.lesson-text ul { margin: 0 0 16px; padding-left: 20px; display: grid; gap: 6px; }
+.lesson-text h2.lesson-text__brief { margin-top: 30px; padding-top: 18px; border-top: 2px solid var(--coral); }
+.lesson-text h2.lesson-text__brief + ul { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-m); padding: 14px 16px 14px 34px; }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync } from '../components/ui';
-import { listCourses, LEVEL_LABEL } from '../lib/data';
+import { listCourses, courseLabel } from '../lib/data';
 import { FounderCard } from '../components/founder';
 import { LuLandmark, LuGraduationCap, LuCompass, LuKeyRound } from 'react-icons/lu';
 
@@ -73,11 +73,11 @@ export default function Welcome() {
 
       {courses.data && courses.data.length > 0 && (
         <section className="welcome__section">
-          <h2 className="h-section">I primi corsi</h2>
+          <h2 className="h-section">I corsi</h2>
           <div className="doors-row">
-            {courses.data.map((c) => (
+            {courses.data.slice(0, 8).map((c) => (
               <a key={c.id} href="#/accedi?tab=registrati" className="door-card">
-                <DoorCover title={c.title} level={LEVEL_LABEL[c.level] + (c.access_level === 'premium' ? ' · Premium' : '')} />
+                <DoorCover title={c.title} level={courseLabel(c)} />
               </a>
             ))}
           </div>

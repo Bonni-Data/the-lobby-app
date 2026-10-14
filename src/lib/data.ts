@@ -22,6 +22,8 @@ export type Course = {
   audience?: string | null;
   level: 'base' | 'intermedio' | 'avanzato';
   access_level: 'free' | 'premium';
+  coming_soon?: boolean;
+  position?: number | null;
   objectives: string[];
   course_modules: Module[];
 };
@@ -81,7 +83,7 @@ export type QuizResult = {
 };
 
 const COURSE_FIELDS =
-  'id,slug,title,subtitle,description,audience,level,access_level,objectives,' +
+  'id,slug,title,subtitle,description,audience,level,access_level,objectives,coming_soon,position,' +
   'course_modules(id,position,title,description,lessons(id,position,title,summary,duration_seconds,status))';
 
 function sortCourse(c: Course): Course {
@@ -91,7 +93,7 @@ function sortCourse(c: Course): Course {
 }
 
 export async function listCourses(): Promise<Course[]> {
-  const rows = await select<Course>('courses', `select=${COURSE_FIELDS}&status=eq.published&order=created_at.asc`);
+  const rows = await select<Course>('courses', `select=${COURSE_FIELDS}&status=eq.published&order=position.asc.nullslast,created_at.asc`);
   return rows.map(sortCourse);
 }
 
@@ -319,4 +321,9 @@ export async function archiveEvent(id: string) {
 export type OutlineLesson = { module_id: string; lesson_id: string; lesson_position: number; title: string; duration_seconds: number | null };
 export async function courseOutline(courseId: string): Promise<OutlineLesson[]> {
   return (await rpc<OutlineLesson[]>('course_outline', { p_course: courseId })) || [];
+}
+
+/** Label for course doors: level, Premium, coming soon. */
+export function courseLabel(c: Course) {
+  return LEVEL_LABEL[c.level] + (c.access_level === 'premium' ? ' · Premium' : '') + (c.coming_soon && lessonCount(c) === 0 ? ' · In arrivo' : '');
 }

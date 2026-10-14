@@ -86,7 +86,7 @@ async function mock(route) {
     const id = (url.searchParams.get('id') || '').replace('eq.', '');
     const l = lessons.find((x) => x.id === id);
     if (!l || !loggedIn) return json(200, []);
-    return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\nSeconda riga.', module_id: 'm1',
+    return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
       course_modules: { id: 'm1', title: '[TEST] Modulo 1', position: 1, courses: { slug: 'test-comune', title: course.title } },
       quizzes: id === 'l1' ? [{ id: 'q1', title: '[TEST] Quiz lezione 1' }] : [], lesson_assets: [] }]);
   }
@@ -230,7 +230,8 @@ await shot('05-course');
 
 // 7. Lesson + complete
 await page.click('text=Inizia il corso');
-await page.waitForSelector('.player');
+await page.waitForSelector('.lesson-cover');
+await check(page.textContent('.lesson-text').then((t) => t.includes('Trascrizione di prova')), 'lesson text rendered');
 await page.click('text=Segna come completata');
 await page.waitForSelector('text=Completata');
 await shot('06-lesson');

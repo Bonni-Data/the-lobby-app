@@ -20,15 +20,18 @@ const COMING = ['Bandi europei: leggerli, scriverli, vincerli', 'Lavorare nelle 
 function CourseRow({ c, progress }: { c: Course; progress: Progress[] }) {
   const total = lessonCount(c);
   const done = completedIn(c, progress);
+  const coming = c.coming_soon && total === 0;
   return (
     <li>
-      <Link to={`/corso/${c.slug}`} className="course-row">
+      <Link to={`/corso/${c.slug}`} className={`course-row ${coming ? 'is-coming' : ''}`}>
         <DoorCover title={c.title} small />
         <div className="course-row__body">
-          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}</span>
+          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}{coming && <em className="chip chip--soon">In arrivo</em>}</span>
           <strong className="course-row__title">{c.title}</strong>
           {c.subtitle && <span className="course-row__sub">{c.subtitle}</span>}
-          <span className="course-row__meta">{total} lezioni, circa {courseMinutes(c)} min</span>
+          <span className="course-row__meta">
+            {coming ? `${c.course_modules.length} capitoli in preparazione` : `${total} lezioni, circa ${courseMinutes(c)} min`}
+          </span>
           {total > 0 && (
             <span className="bar" aria-label={`${done} di ${total} lezioni completate`}>
               <span style={{ width: `${(done / total) * 100}%` }} />
@@ -55,6 +58,16 @@ function PreviewCard({ c, outline }: { c: Course; outline: OutlineLesson[] }) {
         <ul className="preview__goals">
           {c.objectives.slice(0, 3).map((o, i) => <li key={i}><LuTarget aria-hidden="true" /> {o}</li>)}
         </ul>
+      )}
+      {outline.length === 0 && c.course_modules.length > 0 && (
+        <>
+          <span className="preview__label">Cosa ti aspetta{c.coming_soon ? ' · in arrivo' : ''}</span>
+          <ol className="preview__lessons">
+            {c.course_modules.map((m) => (
+              <li key={m.id}><LuLock aria-hidden="true" /> <span>{m.title}</span> <em /></li>
+            ))}
+          </ol>
+        </>
       )}
       {outline.length > 0 && (
         <>

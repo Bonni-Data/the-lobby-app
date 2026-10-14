@@ -4,6 +4,7 @@ import { Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsyn
 import { Link } from '../lib/router';
 import { LuCircleCheck, LuFileText, LuLink, LuPresentation, LuChevronDown } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
+import { Prose } from '../components/prose';
 
 export default function Lesson({ id }: { id: string }) {
   const data = useAsync(async () => {
@@ -53,16 +54,17 @@ export default function Lesson({ id }: { id: string }) {
           const quiz = lesson.quizzes?.[0];
           return (
             <>
-              <div className="player" aria-label="Video della lezione">
-                {lesson.video_ref ? (
+              {lesson.video_ref ? (
+                <div className="player" aria-label="Video della lezione">
                   <video controls playsInline preload="metadata" src={lesson.video_ref} />
-                ) : (
-                  <div className="player__placeholder">
-                    <span className="player__arch" aria-hidden="true" />
-                    <span>Il video di questa lezione è in preparazione.</span>
-                  </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="lesson-cover">
+                  <span className="lesson-cover__arch" aria-hidden="true" />
+                  <span className="lesson-cover__kicker">Lezione {idx + 1} di {flat.length || 1}</span>
+                  <span className="lesson-cover__note">Da leggere in 5 minuti · il video con Andrea è in arrivo</span>
+                </div>
+              )}
 
               <div className="page">
                 <p className="crumb">
@@ -74,12 +76,14 @@ export default function Lesson({ id }: { id: string }) {
                 <TeacherLine label={formatMinutes(lesson.duration_seconds)} />
                 {lesson.summary && <p className="lede">{lesson.summary}</p>}
 
-                {lesson.transcript && (
+                {lesson.transcript && !lesson.video_ref && <Prose text={lesson.transcript} />}
+
+                {lesson.transcript && lesson.video_ref && (
                   <section className="disclosure">
                     <button className="disclosure__btn" onClick={() => setOpenTranscript(!openTranscript)} aria-expanded={openTranscript}>
                       Trascrizione <LuChevronDown className={openTranscript ? 'rot' : ''} />
                     </button>
-                    {openTranscript && <div className="disclosure__body prose">{lesson.transcript}</div>}
+                    {openTranscript && <div className="disclosure__body"><Prose text={lesson.transcript} /></div>}
                   </section>
                 )}
 
