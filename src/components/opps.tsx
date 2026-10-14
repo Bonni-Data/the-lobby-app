@@ -1,5 +1,5 @@
 import React from 'react';
-import { Opportunity, TAG_LABEL, CATEGORY_LABEL, PREMIUM_PRICE, daysUntil } from '../lib/data';
+import { Opportunity, TAG_LABEL, CATEGORY_LABEL, daysUntil } from '../lib/data';
 import { ButtonLink, formatDate } from './ui';
 import { LuExternalLink, LuMapPin, LuCalendar, LuLock, LuCircleCheck, LuUserCheck, LuKeyRound } from 'react-icons/lu';
 
@@ -93,8 +93,8 @@ export function PremiumNudge({ count }: { count: number }) {
       <h2 className="nudge__title">
         {count === 1 ? 'Un’altra occasione ti aspetta.' : `Altre ${count} occasioni ti aspettano.`}
       </h2>
-      <p className="nudge__text">Con Premium apri l'archivio completo: tutte le opportunità pubbliche in un solo posto, aggiornate ogni mattina. {PREMIUM_PRICE} al mese.</p>
-      <ButtonLink to="/premium" variant="primary">Prenota Premium</ButtonLink>
+      <p className="nudge__text">Con Premium apri l'archivio completo, aggiornato ogni mattina. È gratuito: si entra su selezione di Andrea.</p>
+      <ButtonLink to="/premium" variant="primary">Candidati a Premium</ButtonLink>
     </aside>
   );
 }

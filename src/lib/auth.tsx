@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, currentSession, onSession, refresh } from './api';
-import { getProfile, getPlan, Plan } from './data';
+import { getProfile, getPlan, Plan, FREE_PLAN } from './data';
 
 type AuthState = {
   session: Session | null;
@@ -8,10 +8,11 @@ type AuthState = {
   setDisplayName: (n: string) => void;
   plan: Plan;
   setPlan: (p: Plan) => void;
+  refreshPlan: () => void;
 };
 
-const FREE: Plan = { premium: false, waitlist: false };
-const Ctx = createContext<AuthState>({ session: null, displayName: '', setDisplayName: () => {}, plan: FREE, setPlan: () => {} });
+const FREE: Plan = FREE_PLAN;
+const Ctx = createContext<AuthState>({ session: null, displayName: '', setDisplayName: () => {}, plan: FREE, setPlan: () => {}, refreshPlan: () => {} });
 
 function nameFrom(s: Session | null) {
   const meta = s?.user?.user_metadata || {};
@@ -45,8 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const setName = useCallback((n: string) => setDisplayName(n), []);
   const setP = useCallback((p: Plan) => setPlan(p), []);
+  const refreshPlan = useCallback(() => { getPlan().then(setPlan).catch(() => {}); }, []);
   return (
-    <Ctx.Provider value={{ session, displayName, setDisplayName: setName, plan, setPlan: setP }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ session, displayName, setDisplayName: setName, plan, setPlan: setP, refreshPlan }}>{children}</Ctx.Provider>
   );
 }
 

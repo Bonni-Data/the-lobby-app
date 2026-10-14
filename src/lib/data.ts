@@ -1,4 +1,5 @@
-import { select, upsert, update, rpc, insertIgnore, currentSession } from './api';
+import { select, upsert, update, rpc, currentSession } from './api';
+import { NOTIFY_ENDPOINT, APP_URL } from '../config';
 
 export type Lesson = {
   id: string;
@@ -44,7 +45,24 @@ export type Opportunity = {
   is_new: boolean;
   locked: boolean;
 };
-export type Plan = { premium: boolean; waitlist: boolean };
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
+export type MyApplication = {
+  status: ApplicationStatus;
+  created_at: string;
+  reviewed_at?: string | null;
+  reviewer_note?: string | null;
+  retry_after?: string | null;
+};
+export type Plan = { premium: boolean; admin: boolean; application: MyApplication | null };
+export type Application = MyApplication & {
+  id: string;
+  full_name: string;
+  email: string;
+  about: string;
+  experience: string;
+  goal: string;
+  link?: string | null;
+};
 export type PremiumEvent = {
   id: string;
   kind: 'cena' | 'incontro' | 'lezione' | 'evento';
@@ -144,15 +162,50 @@ export async function listOpportunities(): Promise<Opportunity[]> {
   return (await rpc<Opportunity[]>('opportunities_feed', {})) || [];
 }
 
+export const FREE_PLAN: Plan = { premium: false, admin: false, application: null };
+
 export async function getPlan(): Promise<Plan> {
-  if (!currentSession()) return { premium: false, waitlist: false };
-  return rpc<Plan>('my_plan', {});
+  if (!currentSession()) return FREE_PLAN;
+  const p = await rpc<Plan>('my_plan', {});
+  return { premium: !!p?.premium, admin: !!p?.admin, application: p?.application ?? null };
 }
 
-export async function joinWaitlist() {
-  const s = currentSession();
-  if (!s) return;
-  await insertIgnore('premium_waitlist', { user_id: s.user.id });
+export type ApplicationInput = { about: string; experience: string; goal: string; link: string };
+
+/** Saves the application (source of truth) and forwards a copy to the THE LOBBY inbox. */
+export async function submitApplication(input: ApplicationInput) {
+  const saved = await rpc<{ id: string; full_name: string; email: string; created_at: string }>('submit_premium_application', {
+    p_about: input.about,
+    p_experience: input.experience,
+    p_goal: input.goal,
+    p_link: input.link || null,
+  });
+  // Best effort: the application is already stored, the email is only a notification.
+  fetch(NOTIFY_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      _subject: `Nuova candidatura Premium: ${saved.full_name}`,
+      _template: 'box',
+      _captcha: 'false',
+      Nome: saved.full_name,
+      Email: saved.email,
+      'Chi sono oggi': input.about,
+      'Cosa ho fatto finora': input.experience,
+      'Il mio prossimo livello': input.goal,
+      Link: input.link || '-',
+      'Valuta e attiva': `${APP_URL}#/admin`,
+    }),
+  }).catch(() => {});
+  return saved;
+}
+
+export async function listApplications(): Promise<Application[]> {
+  return select<Application>('premium_applications', 'select=*&order=created_at.desc');
+}
+
+export async function reviewApplication(id: string, decision: 'approved' | 'rejected', note: string) {
+  await rpc('review_premium_application', { p_id: id, p_decision: decision, p_note: note || null });
 }
 
 export async function listPremiumEvents(): Promise<PremiumEvent[]> {
@@ -213,7 +266,6 @@ export const CATEGORY_LABEL: Record<string, string> = {
   programma: 'Programma',
 };
 export const TAG_LABEL: Record<OppTag, string> = { viaggio: 'Viaggio spesato', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
-export const PREMIUM_PRICE = '12,90 €';
 export const FREE_OPPORTUNITIES = 3;
 
 /** Days left until a YYYY-MM-DD date (local), or null. */

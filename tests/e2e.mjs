@@ -32,6 +32,11 @@ let loggedIn = false;
 let progress = [];
 let attempts = [];
 let waitlisted = false;
+let approved = false;
+let isAdmin = false;
+let myApp = null;
+const apps = [];
+const notified = [];
 const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
 let failures = [];
@@ -106,7 +111,19 @@ async function mock(route) {
   }
   if (path === '/rest/v1/quiz_attempts') return json(200, attempts);
   if (path === '/rest/v1/rpc/opportunities_feed') return json(200, globalThis.__opps || []);
-  if (path === '/rest/v1/rpc/my_plan') return json(200, { premium: false, waitlist: waitlisted });
+  if (path === '/rest/v1/rpc/my_plan') return json(200, { premium: approved, admin: isAdmin, application: myApp });
+  if (path === '/rest/v1/rpc/submit_premium_application') {
+    if (['p_about', 'p_experience', 'p_goal'].some((k) => (body[k] || '').trim().length < 30)) return json(400, { code: 'P0001', message: 'too_short' });
+    myApp = { status: 'pending', created_at: new Date().toISOString() };
+    apps.unshift({ id: 'a' + apps.length, full_name: 'Giulia Rossi', email: 'giulia@example.com', about: body.p_about, experience: body.p_experience, goal: body.p_goal, link: body.p_link, ...myApp });
+    return json(200, { id: apps[0].id, full_name: 'Giulia Rossi', email: 'giulia@example.com', created_at: myApp.created_at });
+  }
+  if (path === '/rest/v1/premium_applications') return json(200, apps);
+  if (path === '/rest/v1/rpc/review_premium_application') {
+    const a = apps.find((x) => x.id === body.p_id);
+    a.status = body.p_decision; a.reviewer_note = body.p_note; a.reviewed_at = new Date().toISOString();
+    return route.fulfill({ status: 204 });
+  }
   if (path === '/rest/v1/premium_waitlist') { waitlisted = true; return route.fulfill({ status: 201, body: '' }); }
   if (path === '/rest/v1/premium_events') return json(200, []);
   if (path === '/rest/v1/profiles') {
@@ -125,6 +142,7 @@ page.on('console', (m) => m.type() === 'error' && !/fonts|ERR_|Failed to load re
 page.on('pageerror', (e) => consoleErrors.push('PAGEERROR ' + e.message));
 await page.route('**/*.supabase.co/**', mock);
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+await page.route('https://formsubmit.co/**', (r) => { notified.push(r.request().postDataJSON()); return r.fulfill({ status: 200, contentType: 'application/json', body: '{"success":"true"}' }); });
 
 const base = `http://localhost:${PORT}/`;
 const shot = (n) => page.screenshot({ path: shots + n + '.png', fullPage: true });
@@ -234,14 +252,40 @@ await page.waitForSelector('.teaser');
 await check(page.locator('.opp-list li').count().then((n) => n === 3), 'home shows 3 free opportunities');
 await shot('10b-home-opps');
 
-// 9c. Premium page + waitlist
+// 9c. Premium page + application
 await page.click('.tabbar__item:has-text("Premium")');
 await page.waitForSelector('.premium-hero');
+await check(page.textContent('.premium-hero').then((t) => t.includes('Gratuito') && !t.includes('€')), 'premium is free, no price');
 await shot('10c-premium');
-await page.click('button:has-text("Prenota il tuo posto")');
-await page.waitForSelector('.premium-status');
-await check(page.textContent('.premium-status').then((t) => t.includes('Posto prenotato a 12,90 €')), 'waitlist joined');
-await shot('10d-premium-waitlist');
+await page.click('.premium-hero button:has-text("Candidati a Premium")');
+await page.click('button:has-text("Invia la candidatura")');
+await page.waitForSelector('.apply .alert');
+await check(page.textContent('.apply .alert').then((t) => t.includes('almeno 30')), 'min length enforced');
+await page.fill('.apply textarea >> nth=0', 'Ho 22 anni, studio Scienze politiche a Milano e seguo la vita del mio Comune.');
+await page.fill('.apply textarea >> nth=1', 'Due anni di volontariato in un centro giovani e rappresentante degli studenti in facoltà.');
+await page.fill('.apply textarea >> nth=2', 'Voglio candidarmi a un tirocinio nelle istituzioni europee entro un anno.');
+await page.fill('.apply input', 'https://linkedin.com/in/giulia');
+await shot('10d-premium-form');
+await page.click('button:has-text("Invia la candidatura")');
+await page.waitForSelector('.apply-status .premium-status');
+await check(page.textContent('.apply-status').then((t) => t.includes('Candidatura inviata')), 'application pending state');
+await page.waitForTimeout(300);
+await check(Promise.resolve(notified.length === 1 && notified[0].Nome === 'Giulia Rossi' && notified[0]['Cosa ho fatto finora'].includes('volontariato')), 'email notification sent');
+await shot('10e-premium-pending');
+
+// 9d. Admin review (Andrea's account)
+isAdmin = true;
+await page.reload();
+await page.click('.tabbar__item:has-text("Profilo")');
+await page.waitForSelector('text=Candidature Premium');
+await page.click('text=Candidature Premium');
+await page.waitForSelector('.appcard');
+await shot('10f-admin');
+await page.fill('.appcard textarea', 'Percorso solido, benvenuta.');
+await page.click('button:has-text("Attiva Premium")');
+await page.waitForSelector('.chip--btn:has-text("Da valutare (0)")');
+await check(Promise.resolve(apps[0].status === 'approved' && apps[0].reviewer_note === 'Percorso solido, benvenuta.'), 'application approved with note');
+isAdmin = false;
 
 // 10. Profile + logout
 await page.click('.tabbar__item:has-text("Profilo")');

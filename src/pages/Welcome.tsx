@@ -61,7 +61,7 @@ export default function Welcome() {
             <LuKeyRound aria-hidden="true" />
             <div>
               <strong>La sala riservata</strong>
-              <span>Con Premium: cene, incontri dal vivo e lezioni esclusive.</span>
+              <span>Premium è gratuito e su selezione: cene, incontri dal vivo con Andrea e lezioni esclusive.</span>
             </div>
           </li>
         </ul>

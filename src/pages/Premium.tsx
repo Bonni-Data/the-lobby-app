@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { listPremiumEvents, joinWaitlist, PremiumEvent, PREMIUM_PRICE } from '../lib/data';
-import { Button, Screen, Spinner, TopBar, toast, useAsync } from '../components/ui';
-import { FounderCard } from '../components/founder';
+import { listPremiumEvents, submitApplication, PremiumEvent } from '../lib/data';
+import { Button, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
+import { FounderAvatar } from '../components/founder';
+import { CONTACT_EMAIL } from '../config';
+import { Link } from '../lib/router';
 import {
-  LuCompass, LuUtensils, LuHandshake, LuGraduationCap, LuCheck, LuMinus, LuMapPin, LuUsers, LuCalendarClock, LuPlane, LuBriefcase, LuSprout, LuChevronDown,
+  LuCompass, LuUtensils, LuHandshake, LuGraduationCap, LuCheck, LuMinus, LuMapPin, LuUsers, LuCalendarClock, LuPlane, LuBriefcase,
+  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass,
 } from 'react-icons/lu';
-
-const PER_DAY = '43 centesimi';
 
 const FEATURES = [
   {
@@ -45,6 +46,12 @@ const FEATURES = [
   },
 ];
 
+const STEPS = [
+  { icon: <LuPenLine />, title: 'Raccontati', text: 'Chi sei, cosa hai fatto finora, dove vuoi arrivare. Bastano cinque minuti e un po’ di sincerità.' },
+  { icon: <LuEye />, title: 'Andrea valuta il tuo percorso', text: 'Legge personalmente ogni candidatura: da dove parti, cosa hai già costruito, quanto sei pronto per il prossimo livello.' },
+  { icon: <LuDoorOpen />, title: 'La porta si apre', text: 'Se sei pronto, attiva il tuo accesso Premium. Gratis. Se non ancora, ricevi un riscontro e potrai ricandidarti.' },
+];
+
 const COMPARE: { label: string; free: string | boolean; premium: string | boolean }[] = [
   { label: 'Corsi base e quiz', free: true, premium: true },
   { label: 'Archivio opportunità, aggiornato ogni mattina', free: 'Le prime 3', premium: 'Tutte' },
@@ -54,14 +61,17 @@ const COMPARE: { label: string; free: string | boolean; premium: string | boolea
 ];
 
 const FAQ = [
-  { q: 'Devo pagare adesso?', a: 'No. Oggi prenoti soltanto il tuo posto. Quando Premium apre ti scriviamo e decidi tu se attivarlo.' },
-  { q: 'Quanto costa?', a: `${PREMIUM_PRICE} al mese, circa ${PER_DAY} al giorno. Disdici quando vuoi.` },
-  { q: 'Cosa si sblocca quando attivo?', a: 'Tutto, subito: l’archivio completo delle opportunità, le lezioni premium, le cene e gli incontri in calendario.' },
+  { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
+  { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
+  { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
+  { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },
+  { q: 'E se non vengo selezionato?', a: 'Ricevi un riscontro e puoi ricandidarti dopo 30 giorni, quando il tuo percorso sarà cresciuto.' },
   { q: 'Chi paga i viaggi delle opportunità?', a: 'Gli enti che le pubblicano, quando il bando lo prevede. THE LOBBY non organizza né finanzia le opportunità: le cerca, le verifica sulle fonti ufficiali e te le mette tutte in un solo posto. Ti candidi direttamente sul sito dell’ente.' },
-  { q: 'Perché prenotare ora?', a: 'Chi è in lista viene avvisato per primo, prima che Premium apra a tutti.' },
 ];
 
 const KIND: Record<PremiumEvent['kind'], string> = { cena: 'Cena', incontro: 'Incontro', lezione: 'Lezione live', evento: 'Evento' };
+const MIN = 30;
+const MAX = 2000;
 
 function when(iso?: string | null) {
   if (!iso) return 'Data in arrivo';
@@ -76,58 +86,167 @@ function Cell({ v }: { v: string | boolean }) {
   return <span>{v}</span>;
 }
 
-export default function Premium() {
-  const { plan, setPlan } = useAuth();
-  const events = useAsync(() => listPremiumEvents(), []);
-  const [busy, setBusy] = useState(false);
+function friendly(err: any) {
+  const m = String(err?.message || '');
+  if (m.includes('too_short')) return `Scrivi qualche riga in più per ogni domanda (almeno ${MIN} caratteri).`;
+  if (m.includes('too_long')) return `Ogni risposta può avere al massimo ${MAX} caratteri.`;
+  if (m.includes('bad_link')) return 'Il link deve iniziare con https://';
+  if (m.includes('already_pending')) return 'Hai già una candidatura in valutazione.';
+  if (m.includes('retry_later')) return 'Potrai ricandidarti 30 giorni dopo l’ultima risposta.';
+  if (m.includes('already_premium')) return 'Sei già dentro Premium.';
+  return 'Invio non riuscito. Controlla la connessione e riprova.';
+}
 
-  async function join() {
+type Field = 'about' | 'experience' | 'goal';
+const QUESTIONS: { key: Field; label: string; hint: string; placeholder: string }[] = [
+  {
+    key: 'about',
+    label: 'Chi sei oggi',
+    hint: 'Studio, lavoro, città, cosa ti appassiona.',
+    placeholder: 'Es. Ho 22 anni, studio Scienze politiche a Milano e seguo da vicino la vita del mio Comune.',
+  },
+  {
+    key: 'experience',
+    label: 'Cosa hai fatto finora',
+    hint: 'Esperienze di studio, lavoro, volontariato, associazioni, rappresentanza, progetti personali.',
+    placeholder: 'Racconta i fatti: cosa hai fatto, con chi, cosa hai imparato.',
+  },
+  {
+    key: 'goal',
+    label: 'Il tuo prossimo livello',
+    hint: 'Dove vuoi arrivare nei prossimi 12 mesi e perché Premium ti serve adesso.',
+    placeholder: 'Es. Voglio candidarmi a un tirocinio nelle istituzioni europee e costruire la mia rete.',
+  },
+];
+
+function ApplicationForm({ onDone }: { onDone: () => void }) {
+  const [values, setValues] = useState<Record<Field, string>>({ about: '', experience: '', goal: '' });
+  const [link, setLink] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (QUESTIONS.some((q) => values[q.key].trim().length < MIN)) {
+      return setError(`Scrivi qualche riga in più per ogni domanda (almeno ${MIN} caratteri).`);
+    }
+    if (link.trim() && !/^https?:\/\//i.test(link.trim())) return setError('Il link deve iniziare con https://');
     setBusy(true);
     try {
-      await joinWaitlist();
-      setPlan({ ...plan, waitlist: true });
-      toast('Posto prenotato. Ti scriviamo appena Premium apre.');
-    } catch {
-      toast('Non è andata. Riprova tra poco.');
+      await submitApplication({ about: values.about, experience: values.experience, goal: values.goal, link: link.trim() });
+      toast('Candidatura inviata. Andrea la leggerà personalmente.');
+      onDone();
+    } catch (err) {
+      setError(friendly(err));
     } finally {
       setBusy(false);
     }
   }
 
-  const cta = (where: string) =>
-    plan.premium ? (
-      <p className="premium-status"><LuCheck aria-hidden="true" /><span>Sei dentro. Benvenuto nella sala riservata.</span></p>
-    ) : plan.waitlist ? (
-      <p className="premium-status">
-        <LuCheck aria-hidden="true" />
-        <span>Posto prenotato a {PREMIUM_PRICE} al mese. Ti scriviamo appena Premium apre e decidi tu se attivarlo.</span>
+  return (
+    <form className="apply" onSubmit={send} noValidate>
+      {QUESTIONS.map((q, i) => (
+        <label key={q.key} className="apply__field">
+          <span className="apply__label"><em>{String(i + 1).padStart(2, '0')}</em> {q.label}</span>
+          <span className="apply__hint">{q.hint}</span>
+          <textarea
+            value={values[q.key]}
+            onChange={(e) => setValues({ ...values, [q.key]: e.target.value.slice(0, MAX) })}
+            placeholder={q.placeholder}
+            rows={4}
+          />
+          <span className={`apply__count ${values[q.key].trim().length >= MIN ? 'is-ok' : ''}`}>
+            {values[q.key].trim().length < MIN ? `Ancora ${MIN - values[q.key].trim().length} caratteri` : <><LuCheck aria-hidden="true" /> Ok</>}
+          </span>
+        </label>
+      ))}
+      <label className="apply__field">
+        <span className="apply__label"><em>04</em> Un link che parla di te <small>(facoltativo)</small></span>
+        <input type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://linkedin.com/in/..." />
+      </label>
+      {error && <div className="alert" role="alert">{error}</div>}
+      <Button type="submit" block loading={busy}>Invia la candidatura</Button>
+      <p className="apply__note">
+        La candidatura arriva ad Andrea, anche via email a {CONTACT_EMAIL}. Usiamo i tuoi testi solo per valutarla: leggi
+        l’<Link to="/privacy">Informativa privacy</Link>.
       </p>
-    ) : (
+    </form>
+  );
+}
+
+export default function Premium() {
+  const { plan, refreshPlan } = useAuth();
+  const events = useAsync(() => listPremiumEvents(), []);
+  const app = plan.application;
+  const retryAfter = app?.status === 'rejected' && app.retry_after ? new Date(app.retry_after) : null;
+  const state: 'in' | 'pending' | 'wait' | 'apply' = plan.premium
+    ? 'in'
+    : app?.status === 'pending'
+      ? 'pending'
+      : retryAfter && retryAfter.getTime() > Date.now()
+        ? 'wait'
+        : 'apply';
+
+  const goToForm = () => document.getElementById('candidatura')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const status = (where: string) => {
+    if (state === 'in') return <p className="premium-status" data-where={where}><LuCheck aria-hidden="true" /><span>Sei dentro. La porta è aperta: tutto Premium è sbloccato.</span></p>;
+    if (state === 'pending')
+      return (
+        <p className="premium-status" data-where={where}>
+          <LuHourglass aria-hidden="true" />
+          <span>Candidatura inviata il {formatDate(app!.created_at)}. Andrea la sta valutando: la risposta arriva qui.</span>
+        </p>
+      );
+    if (state === 'wait')
+      return (
+        <div className="premium-status premium-status--col" data-where={where}>
+          <span><strong>Non ancora.</strong> Puoi ricandidarti dal {formatDate(app!.retry_after)}.</span>
+          {app?.reviewer_note && <span className="premium-status__note">“{app.reviewer_note}” — Andrea</span>}
+        </div>
+      );
+    return (
       <div className="premium-cta" data-where={where}>
-        <Button onClick={join} loading={busy} block>Prenota il tuo posto</Button>
-        <p className="premium-cta__note">Oggi prenoti soltanto: nessun pagamento adesso. Ti scriviamo all'apertura.</p>
+        <Button onClick={goToForm} block>Candidati a Premium</Button>
+        <p className="premium-cta__note">Gratuito. Accesso su selezione, valutato personalmente da Andrea Bonazzi.</p>
       </div>
     );
+  };
 
   return (
     <Screen>
       <TopBar />
       <section className="premium-hero">
         <span className="premium-hero__arch" aria-hidden="true" />
-        <span className="premium-hero__kicker">Premium</span>
+        <span className="premium-hero__kicker">Premium · su selezione</span>
         <h1 className="premium-hero__title">La sala riservata.</h1>
-        <p className="premium-hero__sub">Le porte che contano non si aprono da sole. Questa sì.</p>
-        <p className="premium-hero__price">
-          <strong>{PREMIUM_PRICE}</strong> <span>al mese<br />circa {PER_DAY} al giorno</span>
-        </p>
-        {cta('top')}
+        <p className="premium-hero__sub">Non si compra. Si conquista.</p>
+        <ul className="premium-badges">
+          <li>Gratuito</li>
+          <li>Su selezione</li>
+          <li>Valutato da Andrea</li>
+        </ul>
+        {status('top')}
       </section>
 
       <main className="page">
-        <p className="premium-intro">
-          Hai scelto di non restare a guardare. Premium è dove quella scelta diventa esperienza: più occasioni, più persone giuste, più strumenti per contare.
-        </p>
+        <section className="letter">
+          <div className="letter__head">
+            <FounderAvatar size="m" />
+            <div>
+              <strong>Andrea Bonazzi</strong>
+              <span>Founder e docente di THE LOBBY</span>
+            </div>
+          </div>
+          <p>
+            “Premium è gratuito, ma non è per tutti. Ogni candidatura la leggo io, una per una: guardo da dove parti, cosa hai
+            già costruito e dove vuoi arrivare. Non cerco curriculum perfetti. Cerco persone pronte a fare il prossimo passo.
+            Se lo sei, ti apro la porta.”
+          </p>
+        </section>
 
+        <h2 className="h-section">Cosa trovi dentro</h2>
         <ol className="features">
           {FEATURES.map((f) => (
             <li key={f.n} className="feature">
@@ -136,7 +255,7 @@ export default function Premium() {
                 <span className="feature__icon" aria-hidden="true">{f.icon}</span>
               </div>
               <span className="feature__kicker">{f.kicker}</span>
-              <h2 className="feature__title">{f.title}</h2>
+              <h3 className="feature__title">{f.title}</h3>
               <p className="feature__text">{f.text}</p>
               {f.tags && (
                 <ul className="feature__tags">
@@ -149,7 +268,32 @@ export default function Premium() {
           ))}
         </ol>
 
-        <FounderCard title="Dall'altra parte del tavolo" />
+        <section className="block">
+          <h2 className="h-section">Come si entra</h2>
+          <ol className="steps">
+            {STEPS.map((s, i) => (
+              <li key={s.title}>
+                <span className="steps__n" aria-hidden="true">{s.icon}</span>
+                <div>
+                  <strong>{i + 1}. {s.title}</strong>
+                  <span>{s.text}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="block" id="candidatura">
+          <h2 className="h-section">La tua candidatura</h2>
+          {state === 'apply' ? (
+            <>
+              <p className="muted">Scrivi come parleresti ad Andrea. Sii concreto: contano i fatti e la direzione, non i titoli.</p>
+              <ApplicationForm onDone={refreshPlan} />
+            </>
+          ) : (
+            <div className="apply-status">{status('form')}</div>
+          )}
+        </section>
 
         <section className="block">
           <h2 className="h-section">Free o Premium</h2>
@@ -166,9 +310,9 @@ export default function Premium() {
                 </tr>
               ))}
               <tr className="cmp__price">
-                <th scope="row">Prezzo</th>
-                <td>Gratis</td>
-                <td className="cmp__pro">{PREMIUM_PRICE}<small>/mese</small></td>
+                <th scope="row">Accesso</th>
+                <td>Libero</td>
+                <td className="cmp__pro">Su selezione<small> · gratis</small></td>
               </tr>
             </tbody>
           </table>
@@ -178,8 +322,7 @@ export default function Premium() {
           <span className="premium-close__arch" aria-hidden="true" />
           <h2 className="premium-close__title">Non guardare la politica da fuori. Entra.</h2>
           <p className="premium-close__sign">Andrea Bonazzi, founder di THE LOBBY</p>
-          <p className="premium-close__price"><strong>{PREMIUM_PRICE}</strong> al mese · disdici quando vuoi</p>
-          {cta('bottom')}
+          {status('bottom')}
         </section>
 
         <section className="block">
@@ -198,7 +341,7 @@ export default function Premium() {
           <h2 className="h-section">Prossimi appuntamenti</h2>
           {events.loading && <Spinner />}
           {events.data && events.data.length === 0 && (
-            <p className="muted">Il calendario di cene e incontri si apre con il lancio di Premium. Chi è in lista lo vede per primo.</p>
+            <p className="muted">Il calendario di cene e incontri è in preparazione. Chi entra in Premium lo vede per primo.</p>
           )}
           {events.error && <p className="muted">Calendario non disponibile in questo momento.</p>}
           {events.data && events.data.length > 0 && (
@@ -213,7 +356,7 @@ export default function Premium() {
                     {e.location && <span><LuMapPin aria-hidden="true" /> {e.location}</span>}
                     {e.seats && <span><LuUsers aria-hidden="true" /> {e.seats} posti</span>}
                   </p>
-                  {!plan.premium && <span className="event__lock">Per abbonati Premium</span>}
+                  {!plan.premium && <span className="event__lock">Per chi è in Premium</span>}
                 </li>
               ))}
             </ul>

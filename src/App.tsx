@@ -15,6 +15,7 @@ import Opportunities from './pages/Opportunities';
 import Profile from './pages/Profile';
 import Premium from './pages/Premium';
 import { Privacy, Terms } from './pages/Legal';
+import Admin from './pages/Admin';
 
 // Supabase email links land with tokens in the fragment: adopt them before routing.
 (function adoptEmailLink() {
@@ -50,6 +51,7 @@ function Routes() {
   if (path === '/opportunita') return <Opportunities />;
   if (path === '/profilo') return <Profile />;
   if (path === '/premium') return <Premium />;
+  if (path === '/admin') return <Admin />;
   if (path === '/privacy') return <Privacy />;
   if (path === '/termini') return <Terms />;
   let p;

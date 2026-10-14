@@ -3,7 +3,6 @@ import { useAuth } from '../lib/auth';
 import { Link } from '../lib/router';
 import { Screen, TopBar } from '../components/ui';
 import { CONTACT_EMAIL, LEGAL_UPDATED } from '../config';
-import { PREMIUM_PRICE } from '../lib/data';
 
 function Contact() {
   return CONTACT_EMAIL ? (
@@ -44,7 +43,8 @@ export function Privacy() {
       <h2>2. Quali dati trattiamo</h2>
       <ul>
         <li><strong>Dati dell'account:</strong> nome, indirizzo email e password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla).</li>
-        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, prenotazione di Premium con il prezzo che hai visto al momento della prenotazione.</li>
+        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium.</li>
+        <li><strong>Candidatura a Premium:</strong> se ti candidi, i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi e l'esito della valutazione, con l'eventuale messaggio del founder.</li>
         <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora degli accessi, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
         <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato e una copia dell'app per farla aprire più velocemente. Sono strumenti tecnici necessari: non usiamo cookie di profilazione, pubblicità o sistemi di statistica.</li>
       </ul>
@@ -52,9 +52,9 @@ export function Privacy() {
       <h2>3. Perché li trattiamo e su quale base</h2>
       <ul>
         <li><strong>Creare e gestire il tuo account e farti seguire corsi, quiz e opportunità.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
-        <li><strong>Gestire la tua prenotazione di Premium e avvisarti quando apre.</strong> Base: misure precontrattuali adottate su tua richiesta (art. 6.1.b).</li>
+        <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione del servizio che richiedi candidandoti (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi, non un sistema automatico.</li>
         <li><strong>Garantire la sicurezza del servizio e prevenire abusi.</strong> Base: legittimo interesse del titolare (art. 6.1.f).</li>
-        <li><strong>Rispettare obblighi di legge</strong>, per esempio fiscali quando saranno attivi i pagamenti. Base: obbligo legale (art. 6.1.c).</li>
+        <li><strong>Rispettare obblighi di legge.</strong> Base: obbligo legale (art. 6.1.c).</li>
       </ul>
       <p>Non vendiamo i tuoi dati, non li usiamo per pubblicità e non ti iscriviamo a newsletter senza il tuo consenso.</p>
 
@@ -64,17 +64,19 @@ export function Privacy() {
         <li><strong>Supabase</strong> (database, autenticazione ed email di servizio): i dati sono ospitati nell'Unione europea, a Francoforte.</li>
         <li><strong>GitHub</strong> (pubblicazione delle pagine dell'app): può trattare dati tecnici come l'indirizzo IP, anche negli Stati Uniti.</li>
         <li><strong>Google Fonts</strong> (caratteri tipografici): per mostrarti i caratteri il browser contatta i server di Google, che ricevono il tuo indirizzo IP.</li>
+        <li><strong>FormSubmit</strong> (inoltro email): quando invii una candidatura a Premium, ne inoltra una copia alla casella di THE LOBBY. Può trattare i dati anche fuori dall'UE.</li>
+        <li><strong>Google Gmail</strong>: la casella {CONTACT_EMAIL} che riceve candidature e richieste è gestita con Gmail.</li>
       </ul>
       <p>
         Quando i dati vengono trasferiti fuori dallo Spazio economico europeo, il trasferimento avviene con le garanzie previste
-        dal GDPR, come l'EU-US Data Privacy Framework o le clausole contrattuali standard della Commissione europea. Quando
-        attiveremo i pagamenti di Premium, il fornitore dei pagamenti sarà indicato qui prima dell'attivazione.
+        dal GDPR, come l'EU-US Data Privacy Framework o le clausole contrattuali standard della Commissione europea. Oggi THE LOBBY
+        è interamente gratuita: se in futuro introdurremo servizi a pagamento, aggiorneremo questa informativa prima.
       </p>
 
       <h2>5. Per quanto tempo li conserviamo</h2>
       <ul>
         <li>I dati dell'account e di utilizzo finché l'account è attivo. Se chiedi la cancellazione, li eliminiamo entro 30 giorni, salvo quelli che la legge ci obbliga a tenere.</li>
-        <li>La prenotazione di Premium fino all'apertura dell'abbonamento o finché non ci chiedi di toglierla.</li>
+        <li>Le candidature a Premium fino a 12 mesi dopo la decisione, per gestire eventuali nuove candidature. Puoi chiederne la cancellazione prima.</li>
         <li>I dati tecnici per i tempi stabiliti dai fornitori per sicurezza e funzionamento, di norma pochi giorni o settimane.</li>
       </ul>
 
@@ -143,14 +145,17 @@ export function Terms() {
 
       <h2>5. Free e Premium</h2>
       <ul>
-        <li>Con l'account gratuito accedi ai corsi base, ai quiz e alle prime tre opportunità della lista quotidiana.</li>
+        <li>THE LOBBY è <strong>interamente gratuita</strong>, Premium compreso.</li>
+        <li>Con l'account base accedi ai corsi base, ai quiz e alle prime tre opportunità della lista quotidiana.</li>
         <li>
-          Premium sarà un abbonamento al prezzo annunciato di {PREMIUM_PRICE} al mese. Oggi è possibile solo
-          <strong> prenotare un posto</strong>: la prenotazione è gratuita e non comporta alcun obbligo di acquisto.
+          L'accesso a Premium è <strong>su selezione</strong>: ti candidi raccontando il tuo percorso e Andrea Bonazzi valuta
+          personalmente ogni candidatura, a sua discrezione. L'esito ti viene comunicato nell'app; se non vieni selezionato puoi
+          ricandidarti dopo 30 giorni.
         </li>
+        <li>L'accesso Premium è personale e può essere revocato in caso di violazione di questi termini.</li>
         <li>
-          All'apertura riceverai le condizioni complete dell'abbonamento (pagamento, rinnovo, disdetta e diritto di recesso previsto
-          dal Codice del consumo) e potrai decidere se attivarlo.
+          Se in futuro alcune funzioni diventassero a pagamento te lo diremo prima: nulla ti verrà mai addebitato senza il tuo
+          consenso esplicito.
         </li>
       </ul>
 

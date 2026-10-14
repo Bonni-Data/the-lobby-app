@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, PREMIUM_PRICE } from '../lib/data';
+import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL } from '../lib/data';
 import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate } from '../components/ui';
 import { TagChip } from '../components/opps';
 import { FounderAvatar } from '../components/founder';
@@ -122,10 +122,10 @@ export default function Home() {
               {!plan.premium && (
                 <Link to="/premium" className="teaser">
                   <span className="teaser__arch" aria-hidden="true" />
-                  <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · {PREMIUM_PRICE} al mese</span>
+                  <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · gratuito, su selezione</span>
                   <strong className="teaser__title">La sala riservata.</strong>
-                  <span className="teaser__text">Cene a numero chiuso, incontri con Andrea, lezioni esclusive e tutte le opportunità.</span>
-                  <span className="teaser__go">Prenota il tuo posto <LuArrowRight aria-hidden="true" /></span>
+                  <span className="teaser__text">Cene a numero chiuso, incontri con Andrea, lezioni esclusive e tutte le opportunità. Non si compra: si conquista.</span>
+                  <span className="teaser__go">{plan.application?.status === 'pending' ? 'Candidatura in valutazione' : 'Candidati'} <LuArrowRight aria-hidden="true" /></span>
                 </Link>
               )}
             </>

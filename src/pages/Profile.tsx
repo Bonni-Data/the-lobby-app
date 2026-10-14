@@ -5,7 +5,7 @@ import { listProgress, listAttempts, saveDisplayName } from '../lib/data';
 import { Button, Screen, TopBar, useAsync, toast } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, plan } = useAuth();
@@ -78,9 +78,19 @@ export default function Profile() {
           <li>
             <Link to="/premium" className="menu__link">
               <span><LuKeyRound /> Piano</span>
-              <em className={plan.premium ? 'is-premium' : ''}>{plan.premium ? 'Premium' : plan.waitlist ? 'Free · Premium prenotato' : 'Free · prenota Premium'}</em>
+              <em className={plan.premium ? 'is-premium' : ''}>
+                {plan.premium ? 'Premium' : plan.application?.status === 'pending' ? 'Free · candidatura in valutazione' : 'Free · candidati a Premium'}
+              </em>
             </Link>
           </li>
+          {plan.admin && (
+            <li>
+              <Link to="/admin" className="menu__link">
+                <span><LuInbox /> Candidature Premium</span>
+                <em className="is-premium">Valuta</em>
+              </Link>
+            </li>
+          )}
           <li><Link to="/privacy" className="menu__link"><span><LuShieldCheck /> Informativa privacy</span><em>Leggi</em></Link></li>
           <li><Link to="/termini" className="menu__link"><span><LuFileText /> Termini di servizio</span><em>Leggi</em></Link></li>
         </ul>
