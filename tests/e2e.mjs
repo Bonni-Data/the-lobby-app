@@ -36,6 +36,7 @@ let approved = false;
 let isAdmin = false;
 let myApp = null;
 const apps = [];
+const events = [{ id: 'e0', kind: 'cena', title: 'Cena della Lobby: l’Europa vista da Bruxelles', summary: 'Una sera per parlare di carriere europee.', starts_at: new Date(Date.now() + 9 * 86400000).toISOString(), location: 'Milano, Brera', seats: 12, yes_count: 0, my_response: null }];
 const notified = [];
 const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
@@ -74,7 +75,10 @@ async function mock(route) {
   if (path === '/auth/v1/logout') { loggedIn = false; return route.fulfill({ status: 204 }); }
   if (path === '/rest/v1/courses') {
     const withLessons = (c, ls) => ({ ...c, course_modules: c.course_modules.map((m) => ({ ...m, lessons: loggedIn ? ls : [] })) });
-    const all = [withLessons(course, lessons), withLessons(course2, [{ id: 'p1', position: 1, title: 'Camera e Senato', duration_seconds: 300, status: 'published' }])];
+    const course3 = { id: 'c3', slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', subtitle: 'Corso Premium di prova', description: 'Mock premium', audience: null,
+      level: 'avanzato', access_level: 'premium', objectives: ['Leggere un bando europeo', 'Capire cosa cercano i valutatori'], course_modules: [{ id: 'm3', position: 1, title: '[TEST] Dal bando alla candidatura', lessons: [] }] };
+    const all = [withLessons(course, lessons), withLessons(course2, [{ id: 'p1', position: 1, title: 'Camera e Senato', duration_seconds: 300, status: 'published' }]),
+      withLessons(course3, approved ? [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420, status: 'published' }] : [])];
     const slug = url.searchParams.get('slug');
     return json(200, slug ? all.filter((c) => 'eq.' + c.slug === slug) : all);
   }
@@ -119,6 +123,27 @@ async function mock(route) {
     return json(200, { id: apps[0].id, full_name: 'Giulia Rossi', email: 'giulia@example.com', created_at: myApp.created_at });
   }
   if (path === '/rest/v1/premium_applications') return json(200, apps);
+  if (path === '/rest/v1/rpc/events_feed') {
+    return json(200, events.map((e) => ({ ...e, locked: !approved, summary: approved ? e.summary : null, location: approved ? e.location : null })));
+  }
+  if (path === '/rest/v1/rpc/rsvp_event') {
+    if (!approved) return json(400, { code: 'P0001', message: 'premium_required' });
+    const e = events.find((x) => x.id === body.p_event);
+    e.my_response = body.p_response; e.yes_count = body.p_response === 'yes' ? 1 : 0;
+    return json(200, { response: e.my_response, yes_count: e.yes_count });
+  }
+  if (path === '/rest/v1/rpc/event_attendees') return json(200, events[0]?.my_response === 'yes' ? [{ full_name: 'Giulia Rossi', email: 'giulia@example.com', response: 'yes', updated_at: new Date().toISOString() }] : []);
+  if (path === '/rest/v1/premium_events') {
+    if (req.method() === 'POST') { events.push({ id: 'e' + events.length, kind: 'cena', yes_count: 0, my_response: null, ...body }); return json(201, [body]); }
+    if (req.method() === 'PATCH') return json(200, []);
+    return json(200, []);
+  }
+  if (path === '/rest/v1/rpc/course_outline') {
+    return json(200, body.p_course === 'c3' ? [
+      { module_id: 'm3', lesson_id: 'pl1', lesson_position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420 },
+      { module_id: 'm3', lesson_id: 'pl2', lesson_position: 2, title: '[TEST] Gli errori che fanno scartare una candidatura', duration_seconds: 360 },
+    ] : []);
+  }
   if (path === '/rest/v1/rpc/review_premium_application') {
     const a = apps.find((x) => x.id === body.p_id);
     a.status = body.p_decision; a.reviewer_note = body.p_note; a.reviewed_at = new Date().toISOString();
@@ -194,6 +219,8 @@ await shot('03-home');
 // 5. Academy
 await page.click('.tabbar__item:has-text("Academy")');
 await page.waitForSelector('.course-row');
+await page.waitForSelector('.preview');
+await check(page.textContent('.preview').then((t) => t.includes('Come si legge un bando europeo')), 'premium course preview shows lesson titles');
 await shot('04-academy');
 
 // 6. Course
@@ -277,15 +304,46 @@ await shot('10e-premium-pending');
 isAdmin = true;
 await page.reload();
 await page.click('.tabbar__item:has-text("Profilo")');
-await page.waitForSelector('text=Candidature Premium');
-await page.click('text=Candidature Premium');
+await page.waitForSelector('text=Area founder');
+await page.click('text=Area founder');
 await page.waitForSelector('.appcard');
 await shot('10f-admin');
 await page.fill('.appcard textarea', 'Percorso solido, benvenuta.');
 await page.click('button:has-text("Attiva Premium")');
 await page.waitForSelector('.chip--btn:has-text("Da valutare (0)")');
 await check(Promise.resolve(apps[0].status === 'approved' && apps[0].reviewer_note === 'Percorso solido, benvenuta.'), 'application approved with note');
+
+// 9e. Founder area: publish a dinner
+await page.click('.section-tabs button:has-text("Cene")');
+await page.fill('.admin-form input >> nth=0', 'Cena di prova');
+await page.fill('.admin-form input[type="datetime-local"]', '2026-12-01T20:30');
+await page.fill('.admin-form input >> nth=2', 'Milano');
+await page.click('button:has-text("Pubblica la cena")');
+await page.waitForSelector('.appcard:has-text("Cena di prova")');
+await shot('10g-admin-cene');
 isAdmin = false;
+
+// 9f. Dinners: locked for free members, RSVP for Premium
+isAdmin = false;
+approved = false;
+await page.goto(base + '#/opportunita?sezione=cene');
+await page.reload();
+await page.waitForSelector('.dinners-locked');
+await shot('10h-cene-locked');
+approved = true;
+await page.reload();
+await page.waitForSelector('.dinner');
+await page.click('.dinner >> nth=0 >> .rsvp__btn--yes');
+await page.waitForSelector('.dinner >> nth=0 >> .rsvp__btn--yes.is-on');
+await check(page.textContent('.dinner >> nth=0').then((t) => t.includes('1 presente')), 'rsvp counted');
+await shot('10i-cene-premium');
+await page.goto(base + '#/premium');
+await page.waitForSelector('.feature__link');
+await check(page.locator('.feature__link:has-text("Vai alle cene")').count().then((n) => n === 1), 'premium page links to dinners');
+await page.goto(base + '#/academy');
+await page.waitForSelector('.academy-premium');
+await check(page.locator('.preview').count().then((n) => n === 0), 'no preview when premium');
+approved = false;
 
 // 10. Profile + logout
 await page.click('.tabbar__item:has-text("Profilo")');
@@ -310,6 +368,12 @@ await shot('14-termini');
 await page.goto(base + '#/academy');
 await page.waitForSelector('.segmented');
 await shot('12-login');
+
+// 12. Founder story is public
+await page.goto(base + '#/andrea');
+await page.waitForSelector('.story-hero');
+await check(page.textContent('.press').then((t) => t.includes('Il Giorno')), 'story press links');
+await shot('15-story');
 
 await browser.close();
 server.kill();

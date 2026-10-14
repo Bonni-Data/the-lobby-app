@@ -1,8 +1,11 @@
-import React, { useMemo, useState } from 'react';
-import { listCourses, listProgress, completedIn, lessonCount, courseMinutes, LEVEL_LABEL } from '../lib/data';
-import { DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
-import { Link } from '../lib/router';
-import { LuSearch } from 'react-icons/lu';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  listCourses, listProgress, completedIn, lessonCount, courseMinutes, courseOutline, LEVEL_LABEL, Course, Progress, OutlineLesson,
+} from '../lib/data';
+import { useAuth } from '../lib/auth';
+import { ButtonLink, DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
+import { Link, useLocation } from '../lib/router';
+import { LuSearch, LuLock, LuKeyRound, LuTarget } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 
 const LEVELS = [
@@ -12,13 +15,81 @@ const LEVELS = [
   { id: 'avanzato', label: 'Avanzato' },
 ];
 
+const COMING = ['Bandi europei: leggerli, scriverli, vincerli', 'Lavorare nelle istituzioni: concorsi, tirocini, colloqui', 'Comunicazione pubblica e parlare in pubblico'];
+
+function CourseRow({ c, progress }: { c: Course; progress: Progress[] }) {
+  const total = lessonCount(c);
+  const done = completedIn(c, progress);
+  return (
+    <li>
+      <Link to={`/corso/${c.slug}`} className="course-row">
+        <DoorCover title={c.title} small />
+        <div className="course-row__body">
+          <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ' · Premium' : ''}</span>
+          <strong className="course-row__title">{c.title}</strong>
+          {c.subtitle && <span className="course-row__sub">{c.subtitle}</span>}
+          <span className="course-row__meta">{total} lezioni, circa {courseMinutes(c)} min</span>
+          {total > 0 && (
+            <span className="bar" aria-label={`${done} di ${total} lezioni completate`}>
+              <span style={{ width: `${(done / total) * 100}%` }} />
+            </span>
+          )}
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+/** What a premium course contains, shown to members who are not in Premium yet. */
+function PreviewCard({ c, outline }: { c: Course; outline: OutlineLesson[] }) {
+  const mins = Math.max(1, Math.round(outline.reduce((n, l) => n + (l.duration_seconds || 0), 0) / 60));
+  return (
+    <li className="preview">
+      <div className="preview__head">
+        <span className="preview__level">{LEVEL_LABEL[c.level]} · Premium</span>
+        <span className="preview__lock"><LuLock aria-hidden="true" /> Anteprima</span>
+      </div>
+      <h3 className="preview__title">{c.title}</h3>
+      {c.subtitle && <p className="preview__sub">{c.subtitle}</p>}
+      {c.objectives.length > 0 && (
+        <ul className="preview__goals">
+          {c.objectives.slice(0, 3).map((o, i) => <li key={i}><LuTarget aria-hidden="true" /> {o}</li>)}
+        </ul>
+      )}
+      {outline.length > 0 && (
+        <>
+          <span className="preview__label">Cosa ti aspetta · {outline.length} lezioni, circa {mins} min</span>
+          <ol className="preview__lessons">
+            {outline.map((l) => (
+              <li key={l.lesson_id}><LuLock aria-hidden="true" /> <span>{l.title}</span> <em>{formatMinutes(l.duration_seconds)}</em></li>
+            ))}
+          </ol>
+        </>
+      )}
+    </li>
+  );
+}
+
 export default function Academy() {
+  const { plan } = useAuth();
+  const { query } = useLocation();
   const data = useAsync(async () => {
     const [courses, progress] = await Promise.all([listCourses(), listProgress()]);
-    return { courses, progress };
-  }, []);
+    const locked = courses.filter((c) => c.access_level === 'premium');
+    const outlines: Record<string, OutlineLesson[]> = {};
+    if (!plan.premium) {
+      await Promise.all(locked.map(async (c) => { outlines[c.id] = await courseOutline(c.id).catch(() => []); }));
+    }
+    return { courses, progress, outlines };
+  }, [plan.premium]);
   const [q, setQ] = useState('');
   const [level, setLevel] = useState('tutti');
+
+  useEffect(() => {
+    if (query.get('sezione') === 'premium' && data.data) {
+      document.getElementById('premium')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [data.data]);
 
   const filtered = useMemo(() => {
     if (!data.data) return [];
@@ -29,6 +100,10 @@ export default function Academy() {
         (!term || [c.title, c.subtitle, c.description].some((t) => (t || '').toLowerCase().includes(term))),
     );
   }, [data.data, q, level]);
+
+  const free = filtered.filter((c) => c.access_level !== 'premium');
+  const premium = filtered.filter((c) => c.access_level === 'premium');
+  const pending = plan.application?.status === 'pending';
 
   return (
     <Screen>
@@ -53,36 +128,52 @@ export default function Academy() {
         {data.loading && <Spinner />}
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
 
-        {data.data && filtered.length === 0 && (
-          <Empty title="Nessun corso trovato" text="Prova con un'altra parola o un altro livello." />
-        )}
+        {data.data && (
+          <>
+            <section className="block">
+              <h2 className="h-section">Per tutti</h2>
+              {free.length === 0 ? (
+                <Empty title="Nessun corso trovato" text="Prova con un'altra parola o un altro livello." />
+              ) : (
+                <ul className="course-list">
+                  {free.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} />)}
+                </ul>
+              )}
+            </section>
 
-        <ul className="course-list">
-          {filtered.map((c) => {
-            const total = lessonCount(c);
-            const done = data.data ? completedIn(c, data.data.progress) : 0;
-            return (
-              <li key={c.id}>
-                <Link to={`/corso/${c.slug}`} className="course-row">
-                  <DoorCover title={c.title} small />
-                  <div className="course-row__body">
-                    <span className="course-row__level">{LEVEL_LABEL[c.level]}{c.access_level === 'premium' ? ', Premium' : ''}</span>
-                    <strong className="course-row__title">{c.title}</strong>
-                    {c.subtitle && <span className="course-row__sub">{c.subtitle}</span>}
-                    <span className="course-row__meta">
-                      {total} lezioni, circa {courseMinutes(c)} min
-                    </span>
-                    {total > 0 && (
-                      <span className="bar" aria-label={`${done} di ${total} lezioni completate`}>
-                        <span style={{ width: `${(done / total) * 100}%` }} />
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+            <section className="academy-premium" id="premium">
+              <span className="academy-premium__arch" aria-hidden="true" />
+              <span className="academy-premium__kicker"><LuKeyRound aria-hidden="true" /> Area Premium</span>
+              <h2 className="academy-premium__title">Masterclass e corsi avanzati.</h2>
+              <p className="academy-premium__text">
+                {plan.premium
+                  ? 'Sei dentro: tutti i corsi Premium sono sbloccati. Buona strada.'
+                  : 'Dove il corso base si ferma, Premium va avanti. Ecco un’anteprima di cosa ti aspetta dentro.'}
+              </p>
+            </section>
+
+            {premium.length === 0 ? (
+              <div className="coming">
+                <span className="coming__label">In arrivo nell’area Premium</span>
+                <ul>{COMING.map((t) => <li key={t}><LuLock aria-hidden="true" /> {t}</li>)}</ul>
+              </div>
+            ) : plan.premium ? (
+              <ul className="course-list">
+                {premium.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} />)}
+              </ul>
+            ) : (
+              <ul className="previews">
+                {premium.map((c) => <PreviewCard key={c.id} c={c} outline={data.data!.outlines[c.id] || []} />)}
+              </ul>
+            )}
+
+            {!plan.premium && (
+              <div className="academy-premium__cta">
+                <ButtonLink to="/premium" block>{pending ? 'Candidatura in valutazione' : 'Candidati a Premium, è gratis'}</ButtonLink>
+              </div>
+            )}
+          </>
+        )}
       </main>
     </Screen>
   );

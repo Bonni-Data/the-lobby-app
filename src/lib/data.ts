@@ -277,3 +277,46 @@ export function daysUntil(date?: string | null): number | null {
   const today = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
   return Math.round((end - today) / 86400000);
 }
+
+// ---------- Premium events (cene) ----------
+export type EventItem = {
+  id: string;
+  kind: 'cena' | 'incontro' | 'lezione' | 'evento';
+  title: string;
+  summary?: string | null;
+  starts_at?: string | null;
+  location?: string | null;
+  seats?: number | null;
+  yes_count: number;
+  my_response?: 'yes' | 'no' | null;
+  locked: boolean;
+};
+
+export async function listEvents(kind?: EventItem['kind']): Promise<EventItem[]> {
+  if (!currentSession()) return [];
+  return (await rpc<EventItem[]>('events_feed', { p_kind: kind ?? null })) || [];
+}
+
+export function rsvpEvent(eventId: string, response: 'yes' | 'no') {
+  return rpc<{ response: 'yes' | 'no'; yes_count: number }>('rsvp_event', { p_event: eventId, p_response: response });
+}
+
+export type Attendee = { full_name: string; email: string; response: 'yes' | 'no'; updated_at: string };
+export async function eventAttendees(eventId: string): Promise<Attendee[]> {
+  return (await rpc<Attendee[]>('event_attendees', { p_event: eventId })) || [];
+}
+
+export type NewEvent = { title: string; summary: string; starts_at: string; location: string; seats: number | null };
+export async function createDinner(e: NewEvent) {
+  await upsert('premium_events', { kind: 'cena', status: 'published', ...e });
+}
+
+export async function archiveEvent(id: string) {
+  await update('premium_events', `id=eq.${id}`, { status: 'archived' });
+}
+
+// ---------- Course outline (titles only, for previews) ----------
+export type OutlineLesson = { module_id: string; lesson_id: string; lesson_position: number; title: string; duration_seconds: number | null };
+export async function courseOutline(courseId: string): Promise<OutlineLesson[]> {
+  return (await rpc<OutlineLesson[]>('course_outline', { p_course: courseId })) || [];
+}

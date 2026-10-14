@@ -1,17 +1,19 @@
 import React from 'react';
-import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, LEVEL_LABEL } from '../lib/data';
+import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, courseOutline, LEVEL_LABEL, OutlineLesson } from '../lib/data';
 import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
 import { useAuth } from '../lib/auth';
 import { TeacherLine } from '../components/founder';
-import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound } from 'react-icons/lu';
+import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock } from 'react-icons/lu';
 
 export default function Course({ slug }: { slug: string }) {
   const { plan } = useAuth();
   const data = useAsync(async () => {
     const [course, progress] = await Promise.all([getCourse(slug), listProgress()]);
-    return { course, progress };
-  }, [slug]);
+    let outline: OutlineLesson[] = [];
+    if (course && course.access_level === 'premium' && !plan.premium) outline = await courseOutline(course.id).catch(() => []);
+    return { course, progress, outline };
+  }, [slug, plan.premium]);
 
   return (
     <Screen>
@@ -21,7 +23,7 @@ export default function Course({ slug }: { slug: string }) {
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
         {data.data && !data.data.course && <Empty title="Corso non trovato" text="Potrebbe essere stato spostato o non è più disponibile." />}
         {data.data?.course && (() => {
-          const { course: c, progress } = data.data;
+          const { course: c, progress, outline } = data.data;
           const total = lessonCount(c);
           const done = completedIn(c, progress);
           const next = nextLesson(c, progress);
@@ -66,10 +68,10 @@ export default function Course({ slug }: { slug: string }) {
 
                 <section className="block">
                   <h2 className="h-section">Programma</h2>
-                  {total === 0 && (
-                    <p className="muted">
-                      {locked ? 'Le lezioni di questo corso sono riservate agli abbonati Premium.' : 'Le lezioni di questo corso arrivano a breve.'}
-                    </p>
+                  {locked ? (
+                    <p className="muted">Anteprima: le lezioni si sbloccano entrando in Premium, gratuito e su selezione.</p>
+                  ) : total === 0 && (
+                    <p className="muted">Le lezioni di questo corso arrivano a breve.</p>
                   )}
                   <ol className="modules">
                     {c.course_modules.map((m) => (
@@ -77,6 +79,15 @@ export default function Course({ slug }: { slug: string }) {
                         <h3 className="module__title">{m.title}</h3>
                         {m.description && <p className="muted small">{m.description}</p>}
                         <ul className="lessons">
+                          {locked && outline.filter((l) => l.module_id === m.id).map((l) => (
+                            <li key={l.lesson_id}>
+                              <span className="lesson-row is-locked">
+                                <LuLock className="lesson-row__icon" aria-hidden="true" />
+                                <span className="lesson-row__title">{l.title}</span>
+                                <span className="lesson-row__time">{formatMinutes(l.duration_seconds)}</span>
+                              </span>
+                            </li>
+                          ))}
                           {m.lessons.map((l) => {
                             const isDone = doneSet.has(l.id);
                             return (

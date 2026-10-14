@@ -5,7 +5,7 @@ import { listProgress, listAttempts, saveDisplayName } from '../lib/data';
 import { Button, Screen, TopBar, useAsync, toast } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, plan } = useAuth();
@@ -86,11 +86,12 @@ export default function Profile() {
           {plan.admin && (
             <li>
               <Link to="/admin" className="menu__link">
-                <span><LuInbox /> Candidature Premium</span>
-                <em className="is-premium">Valuta</em>
+                <span><LuInbox /> Area founder</span>
+                <em className="is-premium">Candidature e cene</em>
               </Link>
             </li>
           )}
+          <li><Link to="/andrea" className="menu__link"><span><LuUser /> Chi è Andrea</span><em>La storia del founder</em></Link></li>
           <li><Link to="/privacy" className="menu__link"><span><LuShieldCheck /> Informativa privacy</span><em>Leggi</em></Link></li>
           <li><Link to="/termini" className="menu__link"><span><LuFileText /> Termini di servizio</span><em>Leggi</em></Link></li>
         </ul>

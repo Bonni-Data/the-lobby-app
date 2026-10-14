@@ -3,12 +3,17 @@ import { listOpportunities, OppTag, FREE_OPPORTUNITIES } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
 import { OppCard, LockedCard, PremiumNudge } from '../components/opps';
+import { DinnersSection } from '../components/dinners';
+import { useLocation, navigate } from '../lib/router';
+import { LuLock } from 'react-icons/lu';
 
 const FILTERS: ('tutte' | OppTag)[] = ['tutte', 'viaggio', 'lavoro', 'sviluppo'];
 const FILTER_LABEL: Record<string, string> = { tutte: 'Tutte', viaggio: 'Viaggi', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
 
 export default function Opportunities() {
   const { plan } = useAuth();
+  const { query } = useLocation();
+  const section = query.get('sezione') === 'cene' ? 'cene' : 'bandi';
   const data = useAsync(() => listOpportunities(), [plan.premium]);
   const [tag, setTag] = useState<'tutte' | OppTag>('tutte');
 
@@ -23,6 +28,16 @@ export default function Opportunities() {
       <TopBar />
       <main className="page">
         <h1 className="h-page">Opportunità</h1>
+        <div className="section-tabs" role="tablist" aria-label="Sezioni">
+          <button role="tab" aria-selected={section === 'bandi'} className={section === 'bandi' ? 'is-on' : ''} onClick={() => navigate('/opportunita', true)}>
+            Bandi e programmi
+          </button>
+          <button role="tab" aria-selected={section === 'cene'} className={section === 'cene' ? 'is-on' : ''} onClick={() => navigate('/opportunita?sezione=cene', true)}>
+            Cene {!plan.premium && <LuLock aria-label="riservata a Premium" />}
+          </button>
+        </div>
+
+        {section === 'cene' ? <DinnersSection /> : (<>
         <p className="muted">
           Bandi, tirocini, programmi e viaggi pubblicati da istituzioni ed enti, raccolti in un solo posto e aggiornati ogni mattina alle 7.{' '}
           {!plan.premium && lockedTotal > 0 && `Le prime ${FREE_OPPORTUNITIES} sono per tutti, l'archivio completo è Premium.`}
@@ -66,6 +81,7 @@ export default function Opportunities() {
             sulla pagina ufficiale.
           </p>
         )}
+        </>)}
       </main>
     </Screen>
   );

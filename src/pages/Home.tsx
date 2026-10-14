@@ -88,7 +88,7 @@ export default function Home() {
                 <FounderAvatar size="m" />
                 <div>
                   <p>“Ogni lezione che completi è un passo da cittadino a protagonista. Ci vediamo dentro.”</p>
-                  <span>Andrea Bonazzi, founder e docente</span>
+                  <span>Andrea Bonazzi, founder e docente · <a href="#/andrea">la sua storia</a></span>
                 </div>
               </section>
 

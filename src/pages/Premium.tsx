@@ -7,7 +7,7 @@ import { CONTACT_EMAIL } from '../config';
 import { Link } from '../lib/router';
 import {
   LuCompass, LuUtensils, LuHandshake, LuGraduationCap, LuCheck, LuMinus, LuMapPin, LuUsers, LuCalendarClock, LuPlane, LuBriefcase,
-  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass,
+  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass, LuArrowRight, LuLock,
 } from 'react-icons/lu';
 
 const FEATURES = [
@@ -22,6 +22,7 @@ const FEATURES = [
       { icon: <LuBriefcase />, label: 'Tirocini retribuiti nelle istituzioni' },
       { icon: <LuSprout />, label: 'Programmi e fondi per crescere' },
     ],
+    link: { to: '/opportunita', label: 'Apri l’archivio completo' },
   },
   {
     n: '02',
@@ -29,6 +30,7 @@ const FEATURES = [
     kicker: 'A numero chiuso',
     title: 'Le cene della Lobby.',
     text: 'Pochi posti, un tavolo, Andrea a fare gli onori di casa. Persone, storie e percorsi che non trovi in nessun feed, e contatti che restano.',
+    link: { to: '/opportunita?sezione=cene', label: 'Vai alle cene e rispondi presente' },
   },
   {
     n: '03',
@@ -43,6 +45,7 @@ const FEATURES = [
     kicker: 'Per andare a fondo',
     title: 'Lezioni premium.',
     text: 'Masterclass e corsi avanzati tenuti da Andrea per andare oltre le basi: bandi europei, lavoro nelle istituzioni, comunicazione pubblica.',
+    link: { to: '/academy?sezione=premium', label: 'Vai ai corsi Premium' },
   },
 ];
 
@@ -236,7 +239,7 @@ export default function Premium() {
             <FounderAvatar size="m" />
             <div>
               <strong>Andrea Bonazzi</strong>
-              <span>Founder e docente di THE LOBBY</span>
+              <span>Founder e docente di THE LOBBY · <a href="#/andrea">la sua storia</a></span>
             </div>
           </div>
           <p>
@@ -263,6 +266,13 @@ export default function Premium() {
                     <li key={t.label}><span aria-hidden="true">{t.icon}</span>{t.label}</li>
                   ))}
                 </ul>
+              )}
+              {f.link && (
+                plan.premium ? (
+                  <Link to={f.link.to} className="feature__link">{f.link.label} <LuArrowRight aria-hidden="true" /></Link>
+                ) : (
+                  <span className="feature__lock"><LuLock aria-hidden="true" /> Si sblocca entrando in Premium</span>
+                )
               )}
             </li>
           ))}

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { listApplications, reviewApplication, Application, ApplicationStatus } from '../lib/data';
+import {
+  listApplications, reviewApplication, Application, ApplicationStatus, listEvents, eventAttendees, createDinner, archiveEvent, EventItem,
+} from '../lib/data';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
-import { LuExternalLink, LuMail, LuInbox } from 'react-icons/lu';
+import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock } from 'react-icons/lu';
 
 const TABS: { id: ApplicationStatus; label: string }[] = [
   { id: 'pending', label: 'Da valutare' },
@@ -63,22 +65,116 @@ function Card({ a, onDone }: { a: Application; onDone: () => void }) {
   );
 }
 
+function DinnerAdmin({ e, onDone }: { e: EventItem; onDone: () => void }) {
+  const people = useAsync(() => eventAttendees(e.id), [e.id]);
+  const yes = (people.data || []).filter((p) => p.response === 'yes');
+  const no = (people.data || []).filter((p) => p.response === 'no');
+  const [busy, setBusy] = useState(false);
+  async function archive() {
+    setBusy(true);
+    try { await archiveEvent(e.id); toast('Cena archiviata.'); onDone(); } catch { toast('Operazione non riuscita.'); } finally { setBusy(false); }
+  }
+  return (
+    <li className="appcard">
+      <strong className="appcard__name">{e.title}</strong>
+      <p className="dinner__meta">
+        <span><LuCalendarClock aria-hidden="true" /> {e.starts_at ? new Date(e.starts_at).toLocaleString('it-IT', { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'Data in arrivo'}</span>
+        {e.location && <span><LuMapPin aria-hidden="true" /> {e.location}</span>}
+        <span><LuUsers aria-hidden="true" /> {yes.length} presenti{e.seats ? ` su ${e.seats}` : ''} · {no.length} non presenti</span>
+      </p>
+      {people.loading && <Spinner />}
+      {yes.length > 0 && (
+        <ul className="attendees">
+          {yes.map((p) => <li key={p.email}><strong>{p.full_name}</strong> <a href={`mailto:${p.email}`}>{p.email}</a></li>)}
+        </ul>
+      )}
+      <Button variant="ghost" onClick={archive} loading={busy}>Archivia questa cena</Button>
+    </li>
+  );
+}
+
+function DinnersTab() {
+  const list = useAsync(() => listEvents('cena'), []);
+  const [form, setForm] = useState({ title: '', when: '', location: '', seats: '', summary: '' });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function publish(ev: React.FormEvent) {
+    ev.preventDefault();
+    setError('');
+    if (form.title.trim().length < 3 || !form.when) return setError('Servono almeno titolo, data e ora.');
+    setBusy(true);
+    try {
+      await createDinner({
+        title: form.title.trim(),
+        summary: form.summary.trim(),
+        starts_at: new Date(form.when).toISOString(),
+        location: form.location.trim(),
+        seats: form.seats ? Math.max(1, parseInt(form.seats, 10)) : null,
+      });
+      toast('Cena pubblicata: la vedono subito tutti i Premium.');
+      setForm({ title: '', when: '', location: '', seats: '', summary: '' });
+      list.reload();
+    } catch {
+      setError('Pubblicazione non riuscita. Riprova.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <form className="apply admin-form" onSubmit={publish} noValidate>
+        <h2 className="h-section">Pubblica una cena</h2>
+        <label className="apply__field"><span className="apply__label">Titolo</span>
+          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Es. Cena della Lobby: l'Europa vista da Bruxelles" /></label>
+        <label className="apply__field"><span className="apply__label">Data e ora</span>
+          <input type="datetime-local" value={form.when} onChange={(e) => setForm({ ...form, when: e.target.value })} /></label>
+        <label className="apply__field"><span className="apply__label">Luogo</span>
+          <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Es. Milano, zona Brera (indirizzo ai presenti)" /></label>
+        <label className="apply__field"><span className="apply__label">Posti <small>(facoltativo)</small></span>
+          <input type="number" min={1} inputMode="numeric" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} placeholder="Es. 12" /></label>
+        <label className="apply__field"><span className="apply__label">Descrizione</span>
+          <textarea rows={3} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="Di cosa si parla, chi c'è, cosa portarsi." /></label>
+        {error && <div className="alert" role="alert">{error}</div>}
+        <Button type="submit" block loading={busy}>Pubblica la cena</Button>
+      </form>
+
+      <h2 className="h-section">In calendario</h2>
+      {list.loading && <Spinner />}
+      {list.error && <ErrorState message={list.error} onRetry={list.reload} />}
+      {list.data && list.data.length === 0 && (
+        <div className="center-state"><LuUtensils size={28} /><p>Nessuna cena in calendario.</p></div>
+      )}
+      <ul className="appcards">
+        {(list.data || []).map((e) => <DinnerAdmin key={e.id} e={e} onDone={list.reload} />)}
+      </ul>
+    </>
+  );
+}
+
 export default function Admin() {
   const { plan } = useAuth();
   const data = useAsync(() => (plan.admin ? listApplications() : Promise.resolve([] as Application[])), [plan.admin]);
   const [tab, setTab] = useState<ApplicationStatus>('pending');
+  const [area, setArea] = useState<'candidature' | 'cene'>('candidature');
   const all = data.data || [];
   const items = all.filter((a) => a.status === tab);
 
   return (
     <Screen>
-      <TopBar back="/profilo" title="Candidature Premium" />
+      <TopBar back="/profilo" title="Area founder" />
       <main className="page">
         {!plan.admin ? (
           <Empty title="Area riservata" text="Questa pagina è visibile solo al founder di THE LOBBY." />
         ) : (
           <>
-            <h1 className="h-page">Candidature</h1>
+            <h1 className="h-page">Area founder</h1>
+            <div className="section-tabs" role="tablist" aria-label="Sezioni">
+              <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>
+              <button role="tab" aria-selected={area === 'cene'} className={area === 'cene' ? 'is-on' : ''} onClick={() => setArea('cene')}>Cene</button>
+            </div>
+            {area === 'cene' ? <DinnersTab /> : (<>
             <p className="muted">Leggi il percorso di chi vuole entrare in Premium e decidi tu chi è pronto per il prossimo livello.</p>
             <div className="chips" role="group" aria-label="Filtra per stato">
               {TABS.map((t) => (
@@ -95,6 +191,7 @@ export default function Admin() {
             <ul className="appcards">
               {items.map((a) => <Card key={a.id} a={a} onDone={data.reload} />)}
             </ul>
+            </>)}
           </>
         )}
       </main>

@@ -7,7 +7,7 @@ export const FOUNDER = {
   quote:
     'Ho fondato THE LOBBY perché capire come funzionano le istituzioni non può essere un privilegio di pochi. Ti porto dentro, una porta alla volta.',
   bio:
-    'Formatore di professione e impegnato nella vita pubblica del suo territorio. In THE LOBBY tiene le lezioni, sceglie le opportunità e guida la community.',
+    'Due volte consigliere comunale e candidato sindaco a Rozzano, ambasciatore della Lombardia per l’Anno europeo dei giovani, dieci anni di impegno civico. Formatore di professione, in THE LOBBY tiene le lezioni, sceglie le opportunità e guida la community.',
 };
 
 /** Arch-shaped portrait placeholder with initials (swap for a photo later). */
@@ -47,6 +47,7 @@ export function FounderCard({ title = 'Chi ti apre la porta', dark = false }: { 
         <p>“{FOUNDER.quote}”</p>
       </blockquote>
       <p className="founder__bio">{FOUNDER.bio}</p>
+      <a href="#/andrea" className="founder__more">Leggi la sua storia →</a>
     </section>
   );
 }
