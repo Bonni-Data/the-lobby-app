@@ -10,4 +10,4 @@ export const APP_VERSION = '0.4.0';
 export const CONTACT_EMAIL = 'thelobbysupport@gmail.com';
 export const APP_URL = 'https://bonni-data.github.io/the-lobby-app/';
 export const LEGAL_UPDATED = '15 ottobre 2026';
-export const TERMS_VERSION = '2026-10-14';
+export const TERMS_VERSION = '2026-10-15';

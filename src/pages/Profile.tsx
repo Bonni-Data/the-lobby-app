@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { auth } from '../lib/api';
+import { auth, invoke, ApiError } from '../lib/api';
 import { listProgress, listAttempts, saveDisplayName } from '../lib/data';
 import { Button, Screen, TopBar, useAsync, toast } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2 } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, plan } = useAuth();
@@ -100,8 +100,70 @@ export default function Profile() {
           <LuLogOut /> Esci
         </Button>
 
+        <MyData />
+
         <p className="tiny muted center">The Lobby Academy, versione {APP_VERSION}</p>
       </main>
     </Screen>
+  );
+}
+
+/** GDPR self-service: a copy of your data, or delete the account. */
+function MyData() {
+  const [busy, setBusy] = useState<'' | 'export' | 'delete'>('');
+  const [open, setOpen] = useState(false);
+  const [word, setWord] = useState('');
+
+  async function download() {
+    setBusy('export');
+    try {
+      const data = await invoke('account', { action: 'export' });
+      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'the-lobby-i-miei-dati.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      toast('Download non riuscito. Riprova.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function remove() {
+    setBusy('delete');
+    try {
+      await invoke('account', { action: 'delete', confirm: word.trim().toUpperCase() });
+      await auth.signOut();
+      toast('Account eliminato. Grazie per essere passato dalla Lobby.');
+      navigate('/', true);
+    } catch (e) {
+      const code = e instanceof ApiError ? e.code : '';
+      toast(code === 'founder_account' ? 'L’account del founder non si elimina da qui.' : 'Eliminazione non riuscita. Riprova o scrivici.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  return (
+    <section className="mydata" aria-label="I tuoi dati">
+      <h2 className="h-section">I tuoi dati</h2>
+      <button className="link-quiet" onClick={download} disabled={!!busy}><LuDownload aria-hidden="true" /> {busy === 'export' ? 'Preparo il file…' : 'Scarica una copia dei miei dati'}</button>
+      {!open ? (
+        <button className="link-quiet mydata__danger" onClick={() => setOpen(true)}><LuTrash2 aria-hidden="true" /> Elimina il mio account</button>
+      ) : (
+        <div className="mydata__confirm">
+          <p>Eliminiamo account, progressi, quiz, candidatura e prenotazioni. Non si può annullare. Scrivi <strong>ELIMINA</strong> per confermare.</p>
+          <input value={word} onChange={(e) => setWord(e.target.value)} aria-label="Scrivi ELIMINA per confermare" autoCapitalize="characters" />
+          <div className="mydata__btns">
+            <Button variant="secondary" onClick={remove} loading={busy === 'delete'} disabled={word.trim().toUpperCase() !== 'ELIMINA'}>Elimina per sempre</Button>
+            <Button variant="ghost" onClick={() => { setOpen(false); setWord(''); }} disabled={!!busy}>Annulla</Button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

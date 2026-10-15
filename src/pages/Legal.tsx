@@ -30,75 +30,106 @@ export function Privacy() {
   return (
     <LegalShell title="Informativa privacy">
       <p>
-        Questa informativa spiega quali dati personali tratta THE LOBBY, perché lo fa e quali diritti hai, ai sensi del
-        Regolamento (UE) 2016/679 (GDPR) e del Codice privacy (D.Lgs. 196/2003).
+        Questa informativa spiega quali dati personali tratta THE LOBBY, per quali scopi, su quale base e quali diritti hai, ai
+        sensi degli articoli 13 e 14 del Regolamento (UE) 2016/679 (GDPR) e del Codice privacy (D.Lgs. 196/2003, come modificato
+        dal D.Lgs. 101/2018).
       </p>
 
-      <h2>1. Chi è il titolare</h2>
+      <h2>1. Titolare del trattamento</h2>
       <p>
-        Il titolare del trattamento è <strong>Andrea Bonazzi</strong>, persona fisica, founder di THE LOBBY. Per qualsiasi
-        richiesta sui tuoi dati puoi scrivere a <Contact />.
+        Il titolare è <strong>Andrea Bonazzi</strong>, persona fisica, founder di THE LOBBY. Per qualsiasi richiesta sui tuoi dati
+        scrivi a <Contact />. Non è stato nominato un responsabile della protezione dei dati (DPO), perché per questo trattamento
+        non è obbligatorio.
       </p>
 
       <h2>2. Quali dati trattiamo</h2>
       <ul>
-        <li><strong>Dati dell'account:</strong> nome, indirizzo email (e se lo hai confermato) e password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla).</li>
-        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, le risposte alle cene e le prenotazioni alle lezioni live. Se arrivi da un link di una nostra campagna, al momento dell'iscrizione salviamo anche il nome della campagna (per esempio «instagram»): serve solo a capire quali annunci funzionano.</li>
-        <li><strong>Candidatura a Premium:</strong> se ti candidi, i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi e l'esito della valutazione, con l'eventuale messaggio del founder.</li>
-        <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora degli accessi, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
-        <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato e una copia dell'app per farla aprire più velocemente. Sono strumenti tecnici necessari: non usiamo cookie di profilazione, pubblicità o sistemi di statistica.</li>
+        <li><strong>Account:</strong> nome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
+        <li><strong>Accesso con Google:</strong> se lo scegli, Google ci comunica nome, indirizzo email, identificativo dell'account ed eventualmente l'immagine del profilo. Non riceviamo mai la tua password Google.</li>
+        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
+        <li><strong>Candidatura a Premium:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
+        <li><strong>Email di servizio:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna).</li>
+        <li><strong>Provenienza:</strong> se ti iscrivi da un link di una nostra campagna, il nome della campagna presente nel link (per esempio «instagram»). Lo leggiamo dall'indirizzo della pagina al momento dell'iscrizione, senza salvare nulla sul tuo dispositivo.</li>
+        <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora delle richieste, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
+        <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato e una copia dell'app per aprirla più velocemente. Sono strumenti tecnici strettamente necessari (art. 122 del Codice privacy): non usiamo cookie di profilazione, pubblicitari o di statistica di terze parti, e per questo non ti chiediamo un consenso.</li>
       </ul>
+      <p>
+        <strong>Dati che non ti chiediamo.</strong> THE LOBBY parla di istituzioni e politica, ma non ha bisogno di sapere come la
+        pensi. Non inserire nella candidatura o nei messaggi le tue opinioni politiche, l'appartenenza a partiti o sindacati, dati
+        sulla salute o altre categorie particolari di dati (art. 9 GDPR). Se scegli comunque di farlo, li useremo solo per valutare
+        la candidatura, sulla base del tuo consenso esplicito, che puoi revocare in ogni momento chiedendone la cancellazione.
+      </p>
 
       <h2>3. Perché li trattiamo e su quale base</h2>
       <ul>
-        <li><strong>Creare e gestire il tuo account e farti seguire corsi, quiz e opportunità.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
-        <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione del servizio che richiedi candidandoti (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi, non un sistema automatico.</li>
-        <li><strong>Mandarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni e date delle lezioni live, esito della candidatura Premium. Base: esecuzione del contratto (art. 6.1.b). Non sono newsletter né pubblicità.</li>
-        <li><strong>Garantire la sicurezza del servizio e prevenire abusi.</strong> Base: legittimo interesse del titolare (art. 6.1.f).</li>
-        <li><strong>Rispettare obblighi di legge.</strong> Base: obbligo legale (art. 6.1.c).</li>
+        <li><strong>Creare e gestire il tuo account, farti seguire corsi, quiz, opportunità e lezioni live.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
+        <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi: nessuna decisione è presa da un sistema automatico.</li>
+        <li><strong>Inviarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni, date e link delle lezioni live, promemoria, esito della candidatura. Base: esecuzione del contratto (art. 6.1.b). Non sono newsletter né pubblicità.</li>
+        <li><strong>Capire quali campagne portano nuovi iscritti</strong>, con dati aggregati. Base: legittimo interesse a far conoscere il progetto (art. 6.1.f). Puoi opporti scrivendoci.</li>
+        <li><strong>Garantire la sicurezza del servizio, prevenire abusi e difendere i nostri diritti.</strong> Base: legittimo interesse (art. 6.1.f).</li>
+        <li><strong>Rispettare obblighi di legge</strong> e richieste delle autorità. Base: obbligo legale (art. 6.1.c).</li>
       </ul>
-      <p>Non vendiamo i tuoi dati, non li usiamo per pubblicità e non ti iscriviamo a newsletter senza il tuo consenso.</p>
+      <p>
+        Fornire i dati dell'account è necessario per usare THE LOBBY; la candidatura a Premium è facoltativa. Non vendiamo i tuoi
+        dati, non li usiamo per pubblicità e non ti iscriviamo a newsletter senza il tuo consenso.
+      </p>
 
-      <h2>4. Chi li tratta per nostro conto</h2>
-      <p>Ci appoggiamo a fornitori che trattano i dati come responsabili del trattamento, solo per erogare il servizio:</p>
+      <h2>4. Chi può vedere i dati</h2>
+      <p>I dati li vede solo Andrea Bonazzi. Per erogare il servizio ci appoggiamo a fornitori nominati responsabili del trattamento (art. 28 GDPR):</p>
       <ul>
-        <li><strong>Supabase</strong> (database, autenticazione ed email di servizio): i dati sono ospitati nell'Unione europea, a Francoforte.</li>
-        <li><strong>GitHub</strong> (pubblicazione delle pagine dell'app): può trattare dati tecnici come l'indirizzo IP, anche negli Stati Uniti.</li>
-        <li><strong>Google Fonts</strong> (caratteri tipografici): per mostrarti i caratteri il browser contatta i server di Google, che ricevono il tuo indirizzo IP.</li>
-        <li><strong>Resend</strong> (invio delle email dell'app): spedisce le email di servizio, come la conferma dell'indirizzo, il recupero password, le prenotazioni e le date delle lezioni live, la risposta alla candidatura Premium. Riceve il tuo indirizzo email e il contenuto del messaggio e può trattarli anche fuori dall'UE.</li>
-        <li><strong>Google Gmail</strong>: la casella {CONTACT_EMAIL} che riceve candidature e richieste è gestita con Gmail.</li>
+        <li><strong>Supabase</strong>: database e autenticazione, con dati ospitati nell'Unione europea (Francoforte).</li>
+        <li><strong>Resend</strong>: invio delle email di servizio; riceve il tuo indirizzo email e il contenuto del messaggio.</li>
+        <li><strong>GitHub</strong>: pubblicazione delle pagine dell'app; riceve dati tecnici come l'indirizzo IP.</li>
+        <li><strong>Google</strong>: caratteri tipografici dell'app (Google Fonts, che riceve l'indirizzo IP) e casella {CONTACT_EMAIL} (Gmail), dove arrivano richieste e candidature.</li>
       </ul>
       <p>
-        Le lezioni live si svolgono su <strong>Microsoft Teams</strong>. Se prenoti una live, il founder vede il tuo nome e la tua
-        email per organizzarla e scriverti; quando entri nella riunione con il link, Microsoft tratta i dati della chiamata secondo
-        la propria informativa.
-      </p>
-      <p>
-        Quando i dati vengono trasferiti fuori dallo Spazio economico europeo, il trasferimento avviene con le garanzie previste
-        dal GDPR, come l'EU-US Data Privacy Framework o le clausole contrattuali standard della Commissione europea. Oggi THE LOBBY
-        è interamente gratuita: se in futuro introdurremo servizi a pagamento, aggiorneremo questa informativa prima.
+        Agiscono invece come <strong>titolari autonomi</strong>, con le proprie informative: <strong>Google</strong>, se scegli di
+        accedere con Google, e <strong>Microsoft</strong>, quando entri in una lezione live su Teams. Se prenoti una live, il
+        founder vede nome ed email per organizzarla e scriverti. Al di fuori di questi casi i dati non vengono comunicati a terzi,
+        salvo obblighi di legge.
       </p>
 
-      <h2>5. Per quanto tempo li conserviamo</h2>
+      <h2>5. Trasferimenti fuori dall'Unione europea</h2>
+      <p>
+        Alcuni fornitori possono trattare dati negli Stati Uniti. Il trasferimento avviene sulla base della decisione di adeguatezza
+        della Commissione europea per le società aderenti all'EU-US Data Privacy Framework oppure delle clausole contrattuali
+        standard approvate dalla Commissione (art. 45 e 46 GDPR).
+      </p>
+
+      <h2>6. Per quanto tempo li conserviamo</h2>
       <ul>
-        <li>I dati dell'account e di utilizzo finché l'account è attivo. Se chiedi la cancellazione, li eliminiamo entro 30 giorni, salvo quelli che la legge ci obbliga a tenere.</li>
-        <li>Le candidature a Premium fino a 12 mesi dopo la decisione, per gestire eventuali nuove candidature. Puoi chiederne la cancellazione prima.</li>
-        <li>I dati tecnici per i tempi stabiliti dai fornitori per sicurezza e funzionamento, di norma pochi giorni o settimane.</li>
+        <li><strong>Account e utilizzo:</strong> finché l'account è attivo. Se lo elimini dall'app, i dati vengono cancellati subito; le copie tecniche di sicurezza dei fornitori vengono sovrascritte nei giorni successivi.</li>
+        <li><strong>Candidature a Premium:</strong> 12 mesi dalla decisione, per gestire eventuali nuove candidature; prima, se elimini l'account o ce lo chiedi.</li>
+        <li><strong>Registro delle email di servizio:</strong> 12 mesi. I link di conferma scaduti o usati: 30 giorni.</li>
+        <li><strong>Dati tecnici:</strong> per i tempi stabiliti dai fornitori per sicurezza e funzionamento, di norma pochi giorni o settimane.</li>
       </ul>
 
-      <h2>6. I tuoi diritti</h2>
+      <h2>7. I tuoi diritti</h2>
       <p>
-        Puoi chiedere in ogni momento di accedere ai tuoi dati, correggerli, cancellarli, limitarne il trattamento, riceverli in un
-        formato portabile oppure opporti al trattamento basato sul legittimo interesse. Basta scrivere a <Contact />: rispondiamo
-        entro un mese. Se ritieni che i tuoi dati siano trattati in modo non corretto puoi presentare reclamo al Garante per la
-        protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer">garanteprivacy.it</a>).
+        Puoi chiedere di accedere ai tuoi dati, correggerli, cancellarli, limitarne il trattamento, riceverli in un formato
+        leggibile e trasferibile, e opporti ai trattamenti basati sul legittimo interesse (articoli 15-22 GDPR). Due diritti li
+        eserciti da solo, in qualsiasi momento, dal tuo <Link to="/profilo">Profilo</Link>: <strong>scaricare una copia dei tuoi
+        dati</strong> ed <strong>eliminare l'account</strong>. Per tutto il resto scrivi a <Contact />: rispondiamo entro un mese.
+        Puoi anche presentare reclamo al Garante per la protezione dei dati personali
+        (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer">garanteprivacy.it</a>).
       </p>
 
-      <h2>7. Età minima</h2>
-      <p>THE LOBBY è pensata per chi ha almeno 14 anni, l'età minima prevista in Italia per acconsentire da soli ai servizi online.</p>
+      <h2>8. Minori</h2>
+      <p>
+        Per iscriverti devi avere almeno 14 anni, l'età prevista in Italia per acconsentire da soli ai servizi online (art.
+        2-quinquies del Codice privacy). Se scopriamo un account di una persona più giovane lo eliminiamo. Le cene e gli incontri
+        dal vivo sono riservati ai maggiorenni.
+      </p>
 
-      <h2>8. Modifiche</h2>
-      <p>Se cambiamo questa informativa aggiorniamo la data in alto e, per le modifiche importanti, te lo segnaliamo nell'app.</p>
+      <h2>9. Sicurezza</h2>
+      <p>
+        I dati viaggiano cifrati, l'accesso al database è limitato per ruolo e i link delle lezioni live sono visibili solo a chi
+        è iscritto. Nessun sistema è sicuro al 100%: se dovesse verificarsi una violazione che ti riguarda, ti avviseremo nei casi
+        e nei tempi previsti dalla legge.
+      </p>
+
+      <h2>10. Modifiche</h2>
+      <p>Se cambiamo questa informativa aggiorniamo la data in alto e, per le modifiche importanti, te lo segnaliamo nell'app o per email.</p>
 
       <p className="legal__links"><Link to="/termini">Leggi anche i Termini di servizio</Link></p>
     </LegalShell>
@@ -109,35 +140,41 @@ export function Terms() {
   return (
     <LegalShell title="Termini di servizio">
       <p>
-        Questi termini regolano l'uso di THE LOBBY, l'academy digitale su istituzioni, politica ed Europa. Usando l'app li accetti:
-        leggili con calma, sono scritti per essere chiari.
+        Questi termini regolano l'uso di THE LOBBY, l'academy digitale su istituzioni, politica ed Europa. Iscrivendoti li
+        accetti: leggili con calma, sono scritti per essere chiari.
       </p>
 
       <h2>1. Chi offre il servizio</h2>
       <p>
-        THE LOBBY è ideata e gestita da <strong>Andrea Bonazzi</strong>, persona fisica, founder del progetto e docente dei corsi.
-        Contatti: <Contact />.
+        THE LOBBY è un progetto ideato e gestito da <strong>Andrea Bonazzi</strong>, persona fisica, founder e docente dei corsi.
+        Contatti: <Contact />. Oggi il servizio è offerto gratuitamente e non come attività commerciale.
       </p>
 
       <h2>2. Cosa offre THE LOBBY</h2>
       <ul>
-        <li>Corsi brevi, lezioni e quiz su come funzionano le istituzioni.</li>
+        <li>Corsi da leggere, con quiz, su come funzionano le istituzioni e sulle competenze per muoversi al loro interno.</li>
+        <li>Lezioni live su Microsoft Teams con Andrea Bonazzi, riservate a Premium.</li>
         <li>Una raccolta, aggiornata ogni giorno, di opportunità pubblicate da enti pubblici, istituzioni europee e organizzazioni internazionali.</li>
         <li>Con Premium, contenuti ed esperienze riservate, come descritto nella pagina Premium.</li>
       </ul>
+
+      <h2>3. Natura dei contenuti</h2>
       <p>
-        THE LOBBY non è affiliata ad alcun partito o movimento politico. I contenuti hanno scopo formativo e informativo e non sono
-        consulenza legale o professionale.
+        THE LOBBY non è affiliata ad alcun partito, movimento o istituzione e non fa propaganda politica: i contenuti hanno scopo
+        formativo e informativo, presentano i temi in modo neutrale e non sono consulenza legale, fiscale o professionale. Alcuni
+        testi sono preparati anche con strumenti di intelligenza artificiale e sono rivisti e pubblicati sotto la responsabilità
+        editoriale di Andrea Bonazzi. Norme, scadenze e dati possono cambiare: per le decisioni importanti verifica sempre sulle
+        fonti ufficiali.
       </p>
 
-      <h2>3. Il tuo account</h2>
+      <h2>4. Il tuo account</h2>
       <ul>
-        <li>Per registrarti devi avere almeno 14 anni e fornire dati veri.</li>
-        <li>L'account è personale: non condividerlo e custodisci la password. Sei responsabile di quello che avviene con le tue credenziali.</li>
-        <li>Puoi chiedere la chiusura dell'account in qualsiasi momento scrivendo a <Contact />.</li>
+        <li>Per iscriverti devi avere almeno 14 anni e fornire dati veri. Se sei minorenne, usa THE LOBBY con il consenso dei tuoi genitori.</li>
+        <li>Puoi accedere con email e password o con Google. L'account è personale: non condividerlo e custodisci le credenziali.</li>
+        <li>Puoi scaricare i tuoi dati o eliminare l'account in qualsiasi momento dal Profilo.</li>
       </ul>
 
-      <h2>4. Le opportunità: come funzionano</h2>
+      <h2>5. Le opportunità: come funzionano</h2>
       <p>
         THE LOBBY ti dà accesso, in un solo posto, alle opportunità pubblicate da altri: bandi, tirocini, programmi, eventi e
         viaggi. <strong>Non le organizza, non le finanzia e non seleziona i candidati.</strong> Viaggi, alloggi, rimborsi, borse e
@@ -149,53 +186,90 @@ export function Terms() {
         candidatura si presenta direttamente all'ente; THE LOBBY non garantisce l'esito.
       </p>
 
-      <h2>5. Free e Premium</h2>
+      <h2>6. Free e Premium</h2>
       <ul>
         <li>THE LOBBY è <strong>interamente gratuita</strong>, Premium compreso.</li>
         <li>Con l'account base accedi ai corsi base, ai quiz e alle prime tre opportunità della lista quotidiana.</li>
         <li>
           L'accesso a Premium è <strong>su selezione</strong>: ti candidi raccontando il tuo percorso e Andrea Bonazzi valuta
-          personalmente ogni candidatura, a sua discrezione. L'esito ti viene comunicato nell'app; se non vieni selezionato puoi
-          ricandidarti dopo 30 giorni.
+          personalmente ogni candidatura, a sua discrezione e senza discriminazioni. Le opinioni politiche e l'eventuale
+          appartenenza a un partito non contano nella valutazione. L'esito ti arriva nell'app e per email; se non vieni
+          selezionato puoi ricandidarti dopo 30 giorni.
         </li>
         <li>L'accesso Premium è personale e può essere revocato in caso di violazione di questi termini.</li>
-        <li>
-          Se in futuro alcune funzioni diventassero a pagamento te lo diremo prima: nulla ti verrà mai addebitato senza il tuo
-          consenso esplicito.
-        </li>
+        <li>Se in futuro alcune funzioni diventassero a pagamento te lo diremo prima: nulla ti verrà mai addebitato senza il tuo consenso esplicito.</li>
       </ul>
 
-      <h2>6. Contenuti e marchio</h2>
+      <h2>7. Lezioni live</h2>
+      <ul>
+        <li>La prenotazione è gratuita e richiede un'email confermata. Una lezione parte quando raggiunge il numero minimo di iscritti indicato nel corso; data e link vengono comunicati agli iscritti nell'app e per email.</li>
+        <li>Le date possono essere spostate o, per motivi seri, annullate: in quel caso avvisiamo gli iscritti il prima possibile.</li>
+        <li>Il link di Teams è personale: non condividerlo con chi non è iscritto.</li>
+        <li>È vietato registrare, fotografare o diffondere la lezione e le persone che vi partecipano. Le lezioni non vengono registrate, salvo avviso dato prima dell'inizio.</li>
+        <li>Partecipa con rispetto per il docente e per gli altri. Chi disturba o offende può essere escluso dalla sessione e da quelle successive.</li>
+        <li>L'uso di Teams è soggetto anche ai termini di Microsoft.</li>
+      </ul>
+
+      <h2>8. Cene e incontri dal vivo</h2>
+      <ul>
+        <li>Sono riservati ai maggiorenni iscritti a Premium, a numero chiuso, e si partecipa rispondendo all'invito nell'app.</li>
+        <li>Eventuali costi, per esempio quello della cena, sono indicati nell'invito prima della conferma e restano a carico di chi partecipa.</li>
+        <li>Luoghi e servizi sono gestiti dai rispettivi esercenti, alle loro condizioni.</li>
+      </ul>
+
+      <h2>9. Contenuti e marchio</h2>
       <p>
-        Corsi, video, testi, quiz, grafiche e il marchio THE LOBBY appartengono ad Andrea Bonazzi o ai rispettivi titolari. Puoi
-        usarli per uso personale e di studio; non puoi copiarli, rivenderli o diffonderli senza autorizzazione.
+        Corsi, testi, quiz, grafiche e il marchio THE LOBBY appartengono ad Andrea Bonazzi o ai rispettivi titolari. Puoi usarli
+        per uso personale e di studio; non puoi copiarli, rivenderli o diffonderli senza autorizzazione. È riservata
+        l'estrazione di testo e di dati, anche per addestrare sistemi di intelligenza artificiale (art. 70-quater della legge sul
+        diritto d'autore e art. 4 della Direttiva (UE) 2019/790).
       </p>
 
-      <h2>7. Regole di comportamento</h2>
+      <h2>10. Quello che ci invii</h2>
+      <p>
+        I testi della candidatura e i messaggi che ci mandi restano tuoi. Li usiamo solo per valutare la candidatura e
+        risponderti, non li pubblichiamo. Ti chiediamo che siano veri e che non violino diritti di altri.
+      </p>
+
+      <h2>11. Regole di comportamento</h2>
       <p>
         Non usare THE LOBBY per scopi illeciti, non tentare di accedere ad aree o dati non tuoi, non interferire con il
-        funzionamento del servizio e non estrarne i contenuti in modo automatico. In caso di violazioni possiamo sospendere o
-        chiudere l'account.
+        funzionamento del servizio e non estrarne i contenuti in modo automatico.
       </p>
 
-      <h2>8. Disponibilità e responsabilità</h2>
+      <h2>12. Sospensione e chiusura</h2>
       <p>
-        Facciamo il possibile perché THE LOBBY funzioni sempre e i contenuti siano corretti, ma il servizio può avere interruzioni
-        o cambiare nel tempo. Nei limiti consentiti dalla legge non rispondiamo di danni indiretti derivanti dall'uso delle
-        informazioni, in particolare delle opportunità di terzi. Restano salvi i diritti che la legge riconosce ai consumatori.
+        In caso di violazioni gravi o ripetute di questi termini possiamo sospendere l'accesso a Premium o chiudere l'account,
+        comunicandoti il motivo. Tu puoi chiudere l'account in qualsiasi momento dal Profilo.
       </p>
 
-      <h2>9. Modifiche ai termini</h2>
+      <h2>13. Disponibilità e responsabilità</h2>
       <p>
-        Possiamo aggiornare questi termini: la data in alto indica l'ultima versione e le modifiche importanti ti vengono
-        segnalate nell'app. Se non sei d'accordo puoi chiudere l'account in qualsiasi momento.
+        Il servizio è gratuito e facciamo il possibile perché funzioni sempre e i contenuti siano corretti, ma può avere
+        interruzioni o cambiare nel tempo. Salvo dolo o colpa grave, non rispondiamo dei danni derivanti dall'uso delle
+        informazioni, in particolare delle opportunità pubblicate da terzi. Restano fermi i diritti che la legge riconosce ai
+        consumatori.
       </p>
 
-      <h2>10. Legge applicabile</h2>
+      <h2>14. Link esterni</h2>
+      <p>THE LOBBY contiene link a siti di terzi, come le pagine ufficiali degli enti: non ne controlliamo i contenuti e le condizioni d'uso.</p>
+
+      <h2>15. Modifiche ai termini</h2>
+      <p>
+        Possiamo aggiornare questi termini per giustificati motivi, come novità del servizio o cambiamenti di legge. Le modifiche
+        importanti ti vengono comunicate nell'app o per email almeno 15 giorni prima che si applichino; se non sei d'accordo puoi
+        chiudere l'account prima di quella data.
+      </p>
+
+      <h2>16. Legge applicabile e controversie</h2>
       <p>
         Si applica la legge italiana. Per le controversie con i consumatori è competente il giudice del luogo di residenza o
-        domicilio del consumatore.
+        domicilio del consumatore (art. 66-bis del Codice del consumo). Prima di qualsiasi azione scrivici: proveremo a trovare una
+        soluzione insieme.
       </p>
+
+      <h2>17. Disposizioni finali</h2>
+      <p>Se una clausola risultasse non valida, le altre restano efficaci. Questi termini sono redatti in italiano, che è la lingua che fa fede.</p>
 
       <p className="legal__links"><Link to="/privacy">Leggi anche l'Informativa privacy</Link></p>
     </LegalShell>

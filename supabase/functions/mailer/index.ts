@@ -7,8 +7,17 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const RESEND_KEY = Deno.env.get('RESEND_API_KEY') || '';
 const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+
+// Resend key: function secret if set, otherwise the Vault (public.mail_key_get, service role only).
+let resendKey = Deno.env.get('RESEND_API_KEY') || '';
+async function key() {
+  if (!resendKey) {
+    const { data } = await db.rpc('mail_key_get');
+    resendKey = typeof data === 'string' ? data : '';
+  }
+  return resendKey;
+}
 
 const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura']);
 const FIXED_ORIGINS = ['https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
@@ -236,7 +245,7 @@ async function deliver(r: Row, s: Settings) {
   const from = s.from_email ? `${s.from_name} <${s.from_email}>` : `${s.from_name} <onboarding@resend.dev>`;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': r.id },
+    headers: { Authorization: `Bearer ${await key()}`, 'Content-Type': 'application/json', 'Idempotency-Key': r.id },
     body: JSON.stringify({
       from,
       to: [r.to_email],
@@ -256,7 +265,7 @@ async function deliver(r: Row, s: Settings) {
 async function processRow(id: string, s: Settings): Promise<string> {
   const { data: peek } = await db.from('email_outbox').select('id,kind,status,attempts').eq('id', id).maybeSingle();
   if (!peek || !['queued', 'error'].includes(peek.status) || peek.attempts >= 5) return 'skip';
-  if (!RESEND_KEY) {
+  if (!(await key())) {
     await db.from('email_outbox').update({ error: 'in attesa: servizio email non ancora collegato' }).eq('id', id);
     return 'waiting';
   }

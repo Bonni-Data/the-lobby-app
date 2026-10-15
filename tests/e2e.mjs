@@ -48,11 +48,14 @@ const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
 let failures = [];
 
+let termsMissing = false;
+const accountCalls = [];
 function session(email, name = 'Andrea Bonazzi') {
+  const meta = termsMissing ? { full_name: name } : { full_name: name, terms_accepted_at: '2026-10-15T10:00:00Z' };
   return {
-    access_token: 'aaa.' + Buffer.from(JSON.stringify({ sub: uid, email })).toString('base64') + '.sig',
+    access_token: 'aaa.' + Buffer.from(JSON.stringify({ sub: uid, email, user_metadata: meta })).toString('base64') + '.sig',
     refresh_token: 'r', expires_in: 3600, token_type: 'bearer',
-    user: { id: uid, email, user_metadata: { full_name: name } },
+    user: { id: uid, email, user_metadata: meta },
   };
 }
 
@@ -78,6 +81,16 @@ async function mock(route) {
   if (path === '/auth/v1/token') {
     if (users[body.email] && users[body.email] === body.password) { loggedIn = true; return json(200, session(body.email)); }
     return json(400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
+  }
+  if (path === '/auth/v1/settings') return json(200, { external: { email: true, google: true } });
+  if (path === '/auth/v1/user' && req.method() === 'PUT') {
+    termsMissing = false;
+    return json(200, { id: uid, email: 'giulia@example.com', user_metadata: { full_name: 'Giulia Rossi', ...(body.data || {}) } });
+  }
+  if (path === '/functions/v1/account') {
+    accountCalls.push(body);
+    if (body.action === 'export') return json(200, { account: { email: 'giulia@example.com' }, lesson_progress: [] });
+    if (body.action === 'delete') return body.confirm === 'ELIMINA' ? json(200, { ok: true }) : json(400, { error: 'confirm_required' });
   }
   if (path === '/auth/v1/logout') { loggedIn = false; return route.fulfill({ status: 204 }); }
   if (path === '/rest/v1/rpc/live_courses') {
@@ -251,6 +264,8 @@ await page.fill('input[type="password"]', 'sbagliata');
 await page.click('button[type="submit"]');
 await page.waitForSelector('.alert');
 await check(page.textContent('.alert').then((t) => t.includes('non corretti')), 'wrong password message');
+await page.waitForSelector('.oauth__google');
+await check(page.getAttribute('.oauth__google', 'href').then((h) => h.includes('/auth/v1/authorize?provider=google') && h.includes('redirect_to=')), 'google sign-in link');
 
 // 4. New signup -> Home
 await page.click('.segmented button:has-text("Registrati")');
@@ -522,7 +537,7 @@ await check(Promise.resolve(mailer.recover.length === 1 && mailer.recover[0].ema
 // 10e. Legal pages are public
 await page.goto(base + '#/privacy');
 await page.waitForSelector('.legal h2');
-await check(page.textContent('.legal').then((t) => t.includes('Andrea Bonazzi') && t.includes('Garante')), 'privacy page content');
+await check(page.textContent('.legal').then((t) => t.includes('Andrea Bonazzi') && t.includes('Garante') && t.includes('Resend') && t.includes('Microsoft') && t.includes('14 anni')), 'privacy page content');
 await shot('13-privacy');
 await page.goto(base + '#/termini');
 await page.waitForSelector('.legal h2');
@@ -539,6 +554,35 @@ await page.goto(base + '#/andrea');
 await page.waitForSelector('.story-hero');
 await check(page.textContent('.press').then((t) => t.includes('Il Giorno')), 'story press links');
 await shot('15-story');
+
+// 13. Account without accepted terms (e.g. first Google sign-in): one-time gate
+termsMissing = true;
+await page.goto(base + '#/accedi');
+await page.fill('input[type="email"]', 'giulia@example.com');
+await page.fill('input[type="password"]', 'password456');
+await page.click('button[type="submit"]');
+await page.waitForSelector('.terms-gate');
+await shot('16-terms-gate');
+await page.click('.terms-gate button:has-text("Entra nella Lobby")');
+await page.waitForSelector('.terms-gate .alert');
+await page.check('.terms-gate .check input');
+await page.click('.terms-gate button:has-text("Entra nella Lobby")');
+await page.waitForSelector('.h-hello');
+await check(Promise.resolve(!termsMissing), 'terms accepted through metadata');
+
+// 14. Data rights from the profile: download, then delete
+await page.goto(base + '#/profilo');
+await page.waitForSelector('.mydata');
+const dl = page.waitForEvent('download');
+await page.click('.mydata button:has-text("Scarica una copia")');
+await check(dl.then((d) => d.suggestedFilename() === 'the-lobby-i-miei-dati.json'), 'data export downloaded');
+await page.click('.mydata button:has-text("Elimina il mio account")');
+await check(page.locator('.mydata__confirm button:has-text("Elimina per sempre")').isDisabled(), 'delete needs confirmation word');
+await page.fill('.mydata__confirm input', 'elimina');
+await shot('17-delete-account');
+await page.click('.mydata__confirm button:has-text("Elimina per sempre")');
+await page.waitForSelector('.welcome__hero');
+await check(Promise.resolve(accountCalls.some((c) => c.action === 'delete' && c.confirm === 'ELIMINA')), 'account deleted');
 
 await browser.close();
 server.kill();

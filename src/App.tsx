@@ -18,6 +18,7 @@ import { Privacy, Terms } from './pages/Legal';
 import Admin from './pages/Admin';
 import Story from './pages/Story';
 import Verify from './pages/Verify';
+import { TermsGate } from './components/terms';
 
 // Supabase email links land with tokens in the fragment: adopt them before routing.
 (function adoptEmailLink() {
@@ -43,6 +44,7 @@ function Routes() {
   }, [session, path, isPublic]);
 
   if (!session && !isPublic) return null;
+  if (session && !isPublic && !session.user?.user_metadata?.terms_accepted_at) return <TermsGate />;
 
   if (path === '/') return <Welcome />;
   if (path === '/accedi') return <Auth />;

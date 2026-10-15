@@ -1007,3 +1007,17 @@ img, svg, video { display: block; max-width: 100%; }
 .verify { display: grid; gap: 14px; justify-items: start; }
 .verify__icon { width: 44px; height: 44px; color: var(--coral-deep); }
 .verify__icon--ok { color: var(--ok); }
+
+/* ---------- Social sign-in, terms gate, my data ---------- */
+.oauth { display: grid; gap: 12px; margin-top: 18px; }
+.oauth__or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+.oauth__or::before, .oauth__or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.oauth__google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+.terms-gate { display: grid; gap: 14px; }
+.mydata { display: grid; gap: 10px; margin: 26px 0 8px; padding-top: 18px; border-top: 1px solid var(--line); justify-items: start; }
+.mydata .link-quiet { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; font-size: 14.5px; }
+.mydata__danger { color: var(--ko) !important; }
+.mydata__confirm { display: grid; gap: 10px; width: 100%; padding: 14px; border-radius: var(--r-m); border: 1.5px solid var(--ko); background: #fff6f4; font-size: 14px; }
+.mydata__confirm p { margin: 0; }
+.mydata__confirm input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font: inherit; }
+.mydata__btns { display: flex; flex-wrap: wrap; gap: 8px; }

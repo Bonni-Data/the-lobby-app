@@ -123,20 +123,17 @@ export function refresh(): Promise<Session | null> {
   return refreshing;
 }
 
-// ---------- Where new members come from (utm_* of the first visit, for the ads) ----------
-const SOURCE_KEY = 'thelobby.source';
-(function rememberSource() {
+// ---------- Where new members come from (utm_* in the link of the ad) ----------
+// Read from the address bar at signup time only: nothing is stored on the device for this.
+export function signupSource(): Record<string, string> {
   try {
     const q = new URLSearchParams(window.location.search);
-    const src = { utm_source: q.get('utm_source'), utm_medium: q.get('utm_medium'), utm_campaign: q.get('utm_campaign') };
-    if (src.utm_source && !localStorage.getItem(SOURCE_KEY)) localStorage.setItem(SOURCE_KEY, JSON.stringify({ ...src, at: new Date().toISOString() }));
-  } catch { /* storage unavailable */ }
-})();
-function signupSource(): Record<string, string> {
-  try {
-    const s = JSON.parse(localStorage.getItem(SOURCE_KEY) || 'null');
-    if (!s?.utm_source) return {};
-    return Object.fromEntries(Object.entries(s).filter(([, v]) => typeof v === 'string' && v).map(([k, v]) => [k, String(v).slice(0, 80)]));
+    const out: Record<string, string> = {};
+    for (const k of ['utm_source', 'utm_medium', 'utm_campaign']) {
+      const v = q.get(k);
+      if (v) out[k] = v.slice(0, 80);
+    }
+    return out;
   } catch {
     return {};
   }
@@ -179,6 +176,25 @@ export const auth = {
       method: 'POST',
       body: JSON.stringify({ action: 'recover', email, redirectTo }),
     });
+  },
+  /** Login providers switched on in Supabase (e.g. google). */
+  async providers(): Promise<Record<string, boolean>> {
+    try {
+      const s = await raw('/auth/v1/settings', { method: 'GET' });
+      return s?.external || {};
+    } catch {
+      return {};
+    }
+  },
+  /** Google sign-in: Supabase sends the member back here with the tokens in the fragment. */
+  googleUrl(redirectTo: string) {
+    return `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+  },
+  /** Adds fields to the member's metadata (terms acceptance for social sign-ins). */
+  async updateMetadata(data: Record<string, any>) {
+    const token = await validToken();
+    const body = await raw('/auth/v1/user', { method: 'PUT', body: JSON.stringify({ data }) }, token);
+    if (session) save({ ...session, user: body });
   },
   async updatePassword(password: string) {
     const token = await validToken();
