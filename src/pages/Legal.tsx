@@ -42,7 +42,7 @@ export function Privacy() {
 
       <h2>2. Quali dati trattiamo</h2>
       <ul>
-        <li><strong>Dati dell'account:</strong> nome, indirizzo email e password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla).</li>
+        <li><strong>Dati dell'account:</strong> nome, indirizzo email (e se lo hai confermato) e password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla).</li>
         <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, le risposte alle cene e le prenotazioni alle lezioni live.</li>
         <li><strong>Candidatura a Premium:</strong> se ti candidi, i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi e l'esito della valutazione, con l'eventuale messaggio del founder.</li>
         <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora degli accessi, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
@@ -53,6 +53,7 @@ export function Privacy() {
       <ul>
         <li><strong>Creare e gestire il tuo account e farti seguire corsi, quiz e opportunità.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
         <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione del servizio che richiedi candidandoti (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi, non un sistema automatico.</li>
+        <li><strong>Mandarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni e date delle lezioni live, esito della candidatura Premium. Base: esecuzione del contratto (art. 6.1.b). Non sono newsletter né pubblicità.</li>
         <li><strong>Garantire la sicurezza del servizio e prevenire abusi.</strong> Base: legittimo interesse del titolare (art. 6.1.f).</li>
         <li><strong>Rispettare obblighi di legge.</strong> Base: obbligo legale (art. 6.1.c).</li>
       </ul>
@@ -64,7 +65,7 @@ export function Privacy() {
         <li><strong>Supabase</strong> (database, autenticazione ed email di servizio): i dati sono ospitati nell'Unione europea, a Francoforte.</li>
         <li><strong>GitHub</strong> (pubblicazione delle pagine dell'app): può trattare dati tecnici come l'indirizzo IP, anche negli Stati Uniti.</li>
         <li><strong>Google Fonts</strong> (caratteri tipografici): per mostrarti i caratteri il browser contatta i server di Google, che ricevono il tuo indirizzo IP.</li>
-        <li><strong>FormSubmit</strong> (inoltro email): quando invii una candidatura a Premium, ne inoltra una copia alla casella di THE LOBBY. Può trattare i dati anche fuori dall'UE.</li>
+        <li><strong>Resend</strong> (invio delle email dell'app): spedisce le email di servizio, come la conferma dell'indirizzo, il recupero password, le prenotazioni e le date delle lezioni live, la risposta alla candidatura Premium. Riceve il tuo indirizzo email e il contenuto del messaggio e può trattarli anche fuori dall'UE.</li>
         <li><strong>Google Gmail</strong>: la casella {CONTACT_EMAIL} che riceve candidature e richieste è gestita con Gmail.</li>
       </ul>
       <p>

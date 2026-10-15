@@ -154,10 +154,11 @@ export const auth = {
       }
     }
   },
+  /** Password reset link, sent by THE LOBBY mailer (the default Supabase mailer only reaches the team). */
   async recover(email: string, redirectTo: string) {
-    await raw(`/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+    await raw('/functions/v1/mailer', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ action: 'recover', email, redirectTo }),
     });
   },
   async updatePassword(password: string) {

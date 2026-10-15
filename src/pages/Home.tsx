@@ -4,6 +4,7 @@ import { listCourses, listProgress, listOpportunities, listAttempts, completedIn
 import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate, Ticker } from '../components/ui';
 import { TagChip } from '../components/opps';
 import { FounderBox } from '../components/founder';
+import { VerifyBanner } from '../components/email';
 import { Link } from '../lib/router';
 import { LuKeyRound, LuArrowRight } from 'react-icons/lu';
 
@@ -26,6 +27,7 @@ export default function Home() {
       <TopBar />
       <main className="page">
         <h1 className="h-hello">{first ? <>Ciao, <span className="h-hello__name">{first}</span>.</> : 'Ciao.'}</h1>
+        <VerifyBanner />
 
         {data.loading && <Spinner />}
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}

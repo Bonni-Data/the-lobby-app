@@ -174,7 +174,7 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
       {error && <div className="alert" role="alert">{error}</div>}
       <Button type="submit" block loading={busy}>Invia la candidatura</Button>
       <p className="apply__note">
-        La candidatura arriva ad Andrea, anche via email a {CONTACT_EMAIL}. Usiamo i tuoi testi solo per valutarla: leggi
+        La candidatura arriva ad Andrea, anche via email a {CONTACT_EMAIL}, e la risposta ti arriva qui e per email. Usiamo i tuoi testi solo per valutarla: leggi
         l’<Link to="/privacy">Informativa privacy</Link>.
       </p>
     </form>

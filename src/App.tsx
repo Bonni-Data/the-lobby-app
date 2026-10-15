@@ -17,6 +17,7 @@ import Premium from './pages/Premium';
 import { Privacy, Terms } from './pages/Legal';
 import Admin from './pages/Admin';
 import Story from './pages/Story';
+import Verify from './pages/Verify';
 
 // Supabase email links land with tokens in the fragment: adopt them before routing.
 (function adoptEmailLink() {
@@ -29,7 +30,7 @@ import Story from './pages/Story';
   }
 })();
 
-const PUBLIC = ['/', '/accedi', '/password', '/privacy', '/termini', '/andrea'];
+const PUBLIC = ['/', '/accedi', '/password', '/privacy', '/termini', '/andrea', '/verifica'];
 
 function Routes() {
   const { path } = useLocation();
@@ -46,6 +47,7 @@ function Routes() {
   if (path === '/') return <Welcome />;
   if (path === '/accedi') return <Auth />;
   if (path === '/password') return <ForgotPassword />;
+  if (path === '/verifica') return <Verify />;
   if (path === '/nuova-password') return <NewPassword />;
   if (path === '/home') return <Home />;
   if (path === '/academy') return <Academy />;

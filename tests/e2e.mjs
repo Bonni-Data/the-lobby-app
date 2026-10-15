@@ -33,6 +33,8 @@ let progress = [];
 let attempts = [];
 let waitlisted = false;
 let approved = false;
+let verified = true;
+const mailer = { recover: [], tests: 0, resent: 0 };
 let isAdmin = false;
 let draftPublished = false;
 let live = { event_id: 'ev-live', course_id: 'c5', yes_count: 14, min_seats: 15, my_response: null, starts_at: null };
@@ -141,7 +143,12 @@ async function mock(route) {
   }
   if (path === '/rest/v1/quiz_attempts') return json(200, attempts);
   if (path === '/rest/v1/rpc/opportunities_feed') return json(200, globalThis.__opps || []);
-  if (path === '/rest/v1/rpc/my_plan') return json(200, { premium: approved, admin: isAdmin, application: myApp });
+  if (path === '/rest/v1/rpc/my_plan') return json(200, { premium: approved, admin: isAdmin, application: myApp, email_verified: verified || isAdmin });
+  if (path === '/rest/v1/rpc/confirm_email') { if (body.p_token === 'good-token') { verified = true; return json(200, 'ok'); } return json(200, 'invalid'); }
+  if (path === '/rest/v1/rpc/resend_verification') { mailer.resent += 1; return json(200, 'sent'); }
+  if (path === '/rest/v1/rpc/email_status') return json(200, { live: false, from_email: null, admin_email: 'thelobbysupport@gmail.com', sent_7d: 0, queued: 2, errors_7d: 0, last_sent_at: null });
+  if (path === '/rest/v1/rpc/email_send_test') { mailer.tests += 1; return json(200, 'id-test'); }
+  if (path === '/functions/v1/mailer') { if (body.action === 'recover') mailer.recover.push(body); return json(200, { ok: true }); }
   if (path === '/rest/v1/rpc/submit_premium_application') {
     if (['p_about', 'p_experience', 'p_goal'].some((k) => (body[k] || '').trim().length < 30)) return json(400, { code: 'P0001', message: 'too_short' });
     myApp = { status: 'pending', created_at: new Date().toISOString() };
@@ -355,7 +362,7 @@ await page.click('button:has-text("Invia la candidatura")');
 await page.waitForSelector('.apply-status .premium-status');
 await check(page.textContent('.apply-status').then((t) => t.includes('Candidatura inviata')), 'application pending state');
 await page.waitForTimeout(300);
-await check(Promise.resolve(notified.length === 1 && notified[0].Nome === 'Giulia Rossi' && notified[0]['Cosa ho fatto finora'].includes('volontariato')), 'email notification sent');
+await check(Promise.resolve(notified.length === 0), 'no third-party form service called');
 await shot('10e-premium-pending');
 
 // 9d. Admin review (Andrea's account)
@@ -365,6 +372,11 @@ await page.click('.tabbar__item:has-text("Profilo")');
 await page.waitForSelector('text=Area founder');
 await page.click('text=Area founder');
 await page.waitForSelector('.appcard');
+await page.waitForSelector('.email-strip');
+await check(page.textContent('.email-strip').then((t) => t.includes('Email in preparazione') && t.includes('2 pronte in coda')), 'founder sees email status');
+await page.click('.email-strip button:has-text("Prova")');
+await page.waitForTimeout(300);
+await check(Promise.resolve(mailer.tests === 1), 'test email requested');
 await shot('10f-admin');
 await page.fill('.appcard textarea', 'Percorso solido, benvenuta.');
 await page.click('button:has-text("Attiva Premium")');
@@ -402,6 +414,23 @@ await check(page.locator('.live-list li:has-text("Public speaking")').count().th
 // 9e-ter. Live course: a Premium member books, the founder sets date and Teams link, the member gets the link
 isAdmin = false;
 approved = true;
+verified = false;
+await page.goto(base + '#/home');
+await page.reload();
+await page.waitForSelector('.verify-banner');
+await page.click('.verify-banner__btn');
+await page.waitForTimeout(300);
+await check(Promise.resolve(mailer.resent === 1), 'verification link resent');
+await shot('10g3b-verify-banner');
+await page.goto(base + '#/corso/test-live');
+await page.waitForSelector('.live-panel .verify-banner');
+await check(page.locator('.live-panel button:has-text("Prenota il tuo posto")').count().then((n) => n === 0), 'booking needs a confirmed email');
+await page.goto(base + '#/verifica?t=bad-token');
+await page.waitForSelector('.verify h1');
+await check(page.textContent('.verify h1').then((t) => t.includes('non valido')), 'invalid verification link');
+await page.goto(base + '#/verifica?t=good-token');
+await page.waitForSelector('.verify h1:has-text("Email confermata")');
+await shot('10g3c-verified');
 await page.goto(base + '#/corso/test-live');
 await page.reload();
 await page.waitForSelector('.live-panel button:has-text("Prenota il tuo posto")');
@@ -478,6 +507,13 @@ await shot('11-profile');
 await page.click('button:has-text("Esci")');
 await page.waitForSelector('.welcome__hero');
 await check(page.evaluate(() => localStorage.getItem('thelobby.session') === null), 'session cleared on logout');
+
+// 10d. Password reset goes through THE LOBBY mailer
+await page.goto(base + '#/password');
+await page.fill('input[type="email"]', 'giulia@example.com');
+await page.click('button:has-text("Invia il link")');
+await page.waitForSelector('text=Se esiste un account');
+await check(Promise.resolve(mailer.recover.length === 1 && mailer.recover[0].email === 'giulia@example.com' && mailer.recover[0].redirectTo.startsWith('http://localhost')), 'recovery sent through mailer');
 
 // 10e. Legal pages are public
 await page.goto(base + '#/privacy');

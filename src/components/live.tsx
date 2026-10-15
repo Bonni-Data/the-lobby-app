@@ -4,6 +4,7 @@ import {
 } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { Button, ErrorState, Spinner, toast, useAsync } from './ui';
+import { VerifyBanner } from './email';
 import { Link } from '../lib/router';
 import {
   LuCalendarClock, LuCalendarPlus, LuCheck, LuMail, LuRadio, LuUsers, LuVideo, LuFileText, LuArrowRight, LuLock, LuSettings2,
@@ -58,6 +59,7 @@ function rsvpError(err: any) {
   const m = String(err?.message || '');
   if (m.includes('past_event')) return 'Questa edizione si è già svolta.';
   if (m.includes('premium_required')) return 'Le lezioni live sono riservate a chi è in Premium.';
+  if (m.includes('email_not_verified')) return 'Conferma prima la tua email: è lì che arrivano data e link della live.';
   return 'Prenotazione non salvata. Riprova.';
 }
 
@@ -151,8 +153,10 @@ export function LivePanel({ course, edition }: { course: Course; edition?: LiveE
             <button className="live-panel__leave" onClick={() => setLeaving(true)}>Annulla l'iscrizione</button>
           )}
         </div>
-      ) : (
+      ) : plan.email_verified ? (
         <Button block onClick={() => answer('yes')} loading={busy}>Prenota il tuo posto</Button>
+      ) : (
+        <VerifyBanner compact />
       ))}
 
       {plan.admin && (

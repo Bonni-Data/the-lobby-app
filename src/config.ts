@@ -8,8 +8,6 @@ export const APP_VERSION = '0.4.0';
 
 /** Public contact for privacy, terms and Premium applications. */
 export const CONTACT_EMAIL = 'thelobbysupport@gmail.com';
-/** Applications are also forwarded by email to CONTACT_EMAIL (FormSubmit, activated once from that inbox). */
-export const NOTIFY_ENDPOINT = 'https://formsubmit.co/ajax/thelobbysupport@gmail.com';
 export const APP_URL = 'https://bonni-data.github.io/the-lobby-app/';
 export const LEGAL_UPDATED = '15 ottobre 2026';
 export const TERMS_VERSION = '2026-10-14';

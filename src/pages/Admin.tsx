@@ -6,6 +6,7 @@ import {
 } from '../lib/data';
 import { DraftPanel } from '../components/drafts';
 import { LiveAdminTab } from '../components/live';
+import { EmailStatusStrip } from '../components/email';
 import { Link, useLocation } from '../lib/router';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock, LuBookOpenCheck, LuArrowRight } from 'react-icons/lu';
@@ -220,6 +221,7 @@ export default function Admin() {
         ) : (
           <>
             <h1 className="h-page">Area founder</h1>
+            <EmailStatusStrip />
             <div className="section-tabs" role="tablist" aria-label="Sezioni">
               <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>
               <button role="tab" aria-selected={area === 'cene'} className={area === 'cene' ? 'is-on' : ''} onClick={() => setArea('cene')}>Cene</button>
