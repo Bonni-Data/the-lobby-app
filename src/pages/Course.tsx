@@ -9,7 +9,9 @@ import { useAuth } from '../lib/auth';
 import { TeacherLine } from '../components/founder';
 import { DraftPanel } from '../components/drafts';
 import { LivePanel, LiveTeaser } from '../components/live';
-import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock, LuRadio } from 'react-icons/lu';
+import { useGame } from '../components/game';
+import { simulationMeta, XP } from '../lib/game';
+import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock, LuRadio, LuSwords, LuAward, LuArrowRight, LuSparkles } from 'react-icons/lu';
 
 export default function Course({ slug }: { slug: string }) {
   const { plan } = useAuth();
@@ -17,9 +19,11 @@ export default function Course({ slug }: { slug: string }) {
     const [course, progress] = await Promise.all([getCourse(slug), listProgress()]);
     let outline: OutlineLesson[] = [];
     let live: LiveEdition | undefined;
+    let sim: { title: string; role: string } | null = null;
     if (course && isLive(course)) live = (await listLive().catch(() => [] as LiveEdition[])).find((e) => e.course_id === course.id);
     else if (course && course.access_level === 'premium' && !plan.premium) outline = await courseOutline(course.id).catch(() => []);
-    return { course, progress, outline, live };
+    else if (course) sim = await simulationMeta(course.id).catch(() => null);
+    return { course, progress, outline, live, sim };
   }, [slug, plan.premium]);
 
   return (
@@ -30,7 +34,7 @@ export default function Course({ slug }: { slug: string }) {
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
         {data.data && !data.data.course && <Empty title="Corso non trovato" text="Potrebbe essere stato spostato o non è più disponibile." />}
         {data.data?.course && (() => {
-          const { course: c, progress, outline, live } = data.data;
+          const { course: c, progress, outline, live, sim } = data.data;
           if (isLive(c)) return <LiveCourse c={c} live={live} locked={c.access_level === 'premium' && !plan.premium} />;
           const total = lessonCount(c);
           const done = completedIn(c, progress);
@@ -119,12 +123,57 @@ export default function Course({ slug }: { slug: string }) {
                     ))}
                   </ol>
                 </section>
+
+                {!locked && total > 0 && <Finale c={c} done={done} total={total} sim={sim} />}
               </div>
             </>
           );
         })()}
       </main>
     </Screen>
+  );
+}
+
+/** End of a text course: the final simulation and the certificate. */
+function Finale({ c, done, total, sim }: { c: CourseT; done: number; total: number; sim: { title: string; role: string } | null }) {
+  const game = useGame();
+  const cert = game?.courses.find((x) => x.course_id === c.id);
+  const best = game?.sims.find((x) => x.course_id === c.id);
+  const open = done >= total;
+  return (
+    <section className="block finale" aria-label="Fine corso">
+      <h2 className="h-section">Il gran finale</h2>
+      {sim && (
+        <div className={`finale-card finale-card--sim ${open ? '' : 'is-locked'}`}>
+          <span className="finale-card__kicker"><LuSwords aria-hidden="true" /> Simulazione finale</span>
+          <strong className="finale-card__title">{sim.title}</strong>
+          <span className="finale-card__role">Il tuo ruolo: {sim.role}</span>
+          {!open ? (
+            <p className="finale-card__text"><LuLock aria-hidden="true" /> Si sblocca quando completi le lezioni: {done} su {total}.</p>
+          ) : best ? (
+            <p className="finale-card__text">Il tuo risultato migliore: <b>{best.ending || 'conclusa'}</b>, {best.score} punti su {best.max}.</p>
+          ) : (
+            <p className="finale-card__text">Entra in scena e decidi tu. Ogni scelta ha conseguenze. Fino a {XP.sim} XP.</p>
+          )}
+          {open && <ButtonLink to={`/simulazione/${c.slug}`}>{best ? 'Rigioca' : 'Gioca la simulazione'} <LuArrowRight aria-hidden="true" /></ButtonLink>}
+        </div>
+      )}
+      <div className={`finale-card finale-card--cert ${cert ? '' : 'is-locked'}`}>
+        <span className="finale-card__kicker"><LuAward aria-hidden="true" /> Certificato</span>
+        {cert ? (
+          <>
+            <strong className="finale-card__title">È tuo.</strong>
+            <p className="finale-card__text">Condividilo su Instagram e LinkedIn: chi apre il link può verificare che è autentico.</p>
+            <ButtonLink to={`/certificato/${cert.cert_id}`} variant="secondary">Apri il certificato <LuArrowRight aria-hidden="true" /></ButtonLink>
+          </>
+        ) : (
+          <>
+            <strong className="finale-card__title">Completa il corso, ricevi il certificato.</strong>
+            <p className="finale-card__text"><LuSparkles aria-hidden="true" /> {total - done > 0 ? `Mancano ${total - done} ${total - done === 1 ? 'lezione' : 'lezioni'}.` : 'Ci siamo quasi.'} Vale +{XP.course} XP.</p>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
 

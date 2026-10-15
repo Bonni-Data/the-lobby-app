@@ -33,19 +33,21 @@ Deno.serve(async (req) => {
 
   if (body.action === 'export') {
     const uid = user.id;
-    const [profile, progress, attempts, applications, rsvps, membership] = await Promise.all([
+    const [profile, progress, attempts, applications, rsvps, membership, xp] = await Promise.all([
       admin.from('profiles').select('display_name,email_verified_at,created_at').eq('id', uid).maybeSingle(),
       admin.from('lesson_progress').select('lesson_id,status,completed_at,updated_at').eq('user_id', uid),
       admin.from('quiz_attempts').select('quiz_id,score,max_score,created_at').eq('user_id', uid),
       admin.from('premium_applications').select('full_name,email,about,experience,goal,link,status,reviewer_note,created_at,reviewed_at').eq('user_id', uid),
       admin.from('event_rsvps').select('event_id,response,updated_at').eq('user_id', uid),
       admin.from('memberships').select('plan,status,created_at').eq('user_id', uid),
+      admin.from('xp_events').select('id,kind,ref,xp,meta,created_at').eq('user_id', uid).order('created_at'),
     ]);
     return reply({
       generated_at: new Date().toISOString(),
       account: { id: uid, email: user.email, created_at: user.created_at, provider: user.app_metadata?.provider, metadata: user.user_metadata },
       profile: profile.data, lesson_progress: progress.data, quiz_attempts: attempts.data,
       premium_applications: applications.data, event_responses: rsvps.data, premium_membership: membership.data,
+      points_badges_certificates: xp.data,
     });
   }
 

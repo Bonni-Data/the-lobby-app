@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getQuiz, submitQuiz, QuizResult } from '../lib/data';
+import { refreshGame } from '../lib/game';
 import { ArchProgress, Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
 import { LuCheck, LuX } from 'react-icons/lu';
 
@@ -20,6 +21,7 @@ export default function Quiz({ id }: { id: string }) {
     setError('');
     try {
       setResult(await submitQuiz(quiz.id, answers));
+      refreshGame();
     } catch {
       setError('Invio non riuscito. Controlla la connessione e riprova.');
     } finally {

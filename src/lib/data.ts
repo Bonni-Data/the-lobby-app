@@ -1,4 +1,5 @@
 import { select, upsert, update, rpc, currentSession } from './api';
+import type { Check } from './game';
 
 export type Lesson = {
   id: string;
@@ -6,7 +7,6 @@ export type Lesson = {
   title: string;
   summary?: string | null;
   duration_seconds?: number | null;
-  video_ref?: string | null;
   transcript?: string | null;
   status?: string;
   module_id?: string;
@@ -99,17 +99,24 @@ export async function getCourse(slug: string): Promise<Course | null> {
 export type LessonDetail = Lesson & {
   course_modules: { id: string; title: string; position: number; courses: { slug: string; title: string; access_level?: 'free' | 'premium' } };
   quizzes: { id: string; title: string }[];
+  /** Interactive checks shown between the lesson cards. */
+  checks?: Check[] | null;
   lesson_assets: { id: string; kind: string; title: string; ref: string }[];
 };
 
 export async function getLesson(id: string): Promise<LessonDetail | null> {
   const rows = await select<LessonDetail>(
     'lessons',
-    `select=id,position,title,summary,duration_seconds,video_ref,transcript,status,module_id,` +
+    `select=id,position,title,summary,duration_seconds,transcript,checks,lesson_checks(checks),status,module_id,` +
       `course_modules(id,title,position,courses(slug,title,access_level)),quizzes(id,title),lesson_assets(id,kind,title,ref)` +
       `&id=eq.${id}&limit=1`,
   );
-  return rows[0] ?? null;
+  const row = rows[0] as (LessonDetail & { lesson_checks?: { checks: Check[] } | { checks: Check[] }[] | null }) | undefined;
+  if (!row) return null;
+  const own = Array.isArray(row.lesson_checks) ? row.lesson_checks[0] : row.lesson_checks;
+  row.checks = own?.checks?.length ? own.checks : Array.isArray(row.checks) ? row.checks : [];
+  delete row.lesson_checks;
+  return row;
 }
 
 export async function listProgress(): Promise<Progress[]> {

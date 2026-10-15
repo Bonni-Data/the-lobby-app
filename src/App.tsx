@@ -19,6 +19,10 @@ import Admin from './pages/Admin';
 import Story from './pages/Story';
 import Verify from './pages/Verify';
 import { TermsGate } from './components/terms';
+import { GameHost } from './components/game';
+import Simulation from './pages/Simulation';
+import Certificate from './pages/Certificate';
+import Achievements from './pages/Achievements';
 
 // Supabase email links land with tokens in the fragment: adopt them before routing.
 (function adoptEmailLink() {
@@ -38,7 +42,7 @@ const PUBLIC = ['/', '/accedi', '/password', '/privacy', '/termini', '/andrea', 
 function Routes() {
   const { path } = useLocation();
   const { session } = useAuth();
-  const isPublic = PUBLIC.includes(path);
+  const isPublic = PUBLIC.includes(path) || path.startsWith('/certificato/');
 
   useEffect(() => {
     if (!session && !isPublic) navigate('/accedi', true);
@@ -62,10 +66,13 @@ function Routes() {
   if (path === '/andrea') return <Story />;
   if (path === '/privacy') return <Privacy />;
   if (path === '/termini') return <Terms />;
+  if (path === '/traguardi') return <Achievements />;
   let p;
   if ((p = match('/corso/:slug', path))) return <Course slug={p.slug} />;
   if ((p = match('/lezione/:id', path))) return <Lesson id={p.id} />;
   if ((p = match('/quiz/:id', path))) return <Quiz id={p.id} />;
+  if ((p = match('/simulazione/:slug', path))) return <Simulation slug={p.slug} />;
+  if ((p = match('/certificato/:id', path))) return <Certificate id={p.id} />;
   return (
     <Screen>
       <TopBar />
@@ -82,6 +89,7 @@ export default function App() {
       <AuthProvider>
         <Routes />
         <ToastHost />
+        <GameHost />
       </AuthProvider>
     </RouterProvider>
   );

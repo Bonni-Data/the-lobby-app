@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { auth, invoke, ApiError } from '../lib/api';
-import { listProgress, listAttempts, saveDisplayName } from '../lib/data';
-import { Button, Screen, TopBar, useAsync, toast } from '../components/ui';
+import { saveDisplayName } from '../lib/data';
+import { levelFor } from '../lib/game';
+import { useGame } from '../components/game';
+import { Button, Screen, TopBar, toast } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2 } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, plan } = useAuth();
-  const stats = useAsync(async () => {
-    const [p, a] = await Promise.all([listProgress(), listAttempts()]);
-    const best = a.reduce((m, x) => Math.max(m, x.max_score ? x.score / x.max_score : 0), 0);
-    return { lessons: p.filter((x) => x.status === 'completed').length, quizzes: a.length, best };
-  }, []);
+  const game = useGame();
+  const level = game ? levelFor(game.xp) : null;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(displayName);
   const [busy, setBusy] = useState(false);
@@ -69,12 +68,18 @@ export default function Profile() {
         </section>
 
         <section className="profile-stats">
-          <div><strong>{stats.data?.lessons ?? '–'}</strong><span>lezioni completate</span></div>
-          <div><strong>{stats.data?.quizzes ?? '–'}</strong><span>quiz svolti</span></div>
-          <div><strong>{stats.data ? `${Math.round(stats.data.best * 100)}%` : '–'}</strong><span>miglior quiz</span></div>
+          <div><strong>{game ? game.xp : '–'}</strong><span>XP</span></div>
+          <div><strong>{game ? game.lessons : '–'}</strong><span>lezioni completate</span></div>
+          <div><strong>{game ? game.streak : '–'}</strong><span>giorni di fila</span></div>
         </section>
 
         <ul className="menu">
+          <li>
+            <Link to="/traguardi" className="menu__link">
+              <span><LuTrophy /> Traguardi e certificati</span>
+              <em className="is-premium">{level ? `${level.name} · ${game!.badges.length} traguardi` : 'Livelli, serie, certificati'}</em>
+            </Link>
+          </li>
           <li>
             <Link to="/premium" className="menu__link">
               <span><LuKeyRound /> Piano</span>

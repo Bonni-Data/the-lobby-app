@@ -1,23 +1,23 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { listCourses, listProgress, listOpportunities, listAttempts, completedIn, lessonCount, nextLesson, LEVEL_LABEL, courseLabel } from '../lib/data';
+import { listCourses, listProgress, listOpportunities, completedIn, lessonCount, nextLesson, LEVEL_LABEL, courseLabel } from '../lib/data';
 import { ArchProgress, ButtonLink, DoorCover, ErrorState, Screen, Spinner, TopBar, useAsync, formatDate, Ticker } from '../components/ui';
 import { TagChip } from '../components/opps';
 import { FounderBox } from '../components/founder';
 import { VerifyBanner } from '../components/email';
+import { LevelCard } from '../components/game';
 import { Link } from '../lib/router';
 import { LuKeyRound, LuArrowRight } from 'react-icons/lu';
 
 export default function Home() {
   const { displayName, plan } = useAuth();
   const data = useAsync(async () => {
-    const [courses, progress, opps, attempts] = await Promise.all([
+    const [courses, progress, opps] = await Promise.all([
       listCourses(),
       listProgress(),
       listOpportunities().catch(() => []),
-      listAttempts().catch(() => []),
     ]);
-    return { courses, progress, opps, attempts };
+    return { courses, progress, opps };
   }, []);
 
   const first = (displayName || '').split(' ')[0];
@@ -33,11 +33,10 @@ export default function Home() {
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
 
         {data.data && (() => {
-          const { courses, progress, opps, attempts } = data.data;
+          const { courses, progress, opps } = data.data;
           const started = courses.filter((c) => completedIn(c, progress) > 0);
           const focus = started.find((c) => completedIn(c, progress) < lessonCount(c)) || courses.find((c) => lessonCount(c) > 0);
           const firstComing = courses.find((c) => c.coming_soon && lessonCount(c) === 0);
-          const doneLessons = progress.filter((p) => p.status === 'completed').length;
           return (
             <>
               {!focus && firstComing && (
@@ -73,6 +72,8 @@ export default function Home() {
                 );
               })()}
 
+              <LevelCard />
+
               <Ticker
                 label="Oggi nella Lobby"
                 items={[
@@ -85,12 +86,6 @@ export default function Home() {
               />
 
               <FounderBox />
-
-              <p className="stats-line">
-                <span><strong>{doneLessons}</strong> lezioni completate</span>
-                <span><strong>{attempts.length}</strong> quiz svolti</span>
-                <span><strong>{started.length}</strong> corsi iniziati</span>
-              </p>
 
               <section className="block">
                 <div className="block__head">

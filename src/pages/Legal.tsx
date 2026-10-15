@@ -46,12 +46,12 @@ export function Privacy() {
       <ul>
         <li><strong>Account:</strong> nome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
         <li><strong>Accesso con Google:</strong> se lo scegli, Google ci comunica nome, indirizzo email, identificativo dell'account ed eventualmente l'immagine del profilo. Non riceviamo mai la tua password Google.</li>
-        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
+        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e certificati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
         <li><strong>Candidatura a Premium:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
         <li><strong>Email di servizio:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna).</li>
         <li><strong>Provenienza:</strong> se ti iscrivi da un link di una nostra campagna, il nome della campagna presente nel link (per esempio «instagram»). Lo leggiamo dall'indirizzo della pagina al momento dell'iscrizione, senza salvare nulla sul tuo dispositivo.</li>
         <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora delle richieste, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
-        <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato e una copia dell'app per aprirla più velocemente. Sono strumenti tecnici strettamente necessari (art. 122 del Codice privacy): non usiamo cookie di profilazione, pubblicitari o di statistica di terze parti, e per questo non ti chiediamo un consenso.</li>
+        <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato, una copia dell'app per aprirla più velocemente e le tue preferenze di lettura (lezione a schede o a pagina unica, scheda a cui eri arrivato, velocità della voce). Sono strumenti tecnici strettamente necessari (art. 122 del Codice privacy): non usiamo cookie di profilazione, pubblicitari o di statistica di terze parti, e per questo non ti chiediamo un consenso.</li>
       </ul>
       <p>
         <strong>Dati che non ti chiediamo.</strong> THE LOBBY parla di istituzioni e politica, ma non ha bisogno di sapere come la
@@ -87,6 +87,16 @@ export function Privacy() {
         accedere con Google, e <strong>Microsoft</strong>, quando entri in una lezione live su Teams. Se prenoti una live, il
         founder vede nome ed email per organizzarla e scriverti. Al di fuori di questi casi i dati non vengono comunicati a terzi,
         salvo obblighi di legge.
+      </p>
+      <p>
+        <strong>Certificati.</strong> Quando completi un corso ricevi un certificato con un link di verifica. Se scegli di
+        condividerlo, chi apre il link vede il nome del tuo profilo, il corso e la data: nient'altro. Il link è un codice casuale
+        che conosce solo chi lo riceve da te; se elimini l'account, il certificato smette di esistere.
+      </p>
+      <p>
+        <strong>Ascolta la lezione.</strong> La lettura ad alta voce usa la sintesi vocale del tuo browser o del tuo sistema
+        operativo. Alcuni browser, per le voci più naturali, elaborano il testo sui server del loro produttore (per esempio Google
+        o Microsoft): viene letto solo il testo della lezione, mai i tuoi dati.
       </p>
 
       <h2>5. Trasferimenti fuori dall'Unione europea</h2>

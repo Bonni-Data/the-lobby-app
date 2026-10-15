@@ -47,6 +47,39 @@ const notified = [];
 const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
 let failures = [];
+const checksL1 = [
+  { type: 'choice', after: 'Passi', prompt: 'Chi approva il bilancio?', options: ['Il sindaco', 'Il consiglio comunale', 'Il prefetto'], correct: 1, why: 'Lo approva il consiglio comunale.' },
+  { type: 'truefalse', prompt: '', statement: 'Il sindaco nomina gli assessori.', answer: true, why: 'La giunta la sceglie il sindaco.' },
+  { type: 'order', after: 'Chi decide', prompt: 'Metti in ordine i passaggi del bilancio.', items: ['La giunta prepara la proposta', 'Le commissioni la esaminano', 'Il consiglio la vota'], why: 'Prima la giunta, poi le commissioni, infine il consiglio.' },
+];
+const game = { checks: new Set(), sims: [], certId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' };
+const scenario = {
+  title: 'Il bilancio conteso', role: 'Consigliera comunale di opposizione', intro: 'Mancano tre giorni al voto sul bilancio.', start: 'a',
+  nodes: {
+    a: { text: 'La giunta deposita il bilancio il venerdì sera. Che cosa fai?', choices: [
+      { label: 'Leggo tutto nel weekend', score: 2, feedback: 'Bene: chi conosce le carte vince.', next: 'b' },
+      { label: 'Aspetto la commissione', score: 1, feedback: 'Perdi tempo prezioso.', next: 'b' },
+      { label: 'Attacco sui social', score: 0, feedback: 'Senza dati, sei debole.', next: 'b' } ] },
+    b: { text: 'In commissione scopri un taglio ai centri giovani.', choices: [
+      { label: 'Presento un emendamento coperto', score: 2, feedback: 'Così si fa.', next: null },
+      { label: 'Protesto e basta', score: 0, feedback: 'Rumore, nessun risultato.', next: null } ] },
+  },
+  endings: [{ min: 0.8, title: 'Da manuale', text: 'Hai ottenuto il risultato.' }, { min: 0.4, title: 'Buona partita', text: 'Qualcosa hai portato a casa.' }, { min: 0, title: 'Da rivedere', text: 'Riprova.' }],
+};
+function statsNow() {
+  const doneIds = progress.filter((p) => p.status === 'completed').map((p) => p.lesson_id);
+  const courseDone = ['l1', 'l2'].every((id) => doneIds.includes(id));
+  const bestQuiz = attempts.reduce((m, a) => Math.max(m, 10 * a.score + (a.score === a.max_score ? 20 : 0)), 0);
+  const simXp = game.sims.reduce((m, x) => Math.max(m, x.xp), 0);
+  const xp = 50 * doneIds.length + 10 * game.checks.size + bestQuiz + (courseDone ? 200 : 0) + simXp;
+  const badges = [];
+  if (doneIds.length) badges.push({ id: 'primo-passo', at: new Date().toISOString() });
+  if (courseDone) badges.push({ id: 'primo-corso', at: new Date().toISOString() });
+  if (game.sims.length) badges.push({ id: 'prima-simulazione', at: new Date().toISOString() });
+  return { xp, streak: xp ? 1 : 0, best_streak: xp ? 1 : 0, active_today: xp > 0, lessons: doneIds.length, checks: game.checks.size, perfect_quizzes: 0, badges,
+    courses: courseDone ? [{ course_id: 'c1', cert_id: game.certId, completed_at: new Date().toISOString() }] : [],
+    sims: game.sims.slice(-1).map((x) => ({ course_id: 'c1', score: x.score, max: x.max, ending: x.ending, xp: x.xp })) };
+}
 
 let termsMissing = false;
 const accountCalls = [];
@@ -124,11 +157,40 @@ async function mock(route) {
     const slug = url.searchParams.get('slug');
     return json(200, slug ? all.filter((c) => 'eq.' + c.slug === slug) : all);
   }
+  if (path === '/rest/v1/rpc/my_stats') return json(200, loggedIn ? statsNow() : null);
+  if (path === '/rest/v1/rpc/check_answer') {
+    const c = checksL1[body.p_index];
+    const ok = c.type === 'choice' ? body.p_answer === c.correct : c.type === 'truefalse' ? body.p_answer === c.answer : JSON.stringify(body.p_answer) === JSON.stringify(c.items.map((_, i) => i));
+    const key = body.p_lesson + ':' + body.p_index;
+    const fresh = ok && !game.checks.has(key);
+    if (ok) game.checks.add(key);
+    return json(200, { correct: ok, xp: fresh ? 10 : 0 });
+  }
+  if (path === '/rest/v1/course_simulations') {
+    const sel = url.searchParams.get('select') || '';
+    if (sel.startsWith('scenario')) return json(200, [{ scenario }]);
+    return json(200, [{ course_id: 'c1', title: scenario.title, role: scenario.role }]);
+  }
+  if (path === '/rest/v1/rpc/sim_finish') {
+    let node = scenario.nodes[scenario.start]; let score = 0; let max = 0;
+    for (const i of body.p_path) { const c = node.choices[i]; score += c.score; max += Math.max(...node.choices.map((x) => x.score)); node = c.next ? scenario.nodes[c.next] : null; }
+    const pct = score / max;
+    const ending = scenario.endings.find((e) => pct >= e.min);
+    const xp = Math.round(100 * pct);
+    const prev = game.sims.reduce((m, x) => Math.max(m, x.xp), 0);
+    game.sims.push({ score, max, ending: ending.title, xp });
+    return json(200, { score, max, xp: Math.max(0, xp - prev), ending });
+  }
+  if (path === '/rest/v1/rpc/certificate') {
+    if (body.p_id !== game.certId) return json(200, null);
+    return json(200, { id: game.certId, name: 'Giulia Rossi', course: 'Come funziona davvero un Comune', slug: 'test-comune', category: 'comune', level: 'base', premium: false,
+      completed_at: '2026-10-15T10:00:00Z', lessons: 2, minutes: 5, mine: loggedIn });
+  }
   if (path === '/rest/v1/lessons') {
     const id = (url.searchParams.get('id') || '').replace('eq.', '');
     const l = lessons.find((x) => x.id === id);
     if (!l || !loggedIn) return json(200, []);
-    return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\n\n## Passi\n\n1. **Uno**: primo passo.\n2. Secondo passo.\n\n- Kit:\n  - CV\n  - SPID\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
+    return json(200, [{ ...l, checks: [], lesson_checks: id === 'l1' ? { checks: checksL1 } : null, transcript: 'Trascrizione di prova.\n\n## Passi\n\n1. **Uno**: primo passo.\n2. Secondo passo.\n\n- Kit:\n  - CV\n  - SPID\n\n## Chi decide\n\nIl **consiglio comunale** vota il bilancio, la **giunta** lo prepara.\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
       course_modules: { id: 'm1', title: '[TEST] Modulo 1', position: 1, courses: { slug: 'test-comune', title: course.title } },
       quizzes: id === 'l1' ? [{ id: 'q1', title: '[TEST] Quiz lezione 1' }] : [], lesson_assets: [] }]);
   }
@@ -223,6 +285,27 @@ async function mock(route) {
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }).catch(() => chromium.launch());
 const ctx = await browser.newContext({ viewport: { width: Number(process.env.VW || 390), height: Number(process.env.VH || 844) }, deviceScaleFactor: process.env.VW ? 1 : 2, locale: 'it-IT', reducedMotion: process.env.MOTION ? 'no-preference' : 'reduce' });
+await ctx.addInitScript(() => {
+  window.__spoken = [];
+  class U { constructor(t) { this.text = t; } }
+  window.SpeechSynthesisUtterance = U;
+  let queue = []; let busy = false; let timer = null;
+  const synth = {
+    speaking: false, pending: false, paused: false,
+    getVoices: () => [{ name: 'Alice', lang: 'it-IT', localService: true }],
+    speak(u) { window.__spoken.push(u.text); queue.push(u); pump(); },
+    cancel() { queue = []; clearTimeout(timer); busy = false; synth.speaking = false; },
+    pause() {}, resume() {}, addEventListener() {}, removeEventListener() {},
+  };
+  function pump() {
+    if (busy) return;
+    const u = queue.shift();
+    if (!u) { synth.speaking = false; return; }
+    busy = true; synth.speaking = true;
+    timer = setTimeout(() => { busy = false; if (u.onend) u.onend(); pump(); }, 25);
+  }
+  Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true });
+});
 const page = await ctx.newPage();
 const consoleErrors = [];
 page.on('console', (m) => m.type() === 'error' && !/fonts|ERR_|Failed to load resource/.test(m.text()) && consoleErrors.push(m.text()));
@@ -308,15 +391,65 @@ await page.click('.course-row:has-text("Come funziona davvero un Comune")');
 await page.waitForSelector('.course-hero');
 await shot('05-course');
 
-// 7. Lesson + complete
+// 7. Lesson as cards: intro, sections, checks, listen, completion
 await page.click('text=Inizia il corso');
-await page.waitForSelector('.lesson-cover');
-await check(page.textContent('.lesson-text').then((t) => t.includes('Trascrizione di prova')), 'lesson text rendered');
-await check(page.locator('.lesson-text ol li').count().then((n) => n === 2), 'numbered list rendered');
-await check(page.locator('.lesson-text li > ul li').count().then((n) => n === 2), 'nested list rendered');
-await page.click('text=Segna come completata');
-await page.waitForSelector('text=Completata');
+await page.waitForSelector('.lcard--intro');
+await check(page.textContent('.lcard__voice').then((t) => t.includes('Trascrizione di prova')), 'lesson intro rendered');
+await check(page.locator('.story-bar span').count().then((n) => n === 8), 'story bar: intro, 2 sections, 3 checks, brief, end');
+await shot('06a-lesson-intro');
+await page.click('.lcard__start button:has-text("Inizia")');
+await page.waitForSelector('.lcard--section');
+await check(page.locator('.lcard .lesson-text ol li').count().then((n) => n === 2), 'numbered list rendered');
+await check(page.locator('.lcard .lesson-text li > ul li').count().then((n) => n === 2), 'nested list rendered');
+await check(page.textContent('.lcard__terms').then((t) => t.includes('Uno')), 'key terms chips');
+await shot('06b-lesson-card');
+await page.click('.cardnav__btn--next');
+await page.waitForSelector('.lcard--check');
+await check(page.locator('.cardnav__btn--next').isDisabled(), 'cannot skip a check');
+await page.click('.ask__options .option >> nth=1');
+await page.waitForSelector('.ask__why');
+await page.waitForSelector('.xp-pop');
+await check(page.textContent('.ask__why').then((t) => t.includes('Esatto')), 'right answer feedback');
+await shot('06c-lesson-check');
+await page.click('.cardnav__btn--next');
+await page.waitForSelector('.tf');
+await page.click('.tf__btn:has-text("Falso")');
+await page.waitForSelector('.ask.is-wrong');
+await check(page.textContent('.ask__why').then((t) => t.includes('Non proprio')), 'wrong answer feedback');
+await page.click('.cardnav__btn--next');
+await page.waitForSelector('.lcard--section');
+await check(page.textContent('.lcard__head').then((t) => t.includes('Chi decide')), 'check placed after its section');
+// Listen: reads the card, moves on by itself and stops at the next check
+await page.click('.listen__btn');
+await page.waitForSelector('.order__pool');
+await check(page.waitForFunction(() => window.__spoken.some((t) => t.includes('Chi decide')) && window.__spoken.some((t) => t.includes('Metti in ordine')), null, { timeout: 3000 }).then(() => true, () => false), 'listen reads cards aloud');
+await check(page.locator('.listen.is-on').count().then((n) => n === 1), 'listening stays on at a check');
+await page.click('.order__item:has-text("La giunta prepara")');
+await page.click('.order__item:has-text("Le commissioni")');
+await page.click('.order__item:has-text("Il consiglio la vota")');
+await page.waitForSelector('.ask.is-right');
+await shot('06d-lesson-order');
+await page.click('.listen__btn');
+await page.click('.cardnav__btn--next');
+await page.waitForSelector('.lcard--brief');
+await shot('06e-lesson-brief');
+await page.click('.cardnav__btn--next:has-text("Concludi")');
+await page.waitForSelector('.lcard__end');
+await page.waitForFunction(() => document.querySelector('.lcard__end h2')?.textContent.includes('Lezione completata'));
+await check(Promise.resolve(progress.some((p) => p.lesson_id === 'l1' && p.status === 'completed')), 'lesson completed at the last card');
+await check(page.textContent('.lcard__score').then((t) => t.includes('2 su 3 sfide')), 'checks score on end card');
+await page.waitForTimeout(400);
 await shot('06-lesson');
+// Page mode: whole text plus the checks, then back to cards
+await page.click('.mode-btn');
+await page.waitForSelector('.page-checks');
+await check(page.textContent('.lesson-text').then((t) => t.includes('Trascrizione di prova')), 'page mode shows full text');
+await shot('06f-lesson-page');
+await page.click('.mode-btn');
+await page.waitForSelector('.lcard--intro');
+await check(page.locator('.lcard__done').count().then((n) => n === 1), 'intro shows lesson already completed');
+await page.click('.mode-btn');
+await page.waitForSelector('.page-checks');
 
 // 8. Quiz
 await page.click('text=Fai il quiz');
@@ -329,6 +462,53 @@ await page.click('text=Invia le risposte');
 await page.waitForSelector('.quiz-result');
 await check(page.textContent('.quiz-result h1').then((t) => t.includes('1 risposta giusta su 2')), 'quiz score shown');
 await shot('08-quiz-result');
+
+// 8b. Second lesson in page mode completes the course: level up, certificate, final simulation
+await page.goto(base + '#/lezione/l2');
+await page.waitForSelector('.page-checks, .lesson-actions');
+await page.click('button:has-text("Segna come completata")');
+await page.waitForSelector('.levelup');
+await check(page.textContent('.levelup__name').then((t) => t.includes('Attivista')), 'level up to Attivista');
+await shot('08b-level-up');
+await page.click('.levelup button:has-text("Continua")');
+await page.evaluate(() => localStorage.setItem('lobby.lesson.mode', 'cards'));
+await page.goto(base + '#/corso/test-comune');
+await page.waitForSelector('.finale-card--sim');
+await check(page.locator('.finale-card--cert a:has-text("Apri il certificato")').count().then((n) => n === 1), 'certificate unlocked on course page');
+await shot('08c-course-finale');
+await page.click('.finale-card--sim a');
+await page.waitForSelector('.sim-intro');
+await shot('08d-sim-intro');
+await page.click('button:has-text("Entra in scena")');
+await page.waitForSelector('.sim-scene');
+await page.click('.sim-choices .option >> nth=0');
+await page.waitForSelector('.sim-feedback.is-top');
+await shot('08e-sim-choice');
+await page.click('.sim-feedback button');
+await page.waitForFunction(() => document.querySelector('.sim-scene__text')?.textContent.includes('centri giovani'));
+await page.click('.sim-choices .option >> nth=1');
+await page.click('.sim-feedback button:has-text("Scopri")');
+await page.waitForSelector('.sim-end');
+await page.waitForSelector('.sim-end .pill--xp');
+await check(page.textContent('.sim-end h1').then((t) => t.includes('Buona partita')), 'simulation ending by score');
+await check(page.textContent('.sim-end .pill--xp').then((t) => t.includes('+50 XP')), 'simulation XP');
+await shot('08f-sim-end');
+await page.click('button:has-text("Rigioca")');
+await page.waitForSelector('.sim-scene');
+await page.goto(base + '#/certificato/' + game.certId);
+await page.waitForSelector('.cert__frame img');
+await check(page.getAttribute('.cert a[href*="linkedin.com/profile/add"]', 'href').then((h) => h.includes('organizationName=THE+LOBBY') && h.includes('certUrl=')), 'LinkedIn add-to-profile link');
+await check(page.evaluate(() => { const i = document.querySelector('.cert__frame img'); return i.naturalWidth === 1080 && i.naturalHeight === 1350; }), 'certificate image 1080x1350');
+await shot('08g-certificate');
+await page.goto(base + '#/traguardi');
+await page.waitForSelector('.rank__name');
+await check(page.textContent('.rank__name').then((t) => t.includes('Attivista')), 'achievements level');
+await check(page.locator('.badges li.is-on').count().then((n) => n === 3), 'three badges earned');
+await check(page.locator('.certs__row').count().then((n) => n === 2), 'certificate and simulation listed');
+await shot('08h-traguardi');
+await page.goto(base + '#/home');
+await page.waitForSelector('.levelcard');
+await check(page.textContent('.levelcard').then((t) => t.includes('Attivista') && t.includes('XP')), 'home level card');
 
 // 9. Opportunities (empty, then with data)
 await page.goto(base + '#/opportunita');
@@ -543,6 +723,14 @@ await page.goto(base + '#/termini');
 await page.waitForSelector('.legal h2');
 await check(page.textContent('.legal').then((t) => t.includes('Non le organizza, non le finanzia')), 'terms opportunity clause');
 await shot('14-termini');
+
+// 10f. A shared certificate is public and verifiable
+await page.goto(base + '#/certificato/' + game.certId);
+await page.waitForSelector('.cert__verified');
+await check(page.locator('.cert a[href*="linkedin"]').count().then((n) => n === 0), 'public certificate has no owner actions');
+await shot('14b-certificate-public');
+await page.goto(base + '#/certificato/00000000-0000-0000-0000-000000000000');
+await page.waitForSelector('.empty');
 
 // 11. Protected route redirects to Accedi when logged out
 await page.goto(base + '#/academy');
