@@ -43,7 +43,7 @@ export function Privacy() {
       <h2>2. Quali dati trattiamo</h2>
       <ul>
         <li><strong>Dati dell'account:</strong> nome, indirizzo email e password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla).</li>
-        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium.</li>
+        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, le risposte alle cene e le prenotazioni alle lezioni live.</li>
         <li><strong>Candidatura a Premium:</strong> se ti candidi, i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi e l'esito della valutazione, con l'eventuale messaggio del founder.</li>
         <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora degli accessi, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
         <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato e una copia dell'app per farla aprire più velocemente. Sono strumenti tecnici necessari: non usiamo cookie di profilazione, pubblicità o sistemi di statistica.</li>
@@ -62,12 +62,16 @@ export function Privacy() {
       <p>Ci appoggiamo a fornitori che trattano i dati come responsabili del trattamento, solo per erogare il servizio:</p>
       <ul>
         <li><strong>Supabase</strong> (database, autenticazione ed email di servizio): i dati sono ospitati nell'Unione europea, a Francoforte.</li>
-        <li><strong>Bunny.net</strong> (BunnyWay d.o.o., Slovenia): ospita e trasmette le video lezioni. Quando guardi un video riceve dati tecnici come l'indirizzo IP e il tipo di dispositivo.</li>
         <li><strong>GitHub</strong> (pubblicazione delle pagine dell'app): può trattare dati tecnici come l'indirizzo IP, anche negli Stati Uniti.</li>
         <li><strong>Google Fonts</strong> (caratteri tipografici): per mostrarti i caratteri il browser contatta i server di Google, che ricevono il tuo indirizzo IP.</li>
         <li><strong>FormSubmit</strong> (inoltro email): quando invii una candidatura a Premium, ne inoltra una copia alla casella di THE LOBBY. Può trattare i dati anche fuori dall'UE.</li>
         <li><strong>Google Gmail</strong>: la casella {CONTACT_EMAIL} che riceve candidature e richieste è gestita con Gmail.</li>
       </ul>
+      <p>
+        Le lezioni live si svolgono su <strong>Microsoft Teams</strong>. Se prenoti una live, il founder vede il tuo nome e la tua
+        email per organizzarla e scriverti; quando entri nella riunione con il link, Microsoft tratta i dati della chiamata secondo
+        la propria informativa.
+      </p>
       <p>
         Quando i dati vengono trasferiti fuori dallo Spazio economico europeo, il trasferimento avviene con le garanzie previste
         dal GDPR, come l'EU-US Data Privacy Framework o le clausole contrattuali standard della Commissione europea. Oggi THE LOBBY

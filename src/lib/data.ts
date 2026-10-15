@@ -1,4 +1,4 @@
-import { select, upsert, update, rpc, invoke, currentSession } from './api';
+import { select, upsert, update, rpc, currentSession } from './api';
 import { NOTIFY_ENDPOINT, APP_URL } from '../config';
 
 export type Lesson = {
@@ -11,9 +11,7 @@ export type Lesson = {
   transcript?: string | null;
   status?: string;
   module_id?: string;
-  video_status?: VideoStatus;
 };
-export type VideoStatus = 'uploading' | 'processing' | 'ready' | 'error' | null;
 export type Module = { id: string; position: number; title: string; description?: string | null; lessons: Lesson[] };
 export type Course = {
   id: string;
@@ -27,6 +25,8 @@ export type Course = {
   coming_soon?: boolean;
   position?: number | null;
   category?: CategoryId | null;
+  /** 'testo': lessons to read with quizzes. 'live': sessions on Teams with Andrea, booked from the course page. */
+  format?: 'testo' | 'live' | null;
   objectives: string[];
   course_modules: Module[];
 };
@@ -68,15 +68,6 @@ export type Application = MyApplication & {
   goal: string;
   link?: string | null;
 };
-export type PremiumEvent = {
-  id: string;
-  kind: 'cena' | 'incontro' | 'lezione' | 'evento';
-  title: string;
-  summary?: string | null;
-  starts_at?: string | null;
-  location?: string | null;
-  seats?: number | null;
-};
 export type QuizQuestion = { id: string; position: number; prompt: string; options: string[] };
 export type Quiz = { id: string; title: string; lesson_id: string; quiz_questions: QuizQuestion[] };
 export type QuizResult = {
@@ -86,12 +77,13 @@ export type QuizResult = {
 };
 
 const COURSE_FIELDS =
-  'id,slug,title,subtitle,description,audience,level,access_level,objectives,coming_soon,position,category,' +
+  'id,slug,title,subtitle,description,audience,level,access_level,objectives,coming_soon,position,category,format,' +
   'course_modules(id,position,title,description,lessons(id,position,title,summary,duration_seconds,status))';
 
 function sortCourse(c: Course): Course {
   const mods = [...(c.course_modules || [])].sort((a, b) => a.position - b.position);
-  mods.forEach((m) => (m.lessons = [...(m.lessons || [])].sort((a, b) => a.position - b.position)));
+  // Archived lessons (only the founder can read them) never count as course content.
+  mods.forEach((m) => (m.lessons = (m.lessons || []).filter((l) => l.status !== 'archived').sort((a, b) => a.position - b.position)));
   return { ...c, objectives: c.objectives || [], course_modules: mods };
 }
 
@@ -114,7 +106,7 @@ export type LessonDetail = Lesson & {
 export async function getLesson(id: string): Promise<LessonDetail | null> {
   const rows = await select<LessonDetail>(
     'lessons',
-    `select=id,position,title,summary,duration_seconds,video_ref,video_status,transcript,status,module_id,` +
+    `select=id,position,title,summary,duration_seconds,video_ref,transcript,status,module_id,` +
       `course_modules(id,title,position,courses(slug,title,access_level)),quizzes(id,title),lesson_assets(id,kind,title,ref)` +
       `&id=eq.${id}&limit=1`,
   );
@@ -213,13 +205,6 @@ export async function reviewApplication(id: string, decision: 'approved' | 'reje
   await rpc('review_premium_application', { p_id: id, p_decision: decision, p_note: note || null });
 }
 
-export async function listPremiumEvents(): Promise<PremiumEvent[]> {
-  return select<PremiumEvent>(
-    'premium_events',
-    'select=id,kind,title,summary,starts_at,location,seats&status=eq.published&order=starts_at.asc.nullslast',
-  );
-}
-
 export async function getProfile() {
   const s = currentSession();
   if (!s) return null;
@@ -266,35 +251,6 @@ export function draftCount(c: Course) {
 /** Admin: publish every draft lesson of a course and take it out of «in arrivo». */
 export async function publishCourse(slug: string) {
   return rpc<number>('publish_course', { p_slug: slug });
-}
-
-/* ---------- Video lessons (Bunny Stream through the `video` edge function) ---------- */
-export type VideoLesson = { id: string; position: number; title: string; status: string; video_ref: string | null; video_status: VideoStatus; duration_seconds: number | null };
-export type VideoCourse = { id: string; slug: string; title: string; course_modules: { id: string; position: number; title: string; lessons: VideoLesson[] }[] };
-
-export async function listVideoCourses(): Promise<VideoCourse[]> {
-  const rows = await select<VideoCourse>(
-    'courses',
-    'select=id,slug,title,course_modules(id,position,title,lessons(id,position,title,status,video_ref,video_status,duration_seconds))' +
-      '&access_level=eq.premium&status=eq.published&order=position.asc.nullslast',
-  );
-  return rows.map((c) => ({
-    ...c,
-    course_modules: [...c.course_modules].sort((a, b) => a.position - b.position).map((m) => ({ ...m, lessons: [...m.lessons].sort((a, b) => a.position - b.position) })),
-  }));
-}
-
-export const videoApi = {
-  status: () => invoke<{ connected: boolean; libraryId: string | null }>('video', { action: 'status' }),
-  connect: (accountKey: string) => invoke<{ connected: boolean; libraryId: string }>('video', { action: 'connect', accountKey }),
-  createUpload: (lessonId: string) =>
-    invoke<{ videoId: string; libraryId: string; expires: number; signature: string }>('video', { action: 'create-upload', lessonId }),
-  check: (lessonId: string) => invoke<{ status: VideoStatus | 'none'; progress: number; length: number }>('video', { action: 'check', lessonId }),
-  play: (lessonId: string) => invoke<{ url: string; expires: number }>('video', { action: 'play', lessonId }),
-};
-
-export async function publishLesson(lessonId: string) {
-  await rpc('publish_lesson', { p_lesson: lessonId });
 }
 
 export const LEVEL_LABEL: Record<string, string> = { base: 'Base', intermedio: 'Intermedio', avanzato: 'Avanzato' };
@@ -376,6 +332,39 @@ export const CATEGORIES: { id: CategoryId; label: string; blurb: string }[] = [
 export const CATEGORY_NAME: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
 export const categoryOf = (c: Course): CategoryId => (c.category as CategoryId) || 'italia';
 
+export const isLive = (c: Pick<Course, 'format'>) => c.format === 'live';
+
 export function courseLabel(c: Course) {
-  return CATEGORY_NAME[categoryOf(c)] + (c.access_level === 'premium' ? ' · Premium' : '') + (c.coming_soon && lessonCount(c) === 0 ? ' · In arrivo' : '');
+  return CATEGORY_NAME[categoryOf(c)] + (c.access_level === 'premium' ? ' · Premium' : '') + (isLive(c) ? ' · Live' : c.coming_soon && lessonCount(c) === 0 ? ' · In arrivo' : '');
+}
+
+// ---------- Live courses (Teams with Andrea, start at 15 bookings) ----------
+export type LiveEdition = {
+  course_id: string;
+  event_id: string;
+  yes_count: number;
+  min_seats: number;
+  my_response: 'yes' | 'no' | null;
+  starts_at: string | null;
+  /** Only for the founder and for enrolled Premium members. */
+  join_url: string | null;
+};
+
+export async function listLive(): Promise<LiveEdition[]> {
+  if (!currentSession()) return [];
+  return (await rpc<LiveEdition[]>('live_courses', {})) || [];
+}
+
+export function liveSchedule(eventId: string, startsAt: string, joinUrl: string) {
+  return rpc('live_schedule', { p_event: eventId, p_starts_at: startsAt, p_join_url: joinUrl });
+}
+
+/** Founder: the session happened; archive it and open the next edition. */
+export function liveComplete(eventId: string) {
+  return rpc<string>('live_complete', { p_event: eventId });
+}
+
+/** Past more than 3 hours ago: that edition is over. */
+export function liveIsOver(e: Pick<LiveEdition, 'starts_at'>) {
+  return !!e.starts_at && new Date(e.starts_at).getTime() < Date.now() - 3 * 3600_000;
 }

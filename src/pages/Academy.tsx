@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  listCourses, listProgress, completedIn, lessonCount, draftCount, courseOutline, LEVEL_LABEL, CATEGORIES, categoryOf,
-  Course, Progress, OutlineLesson, CategoryId,
+  listCourses, listProgress, completedIn, lessonCount, draftCount, courseOutline, listLive, isLive, liveIsOver, LEVEL_LABEL, CATEGORIES, categoryOf,
+  Course, Progress, OutlineLesson, CategoryId, LiveEdition,
 } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { ButtonLink, DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link, useLocation } from '../lib/router';
-import { LuSearch, LuLock, LuKeyRound, LuTarget, LuPlay, LuGlobe, LuLandmark, LuBuilding2, LuMic } from 'react-icons/lu';
+import { LuSearch, LuLock, LuKeyRound, LuTarget, LuGlobe, LuLandmark, LuBuilding2, LuMic, LuRadio, LuBookOpen } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 
 const CAT_ICON: Record<CategoryId, React.ReactNode> = {
@@ -16,11 +16,13 @@ const CAT_ICON: Record<CategoryId, React.ReactNode> = {
   skill: <LuMic />,
 };
 
-function CourseRow({ c, progress, admin, locked }: { c: Course; progress: Progress[]; admin?: boolean; locked?: boolean }) {
+function CourseRow({ c, progress, admin, locked, live }: { c: Course; progress: Progress[]; admin?: boolean; locked?: boolean; live?: LiveEdition }) {
+  const isL = isLive(c);
   const total = lessonCount(c);
   const done = completedIn(c, progress);
-  const coming = c.coming_soon && total === 0;
-  const drafts = admin ? draftCount(c) : 0;
+  const coming = !isL && c.coming_soon && total === 0;
+  const drafts = admin && !isL ? draftCount(c) : 0;
+  const ready = live && !live.starts_at && live.yes_count >= live.min_seats;
   return (
     <li>
       <Link to={`/corso/${c.slug}`} className={`course-row ${coming ? 'is-coming' : ''}`}>
@@ -29,15 +31,22 @@ function CourseRow({ c, progress, admin, locked }: { c: Course; progress: Progre
           <span className="course-row__level">
             {LEVEL_LABEL[c.level]}
             {c.access_level === 'premium' && <em className="course-row__lock">{locked ? <LuLock aria-hidden="true" /> : <LuKeyRound aria-hidden="true" />} Premium</em>}
+            {isL && <em className="chip chip--live"><LuRadio aria-hidden="true" /> Live</em>}
             {coming && !locked && <em className="chip chip--soon">In arrivo</em>}
-            {drafts > 0 && <em className="chip chip--draft">{c.access_level === 'premium' ? 'Video da caricare' : 'Bozza da validare'}</em>}
+            {drafts > 0 && <em className="chip chip--draft">Bozza da validare</em>}
+            {admin && ready && <em className="chip chip--draft">Pronta: fissa la data</em>}
           </span>
           <strong className="course-row__title">{c.title}</strong>
           {c.subtitle && <span className="course-row__sub">{c.subtitle}</span>}
           <span className="course-row__meta">
-            {coming ? `${c.course_modules.length} ${c.course_modules.length === 1 ? 'capitolo' : 'capitoli'} in preparazione` : `${total} ${total === 1 ? 'lezione' : 'lezioni'}, circa ${Math.max(1, Math.round(c.course_modules.reduce((n, m) => n + m.lessons.reduce((k, l) => k + (l.duration_seconds || 0), 0), 0) / 60))} min`}
+            {isL ? liveMeta(live) : coming ? `${c.course_modules.length} ${c.course_modules.length === 1 ? 'capitolo' : 'capitoli'} in preparazione` : `${total} ${total === 1 ? 'lezione' : 'lezioni'}, circa ${Math.max(1, Math.round(c.course_modules.reduce((n, m) => n + m.lessons.reduce((k, l) => k + (l.duration_seconds || 0), 0), 0) / 60))} min`}
           </span>
-          {total > 0 && !locked && (
+          {isL && live && !live.starts_at && (
+            <span className="bar" aria-label={`${live.yes_count} iscritti su ${live.min_seats}`}>
+              <span style={{ width: `${Math.min(100, (live.yes_count / live.min_seats) * 100)}%` }} />
+            </span>
+          )}
+          {!isL && total > 0 && !locked && (
             <span className="bar" aria-label={`${done} di ${total} lezioni completate`}>
               <span style={{ width: `${(done / total) * 100}%` }} />
             </span>
@@ -48,15 +57,25 @@ function CourseRow({ c, progress, admin, locked }: { c: Course; progress: Progre
   );
 }
 
-/** What a premium course contains, shown to members who are not in Premium yet. */
-function PreviewCard({ c, outline }: { c: Course; outline: OutlineLesson[] }) {
+function liveMeta(live?: LiveEdition) {
+  if (!live) return 'Live su Teams con Andrea';
+  if (live.starts_at && !liveIsOver(live)) {
+    const d = new Date(live.starts_at);
+    return `Live il ${d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} alle ${d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} · ${live.yes_count} iscritti`;
+  }
+  return `Live su Teams · ${live.yes_count} iscritti su ${live.min_seats} per partire`;
+}
+
+/** What a premium course contains, shown to members who are not in Premium yet. Live courses keep the programme for Premium. */
+function PreviewCard({ c, outline, live }: { c: Course; outline: OutlineLesson[]; live?: LiveEdition }) {
   const mins = Math.max(1, Math.round(outline.reduce((n, l) => n + (l.duration_seconds || 0), 0) / 60));
+  const isL = isLive(c);
   return (
     <li className="preview">
       <Link to={`/corso/${c.slug}`} className="preview__link">
         <div className="preview__head">
-          <span className="preview__level">{LEVEL_LABEL[c.level]} · Premium</span>
-          <span className="preview__lock"><LuPlay aria-hidden="true" /> Video con Andrea</span>
+          <span className="preview__level">{LEVEL_LABEL[c.level]} · Premium{isL ? ' · Live' : ''}</span>
+          <span className="preview__lock">{isL ? <><LuRadio aria-hidden="true" /> Live su Teams</> : <><LuBookOpen aria-hidden="true" /> Lezioni e quiz</>}</span>
         </div>
         <h3 className="preview__title">{c.title}</h3>
         {c.subtitle && <p className="preview__sub">{c.subtitle}</p>}
@@ -65,7 +84,12 @@ function PreviewCard({ c, outline }: { c: Course; outline: OutlineLesson[] }) {
             {c.objectives.slice(0, 3).map((o, i) => <li key={i}><LuTarget aria-hidden="true" /> {o}</li>)}
           </ul>
         )}
-        {outline.length === 0 && c.course_modules.length > 0 && (
+        {isL && (
+          <span className="preview__label">
+            Dal vivo con Andrea · si parte a {live?.min_seats ?? 15} iscritti{live && live.yes_count > 0 ? ` · ${live.yes_count} già prenotati` : ''}
+          </span>
+        )}
+        {!isL && outline.length === 0 && c.course_modules.length > 0 && (
           <>
             <span className="preview__label">Cosa ti aspetta{c.coming_soon ? ' · in arrivo' : ''}</span>
             <ol className="preview__lessons">
@@ -75,7 +99,7 @@ function PreviewCard({ c, outline }: { c: Course; outline: OutlineLesson[] }) {
             </ol>
           </>
         )}
-        {outline.length > 0 && (
+        {!isL && outline.length > 0 && (
           <>
             <span className="preview__label">Cosa ti aspetta · {outline.length} lezioni, circa {mins} min</span>
             <ol className="preview__lessons">
@@ -94,13 +118,14 @@ export default function Academy() {
   const { plan } = useAuth();
   const { query } = useLocation();
   const data = useAsync(async () => {
-    const [courses, progress] = await Promise.all([listCourses(), listProgress()]);
-    const locked = courses.filter((c) => c.access_level === 'premium');
+    const [courses, progress, live] = await Promise.all([listCourses(), listProgress(), listLive().catch(() => [] as LiveEdition[])]);
+    const locked = courses.filter((c) => c.access_level === 'premium' && !isLive(c));
     const outlines: Record<string, OutlineLesson[]> = {};
     if (!plan.premium) {
       await Promise.all(locked.map(async (c) => { outlines[c.id] = await courseOutline(c.id).catch(() => []); }));
     }
-    return { courses, progress, outlines };
+    const liveBy: Record<string, LiveEdition> = Object.fromEntries(live.map((e) => [e.course_id, e]));
+    return { courses, progress, outlines, liveBy };
   }, [plan.premium]);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState<'tutti' | CategoryId>('tutti');
@@ -171,11 +196,11 @@ export default function Academy() {
                   )}
                   {premium.length > 0 && (plan.premium || plan.admin ? (
                     <ul className="course-list course-list--premium">
-                      {premium.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} admin={plan.admin} />)}
+                      {premium.map((c) => <CourseRow key={c.id} c={c} progress={data.data!.progress} admin={plan.admin} live={data.data!.liveBy[c.id]} />)}
                     </ul>
                   ) : (
                     <ul className="previews">
-                      {premium.map((c) => <PreviewCard key={c.id} c={c} outline={data.data!.outlines[c.id] || []} />)}
+                      {premium.map((c) => <PreviewCard key={c.id} c={c} outline={data.data!.outlines[c.id] || []} live={data.data!.liveBy[c.id]} />)}
                     </ul>
                   ))}
                 </section>
@@ -189,11 +214,11 @@ export default function Academy() {
               <p className="academy-premium__text">
                 {plan.premium
                   ? 'Sei dentro: tutti i corsi Premium sono sbloccati. Buona strada.'
-                  : 'Dove il corso base si ferma, Premium va avanti. Li trovi in ogni area, segnati con il lucchetto.'}
+                  : 'Dove il corso base si ferma, Premium va avanti: corsi avanzati da leggere e lezioni dal vivo. Li trovi in ogni area, segnati con il lucchetto.'}
               </p>
               <p className="academy-premium__video">
-                <span className="academy-premium__play" aria-hidden="true"><LuPlay /></span>
-                Video lezioni registrate da Andrea in prima persona
+                <span className="academy-premium__play" aria-hidden="true"><LuRadio /></span>
+                Lezioni live su Teams con Andrea: prenoti il posto, si parte a 15 iscritti
               </p>
             </section>
 

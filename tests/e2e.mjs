@@ -35,9 +35,9 @@ let waitlisted = false;
 let approved = false;
 let isAdmin = false;
 let draftPublished = false;
-let videoConnected = false;
-let video = { ref: null, status: null, published: false };
-let tusPatched = 0;
+let live = { event_id: 'ev-live', course_id: 'c5', yes_count: 14, min_seats: 15, my_response: null, starts_at: null };
+let liveUrl = null;
+let liveClosed = 0;
 let myApp = null;
 const apps = [];
 const events = [{ id: 'e0', kind: 'cena', title: 'Cena della Lobby: l’Europa vista da Bruxelles', summary: 'Una sera per parlare di carriere europee.', starts_at: new Date(Date.now() + 9 * 86400000).toISOString(), location: 'Milano, Brera', seats: 12, yes_count: 0, my_response: null }];
@@ -77,30 +77,32 @@ async function mock(route) {
     return json(400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
   }
   if (path === '/auth/v1/logout') { loggedIn = false; return route.fulfill({ status: 204 }); }
-  if (path === '/rest/v1/courses' && url.searchParams.get('access_level') === 'eq.premium') {
-    return json(200, [{ id: 'c3', slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', course_modules: [{ id: 'm3', position: 1, title: '[TEST] Dal bando alla candidatura',
-      lessons: [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', status: video.published ? 'published' : 'draft', video_ref: video.ref, video_status: video.status, duration_seconds: 420 }] }] }]);
+  if (path === '/rest/v1/rpc/live_courses') {
+    return json(200, [{ ...live, join_url: isAdmin || (approved && live.my_response === 'yes') ? liveUrl : null }]);
   }
-  if (path === '/functions/v1/video') {
-    if (!isAdmin && body.action !== 'play') return json(403, { error: 'forbidden' });
-    if (body.action === 'status') return json(200, { connected: videoConnected, libraryId: videoConnected ? '123' : null });
-    if (body.action === 'connect') {
-      if (!String(body.accountKey).startsWith('bunny-')) return json(400, { error: 'bad_key' });
-      videoConnected = true;
-      return json(200, { connected: true, libraryId: '123' });
-    }
-    if (body.action === 'create-upload') { video.ref = 'bunny:vid-1'; video.status = 'uploading'; return json(200, { videoId: 'vid-1', libraryId: '123', expires: 9999999999, signature: 'sig' }); }
-    if (body.action === 'check') { video.status = 'ready'; return json(200, { status: 'ready', progress: 100, length: 300 }); }
-    if (body.action === 'play') return json(200, { url: 'about:blank', expires: 9999999999 });
+  if (path === '/rest/v1/rpc/live_schedule') {
+    if (!isAdmin) return json(400, { code: 'P0001', message: 'forbidden' });
+    if (!/^https:\/\//.test(body.p_join_url)) return json(400, { code: 'P0001', message: 'bad_url' });
+    live.starts_at = body.p_starts_at; liveUrl = body.p_join_url;
+    return route.fulfill({ status: 204 });
   }
-  if (path === '/rest/v1/rpc/publish_lesson') { video.published = true; return route.fulfill({ status: 204 }); }
+  if (path === '/rest/v1/rpc/live_complete') {
+    if (!isAdmin) return json(400, { code: 'P0001', message: 'forbidden' });
+    liveClosed += 1;
+    live = { event_id: 'ev-live-' + liveClosed, course_id: 'c5', yes_count: 0, min_seats: 15, my_response: null, starts_at: null }; liveUrl = null;
+    return json(200, live.event_id);
+  }
   if (path === '/rest/v1/courses') {
     const withLessons = (c, ls) => ({ ...c, course_modules: c.course_modules.map((m) => ({ ...m, lessons: loggedIn ? ls : [] })) });
     const course3 = { id: 'c3', slug: 'test-masterclass', category: 'europa', title: '[TEST] Masterclass: bandi europei', subtitle: 'Corso Premium di prova', description: 'Mock premium', audience: null,
       level: 'avanzato', access_level: 'premium', objectives: ['Leggere un bando europeo', 'Capire cosa cercano i valutatori'], course_modules: [{ id: 'm3', position: 1, title: '[TEST] Dal bando alla candidatura', lessons: [] }] };
     const course4 = { id: 'c4', slug: 'test-bozza', category: 'comune', title: '[TEST] Corso in bozza', subtitle: 'Testi da validare', description: 'Mock draft', audience: null, coming_soon: !draftPublished,
       level: 'base', access_level: 'free', objectives: [], course_modules: [{ id: 'm4', position: 1, title: '[TEST] Modulo bozza', lessons: [] }] };
+    const course5 = { id: 'c5', slug: 'test-live', category: 'skill', title: '[TEST] Public speaking avanzato', subtitle: 'Corso live di prova', description: 'Mock live', audience: null,
+      level: 'avanzato', access_level: 'premium', format: 'live', objectives: ['Tenere la sala anche quando è ostile'],
+      course_modules: [{ id: 'm5', position: 1, title: 'Fuori dalla zona di comfort', description: 'Un piano di quattro settimane per allenare il coraggio di parlare.', lessons: [] }] };
     const all = [withLessons(course, lessons), withLessons(course2, [{ id: 'p1', position: 1, title: 'Camera e Senato', duration_seconds: 300, status: 'published' }]),
+      withLessons(course5, isAdmin ? [{ id: 'x1', position: 1, title: 'Vecchia lezione archiviata', duration_seconds: 300, status: 'archived' }] : []),
       withLessons(course3, approved ? [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', duration_seconds: 420, status: 'published' }] : []),
       withLessons(course4, isAdmin || draftPublished ? [{ id: 'd1', position: 1, title: '[TEST] Lezione in bozza', duration_seconds: 300, status: draftPublished ? 'published' : 'draft' }] : [])];
     const slug = url.searchParams.get('slug');
@@ -108,10 +110,6 @@ async function mock(route) {
   }
   if (path === '/rest/v1/lessons') {
     const id = (url.searchParams.get('id') || '').replace('eq.', '');
-    if (id === 'pl1' && loggedIn) {
-      return json(200, [{ id: 'pl1', position: 1, title: '[TEST] Come si legge un bando europeo', summary: 'Video lezione', duration_seconds: 300, status: 'published', video_ref: video.ref, video_status: video.status, transcript: null, module_id: 'm3',
-        course_modules: { id: 'm3', title: '[TEST] Dal bando alla candidatura', position: 1, courses: { slug: 'test-masterclass', title: '[TEST] Masterclass: bandi europei', access_level: 'premium' } }, quizzes: [], lesson_assets: [] }]);
-    }
     const l = lessons.find((x) => x.id === id);
     if (!l || !loggedIn) return json(200, []);
     return json(200, [{ ...l, video_ref: null, transcript: 'Trascrizione di prova.\n\n## Passi\n\n1. **Uno**: primo passo.\n2. Secondo passo.\n\n- Kit:\n  - CV\n  - SPID\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
@@ -154,11 +152,20 @@ async function mock(route) {
   if (path === '/rest/v1/rpc/events_feed') {
     return json(200, events.map((e) => ({ ...e, locked: !approved, summary: approved ? e.summary : null, location: approved ? e.location : null })));
   }
+  if (path === '/rest/v1/rpc/rsvp_event' && body.p_event === live.event_id) {
+    if (!approved && !isAdmin) return json(400, { code: 'P0001', message: 'premium_required' });
+    if (live.my_response !== body.p_response) live.yes_count += body.p_response === 'yes' ? 1 : live.my_response === 'yes' ? -1 : 0;
+    live.my_response = body.p_response;
+    return json(200, { response: live.my_response, yes_count: live.yes_count });
+  }
   if (path === '/rest/v1/rpc/rsvp_event') {
     if (!approved) return json(400, { code: 'P0001', message: 'premium_required' });
     const e = events.find((x) => x.id === body.p_event);
     e.my_response = body.p_response; e.yes_count = body.p_response === 'yes' ? 1 : 0;
     return json(200, { response: e.my_response, yes_count: e.yes_count });
+  }
+  if (path === '/rest/v1/rpc/event_attendees' && body.p_event === live.event_id) {
+    return json(200, live.my_response === 'yes' ? [{ full_name: 'Giulia Rossi', email: 'giulia@example.com', response: 'yes', updated_at: new Date().toISOString() }] : []);
   }
   if (path === '/rest/v1/rpc/event_attendees') return json(200, events[0]?.my_response === 'yes' ? [{ full_name: 'Giulia Rossi', email: 'giulia@example.com', response: 'yes', updated_at: new Date().toISOString() }] : []);
   if (path === '/rest/v1/premium_events') {
@@ -200,20 +207,6 @@ page.on('console', (m) => m.type() === 'error' && !/fonts|ERR_|Failed to load re
 page.on('pageerror', (e) => consoleErrors.push('PAGEERROR ' + e.message));
 await page.route('**/*.supabase.co/**', mock);
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
-await page.route('https://video.bunnycdn.com/**', (r) => {
-  const q = r.request();
-  const h = { 'Tus-Resumable': '1.0.0', 'Access-Control-Allow-Origin': '*', 'Access-Control-Expose-Headers': 'Location, Upload-Offset' };
-  if (q.method() === 'POST') {
-    if (!q.headers()['authorizationsignature'] || !q.headers()['videoid']) failures.push('FAIL tus create without bunny headers');
-    return r.fulfill({ status: 201, headers: { ...h, Location: 'https://video.bunnycdn.com/tusupload/abc' } });
-  }
-  if (q.method() === 'PATCH') {
-    const at = Number(q.headers()['upload-offset']) + (q.postDataBuffer()?.length || 0);
-    tusPatched += 1;
-    return r.fulfill({ status: 204, headers: { ...h, 'Upload-Offset': String(at) } });
-  }
-  return r.fulfill({ status: 200, headers: { ...h, 'Upload-Offset': '0' } });
-});
 await page.route('https://formsubmit.co/**', (r) => { notified.push(r.request().postDataJSON()); return r.fulfill({ status: 200, contentType: 'application/json', body: '{"success":"true"}' }); });
 
 const base = `http://localhost:${PORT}/`;
@@ -268,12 +261,22 @@ await page.click('.tabbar__item:has-text("Academy")');
 await page.waitForSelector('.course-row');
 await page.waitForSelector('.preview');
 await check(page.textContent('.preview').then((t) => t.includes('Come si legge un bando europeo')), 'premium course preview shows lesson titles');
-await check(page.locator('.cat-section').count().then((n) => n === 3), 'courses grouped by area');
+await check(page.locator('.cat-section').count().then((n) => n === 4), 'courses grouped by area');
+await check(page.textContent('.preview:has-text("Public speaking avanzato")').then((t) => t.includes('Live su Teams') && !t.includes('Fuori dalla zona di comfort')), 'live preview without programme');
 await check(page.locator('.course-row .cover--small').count().then((n) => n > 0), 'light course covers');
 await shot('04-academy');
 await page.click('.chips .chip--btn:has-text("Comune")');
 await check(page.locator('.cat-section').count().then((n) => n === 1), 'area filter');
 await shot('04b-academy-comune');
+
+// 5b. Live course, not Premium: teaser, no programme, no booking
+await page.goto(base + '#/corso/test-live');
+await page.waitForSelector('.live-panel--locked');
+await check(page.locator('.modules--live').count().then((n) => n === 0), 'live programme hidden without Premium');
+await check(page.locator('.live-panel button:has-text("Prenota")').count().then((n) => n === 0), 'no booking without Premium');
+await shot('05a-live-locked');
+await page.goto(base + '#/academy');
+await page.waitForSelector('.course-row');
 
 // 6. Course
 await page.click('.course-row:has-text("Come funziona davvero un Comune")');
@@ -394,27 +397,56 @@ await page.waitForSelector('text=Nessun corso in attesa di validazione');
 await check(Promise.resolve(draftPublished), 'publish_course called');
 await check(page.locator('.live-list li:has-text("[TEST] Corso in bozza")').count().then((n) => n === 1), 'published course listed');
 
-// 9e-ter. Founder connects Bunny, uploads a Premium video and publishes the lesson
-await page.goto(base + '#/admin?sezione=video');
-await page.waitForSelector('.video-connect');
-await shot('10g4-video-connect');
-await page.fill('.video-connect input', 'wrong-key-1234567890-abc');
-await page.click('.video-connect button:has-text("Collega")');
-await page.waitForSelector('.video-connect .alert');
-await page.fill('.video-connect input', 'bunny-account-key-1234567890');
-await page.click('.video-connect button:has-text("Collega")');
-await page.waitForSelector('.vlesson');
-await page.setInputFiles('.vlesson input[type=file]', { name: 'lezione.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(300000, 1) });
-await page.waitForSelector('.vlesson button:has-text("Pubblica")', { timeout: 20000 });
-await check(Promise.resolve(tusPatched > 0), 'video sent with tus');
-await shot('10g5-video-ready');
-await page.click('.vlesson button:has-text("Pubblica")');
-await page.waitForSelector('.vchip--live');
-await check(Promise.resolve(video.published), 'premium lesson published');
-await page.goto(base + '#/lezione/pl1');
-await page.waitForSelector('.player--embed iframe');
-await shot('10g6-video-player');
+await check(page.locator('.live-list li:has-text("Public speaking")').count().then((n) => n === 0), 'live course not in text courses');
+
+// 9e-ter. Live course: a Premium member books, the founder sets date and Teams link, the member gets the link
 isAdmin = false;
+approved = true;
+await page.goto(base + '#/corso/test-live');
+await page.reload();
+await page.waitForSelector('.live-panel button:has-text("Prenota il tuo posto")');
+await check(page.textContent('.live-meter').then((t) => t.includes('14') && t.includes('15')), 'live counter before booking');
+await check(page.locator('.modules--live li').count().then((n) => n === 1), 'live programme visible to Premium');
+await shot('10g4-live-premium');
+await page.click('.live-panel button:has-text("Prenota il tuo posto")');
+await page.waitForSelector('.live-panel__badge:has-text("Sei iscritto")');
+await check(page.textContent('.live-meter').then((t) => /15\s*\/\s*15/.test(t)), 'live counter after booking');
+await check(page.textContent('.live-panel').then((t) => t.includes('Andrea sta fissando la data')), 'minimum reached message');
+await shot('10g5-live-booked');
+isAdmin = true;
+await page.goto(base + '#/admin?sezione=live');
+await page.reload();
+await page.waitForSelector('.live-admin');
+await check(page.textContent('.live-admin').then((t) => t.includes('Pronta: fissa la data') && t.includes('giulia@example.com')), 'founder sees ready status and attendees');
+await page.fill('.live-admin input[type="datetime-local"]', '2026-11-20T18:30');
+await page.fill('.live-admin input[type="url"]', 'nonunlink');
+await page.click('.live-admin button:has-text("Fissa data e link")');
+await page.waitForSelector('.live-admin .alert');
+await page.fill('.live-admin input[type="url"]', 'https://teams.microsoft.com/l/meetup-join/test');
+await page.click('.live-admin button:has-text("Fissa data e link")');
+await page.waitForSelector('.live-admin__status:has-text("Data fissata")');
+await check(Promise.resolve(liveUrl === 'https://teams.microsoft.com/l/meetup-join/test' && !!live.starts_at), 'live scheduled');
+await shot('10g6-admin-live');
+isAdmin = false;
+await page.goto(base + '#/corso/test-live');
+await page.reload();
+await page.waitForSelector('.live-panel a:has-text("Entra su Teams")');
+await check(page.getAttribute('.live-panel a:has-text("Entra su Teams")', 'href').then((h) => h === 'https://teams.microsoft.com/l/meetup-join/test'), 'member gets the Teams link');
+await check(page.locator('.live-panel button:has-text("Aggiungi al calendario")').count().then((n) => n === 1), 'calendar button');
+await shot('10g7-live-scheduled');
+await page.goto(base + '#/premium');
+await page.waitForSelector('.live-strip li');
+await check(page.textContent('.live-strip').then((t) => t.includes('In calendario')), 'premium page lists live courses');
+isAdmin = true;
+await page.goto(base + '#/admin?sezione=live');
+await page.reload();
+await page.waitForSelector('.live-admin button:has-text("Segna come svolta")');
+await page.click('.live-admin button:has-text("Segna come svolta")');
+await page.click('.live-admin button:has-text("Sì, chiudi l’edizione")');
+await page.waitForSelector('.live-admin__status:has-text("Raccolta iscrizioni")');
+await check(Promise.resolve(liveClosed === 1), 'edition closed and reopened');
+isAdmin = false;
+approved = false;
 
 // 9f. Dinners: locked for free members, RSVP for Premium
 isAdmin = false;

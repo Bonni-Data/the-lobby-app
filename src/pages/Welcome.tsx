@@ -58,7 +58,7 @@ export default function Welcome() {
             <LuGraduationCap aria-hidden="true" />
             <div>
               <strong>Lezioni da pochi minuti</strong>
-              <span>Video brevi, quiz per fissare i concetti, progressi salvati.</span>
+              <span>Lezioni brevi da leggere, quiz per fissare i concetti, progressi salvati.</span>
             </div>
           </li>
           <li>
@@ -72,7 +72,7 @@ export default function Welcome() {
             <LuKeyRound aria-hidden="true" />
             <div>
               <strong>La sala riservata</strong>
-              <span>Premium è gratuito e su selezione: video lezioni registrate da Andrea, cene e incontri dal vivo.</span>
+              <span>Premium è gratuito e su selezione: lezioni live su Teams con Andrea, cene e incontri dal vivo.</span>
             </div>
           </li>
         </ul>

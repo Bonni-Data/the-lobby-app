@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { listPremiumEvents, submitApplication, PremiumEvent } from '../lib/data';
+import { listEvents, listCourses, listLive, isLive, liveIsOver, submitApplication, EventItem } from '../lib/data';
 import { Button, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { FounderAvatar } from '../components/founder';
 import { CONTACT_EMAIL } from '../config';
 import { Link } from '../lib/router';
 import {
   LuCompass, LuUtensils, LuHandshake, LuGraduationCap, LuCheck, LuMinus, LuMapPin, LuUsers, LuCalendarClock, LuPlane, LuBriefcase,
-  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass, LuArrowRight, LuLock,
+  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass, LuArrowRight, LuLock, LuRadio,
 } from 'react-icons/lu';
 
 const FEATURES = [
@@ -42,9 +42,9 @@ const FEATURES = [
   {
     n: '04',
     icon: <LuGraduationCap />,
-    kicker: 'Video lezioni con Andrea',
-    title: 'Le masterclass, in video.',
-    text: 'Le lezioni Premium le registra Andrea in prima persona: niente avatar, niente voce sintetica. Lui, la sua esperienza e i casi veri, da guardare quando vuoi. Dietro le quinte delle istituzioni, public speaking, executive presence, networking e molto altro.',
+    kicker: 'Live su Teams con Andrea',
+    title: 'Le masterclass, dal vivo.',
+    text: 'I corsi più avanzati li tiene Andrea in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Prenoti il posto e quando si arriva a 15 iscritti Andrea fissa la data. In più, corsi Premium da leggere con quiz: executive presence, bandi europei, entrare nelle istituzioni, lobbying.',
     link: { to: '/academy?sezione=premium', label: 'Vai ai corsi Premium' },
   },
 ];
@@ -58,7 +58,8 @@ const STEPS = [
 const COMPARE: { label: string; free: string | boolean; premium: string | boolean }[] = [
   { label: 'Corsi base e quiz', free: true, premium: true },
   { label: 'Archivio opportunità, aggiornato ogni mattina', free: 'Le prime 3', premium: 'Tutte' },
-  { label: 'Video masterclass registrate da Andrea', free: false, premium: true },
+  { label: 'Lezioni live su Teams con Andrea', free: false, premium: true },
+  { label: 'Corsi avanzati con quiz', free: false, premium: true },
   { label: 'Cene della Lobby', free: false, premium: true },
   { label: 'Incontri con Andrea', free: false, premium: true },
 ];
@@ -67,13 +68,14 @@ const FAQ = [
   { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
   { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
   { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
-  { q: 'Come sono fatte le lezioni Premium?', a: 'Sono video lezioni registrate da Andrea in prima persona, non da un avatar: esperienza diretta, casi veri e consigli pratici, da guardare quando vuoi.' },
+  { q: 'Come sono fatte le lezioni Premium?', a: 'In due modi. I corsi da leggere sono come quelli gratuiti, ma più avanzati, con quiz alla fine di ogni lezione. Le lezioni live le tiene Andrea in diretta su Microsoft Teams: prenoti il posto dalla pagina del corso e, quando si arriva a 15 iscritti, Andrea fissa la data e il link compare lì.' },
+  { q: 'Quando parte una lezione live?', a: 'Appena ci sono 15 persone prenotate. Nella pagina del corso vedi quante sono e quante ne mancano. Quando la data è fissata, chi è iscritto trova nel corso giorno, ora e il link per entrare su Teams.' },
   { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },
   { q: 'E se non vengo selezionato?', a: 'Ricevi un riscontro e puoi ricandidarti dopo 30 giorni, quando il tuo percorso sarà cresciuto.' },
   { q: 'Chi paga i viaggi delle opportunità?', a: 'Gli enti che le pubblicano, quando il bando lo prevede. THE LOBBY non organizza né finanzia le opportunità: le cerca, le verifica sulle fonti ufficiali e te le mette tutte in un solo posto. Ti candidi direttamente sul sito dell’ente.' },
 ];
 
-const KIND: Record<PremiumEvent['kind'], string> = { cena: 'Cena', incontro: 'Incontro', lezione: 'Lezione live', evento: 'Evento' };
+const KIND: Record<EventItem['kind'], string> = { cena: 'Cena', incontro: 'Incontro', lezione: 'Lezione live', evento: 'Evento' };
 const MIN = 30;
 const MAX = 2000;
 
@@ -181,7 +183,11 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
 
 export default function Premium() {
   const { plan, refreshPlan } = useAuth();
-  const events = useAsync(() => listPremiumEvents(), []);
+  const events = useAsync(() => listEvents(), [plan.premium]);
+  const lives = useAsync(async () => {
+    const [courses, live] = await Promise.all([listCourses(), listLive()]);
+    return courses.filter(isLive).map((c) => ({ c, e: live.find((x) => x.course_id === c.id) }));
+  }, [plan.premium]);
   const app = plan.application;
   const retryAfter = app?.status === 'rejected' && app.retry_after ? new Date(app.retry_after) : null;
   const state: 'in' | 'pending' | 'wait' | 'apply' = plan.premium
@@ -229,7 +235,7 @@ export default function Premium() {
         <ul className="premium-badges">
           <li>Gratuito</li>
           <li>Su selezione</li>
-          <li>Video lezioni di Andrea</li>
+          <li>Lezioni live con Andrea</li>
         </ul>
         {status('top')}
       </section>
@@ -346,6 +352,30 @@ export default function Premium() {
               </details>
             ))}
           </div>
+        </section>
+
+        <section className="block" id="live">
+          <h2 className="h-section">Lezioni live con Andrea</h2>
+          <p className="muted">Su Microsoft Teams. Si parte quando un corso arriva a 15 iscritti.</p>
+          {lives.loading && <Spinner />}
+          {lives.data && (
+            <ul className="live-strip">
+              {lives.data.map(({ c, e }) => (
+                <li key={c.id}>
+                  <Link to={`/corso/${c.slug}`} className="live-strip__item">
+                    <span className="live-strip__icon" aria-hidden="true">{plan.premium ? <LuRadio /> : <LuLock />}</span>
+                    <span className="live-strip__body">
+                      <strong>{c.title}</strong>
+                      <span>
+                        {e?.starts_at && !liveIsOver(e) ? `In calendario: ${when(e.starts_at)}` : e ? `${e.yes_count} su ${e.min_seats} iscritti` : 'Prossima edizione in arrivo'}
+                      </span>
+                    </span>
+                    <LuArrowRight aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="block">

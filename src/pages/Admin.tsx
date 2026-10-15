@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import {
   listApplications, reviewApplication, Application, ApplicationStatus, listEvents, eventAttendees, createDinner, archiveEvent, EventItem,
-  listCourses, draftCount, lessonCount,
+  listCourses, draftCount, lessonCount, isLive,
 } from '../lib/data';
 import { DraftPanel } from '../components/drafts';
-import { VideoTab } from '../components/videoAdmin';
+import { LiveAdminTab } from '../components/live';
 import { Link, useLocation } from '../lib/router';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock, LuBookOpenCheck, LuArrowRight } from 'react-icons/lu';
@@ -160,11 +160,12 @@ function DinnersTab() {
 function CoursesTab() {
   const list = useAsync(() => listCourses(), []);
   const all = list.data || [];
-  const drafts = all.filter((c) => c.access_level !== 'premium' && draftCount(c) > 0);
-  const live = all.filter((c) => c.access_level !== 'premium' && draftCount(c) === 0 && lessonCount(c) > 0);
+  const text = all.filter((c) => !isLive(c));
+  const drafts = text.filter((c) => draftCount(c) > 0);
+  const live = text.filter((c) => draftCount(c) === 0 && lessonCount(c) > 0);
   return (
     <>
-      <p className="muted">Testi e quiz dei corsi gratuiti, scritti per te da validare. Li vedi solo tu finché non premi Pubblica.</p>
+      <p className="muted">Testi e quiz dei corsi da leggere, gratuiti e Premium, scritti per te da validare. Li vedi solo tu finché non premi Pubblica. I corsi live li gestisci dalla sezione Live.</p>
       {list.loading && <Spinner />}
       {list.error && <ErrorState message={list.error} onRetry={list.reload} />}
       {list.data && drafts.length === 0 && (
@@ -177,7 +178,7 @@ function CoursesTab() {
             <div className="appcard__head">
               <div>
                 <strong className="appcard__name">{c.title}</strong>
-                <span className="muted small">{draftCount(c) === 1 ? '1 lezione' : `${draftCount(c)} lezioni`} con quiz in bozza</span>
+                <span className="muted small">{c.access_level === 'premium' ? 'Premium · ' : ''}{draftCount(c) === 1 ? '1 lezione' : `${draftCount(c)} lezioni`} con quiz in bozza</span>
               </div>
               <Link to={`/corso/${c.slug}`} className="link-quiet">Rileggi <LuArrowRight aria-hidden="true" /></Link>
             </div>
@@ -203,8 +204,8 @@ export default function Admin() {
   const [tab, setTab] = useState<ApplicationStatus>('pending');
   const { query } = useLocation();
   const start = query.get('sezione');
-  type Area = 'candidature' | 'cene' | 'corsi' | 'video';
-  const pick = (v: string | null): Area => (v === 'corsi' || v === 'cene' || v === 'video' ? v : 'candidature');
+  type Area = 'candidature' | 'cene' | 'corsi' | 'live';
+  const pick = (v: string | null): Area => (v === 'corsi' || v === 'cene' || v === 'live' ? v : v === 'video' ? 'live' : 'candidature');
   const [area, setArea] = useState<Area>(pick(start));
   useEffect(() => { if (start) setArea(pick(start)); }, [start]);
   const all = data.data || [];
@@ -223,9 +224,9 @@ export default function Admin() {
               <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>
               <button role="tab" aria-selected={area === 'cene'} className={area === 'cene' ? 'is-on' : ''} onClick={() => setArea('cene')}>Cene</button>
               <button role="tab" aria-selected={area === 'corsi'} className={area === 'corsi' ? 'is-on' : ''} onClick={() => setArea('corsi')}>Corsi</button>
-              <button role="tab" aria-selected={area === 'video'} className={area === 'video' ? 'is-on' : ''} onClick={() => setArea('video')}>Video</button>
+              <button role="tab" aria-selected={area === 'live'} className={area === 'live' ? 'is-on' : ''} onClick={() => setArea('live')}>Live</button>
             </div>
-            {area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : area === 'video' ? <VideoTab /> : (<>
+            {area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : area === 'live' ? <LiveAdminTab /> : (<>
             <p className="muted">Leggi il percorso di chi vuole entrare in Premium e decidi tu chi è pronto per il prossimo livello.</p>
             <div className="chips" role="group" aria-label="Filtra per stato">
               {TABS.map((t) => (

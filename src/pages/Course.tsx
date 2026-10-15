@@ -1,19 +1,25 @@
 import React from 'react';
-import { getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, courseOutline, LEVEL_LABEL, CATEGORY_NAME, categoryOf, OutlineLesson } from '../lib/data';
+import {
+  getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, courseOutline, listLive, isLive, LEVEL_LABEL, CATEGORY_NAME, categoryOf,
+  OutlineLesson, LiveEdition, Course as CourseT,
+} from '../lib/data';
 import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
 import { useAuth } from '../lib/auth';
 import { TeacherLine } from '../components/founder';
 import { DraftPanel } from '../components/drafts';
-import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock } from 'react-icons/lu';
+import { LivePanel, LiveTeaser } from '../components/live';
+import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock, LuRadio } from 'react-icons/lu';
 
 export default function Course({ slug }: { slug: string }) {
   const { plan } = useAuth();
   const data = useAsync(async () => {
     const [course, progress] = await Promise.all([getCourse(slug), listProgress()]);
     let outline: OutlineLesson[] = [];
-    if (course && course.access_level === 'premium' && !plan.premium) outline = await courseOutline(course.id).catch(() => []);
-    return { course, progress, outline };
+    let live: LiveEdition | undefined;
+    if (course && isLive(course)) live = (await listLive().catch(() => [] as LiveEdition[])).find((e) => e.course_id === course.id);
+    else if (course && course.access_level === 'premium' && !plan.premium) outline = await courseOutline(course.id).catch(() => []);
+    return { course, progress, outline, live };
   }, [slug, plan.premium]);
 
   return (
@@ -24,7 +30,8 @@ export default function Course({ slug }: { slug: string }) {
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
         {data.data && !data.data.course && <Empty title="Corso non trovato" text="Potrebbe essere stato spostato o non è più disponibile." />}
         {data.data?.course && (() => {
-          const { course: c, progress, outline } = data.data;
+          const { course: c, progress, outline, live } = data.data;
+          if (isLive(c)) return <LiveCourse c={c} live={live} locked={c.access_level === 'premium' && !plan.premium} />;
           const total = lessonCount(c);
           const done = completedIn(c, progress);
           const next = nextLesson(c, progress);
@@ -118,5 +125,57 @@ export default function Course({ slug }: { slug: string }) {
         })()}
       </main>
     </Screen>
+  );
+}
+
+/** A course held live on Teams: programme for Premium, booking with a counter, Teams link once the date is set. */
+function LiveCourse({ c, live, locked }: { c: CourseT; live?: LiveEdition; locked: boolean }) {
+  return (
+    <>
+      <section className="course-hero">
+        <div className="course-hero__arch" aria-hidden="true" />
+        <span className="course-hero__level">
+          {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'} · Live
+        </span>
+        <h1 className="course-hero__title">{c.title}</h1>
+        {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
+        <TeacherLine tone="ivory" />
+        <p className="course-hero__done"><LuRadio aria-hidden="true" /> Dal vivo su Microsoft Teams · si parte a {live?.min_seats ?? 15} iscritti</p>
+        {locked && <ButtonLink to="/premium" block><LuKeyRound aria-hidden="true" /> Sblocca con Premium</ButtonLink>}
+      </section>
+
+      <div className="page">
+        {locked ? <LiveTeaser edition={live} /> : <LivePanel course={c} edition={live} />}
+        {c.description && <p className="lede">{c.description}</p>}
+
+        {c.objectives.length > 0 && (
+          <section className="block">
+            <h2 className="h-section">Alla fine saprai</h2>
+            <ul className="objectives">
+              {c.objectives.map((o, i) => (
+                <li key={i}><LuTarget aria-hidden="true" />{o}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="block">
+          <h2 className="h-section">Il programma della live</h2>
+          {locked ? (
+            <p className="muted live-locked"><LuLock aria-hidden="true" /> Il programma completo è riservato a chi è in Premium, gratuito e su selezione.</p>
+          ) : (
+            <ol className="modules modules--live">
+              {c.course_modules.map((m, i) => (
+                <li key={m.id} className="module">
+                  <span className="module__n">{String(i + 1).padStart(2, '0')}</span>
+                  <h3 className="module__title">{m.title}</h3>
+                  {m.description && <p className="muted small">{m.description}</p>}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
+    </>
   );
 }
