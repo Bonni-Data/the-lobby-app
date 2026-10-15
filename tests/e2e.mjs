@@ -71,6 +71,7 @@ async function mock(route) {
   if (path === '/auth/v1/signup') {
     if (taken.has(body.email)) return json(422, { code: 422, error_code: 'user_already_exists', msg: 'User already registered' });
     if (!body.data?.terms_accepted_at) failures.push('FAIL signup without terms metadata');
+    globalThis.__signupData = body.data;
     taken.add(body.email); users[body.email] = body.password; loggedIn = true;
     return json(200, session(body.email, body.data?.full_name));
   }
@@ -147,6 +148,7 @@ async function mock(route) {
   if (path === '/rest/v1/rpc/confirm_email') { if (body.p_token === 'good-token') { verified = true; return json(200, 'ok'); } return json(200, 'invalid'); }
   if (path === '/rest/v1/rpc/resend_verification') { mailer.resent += 1; return json(200, 'sent'); }
   if (path === '/rest/v1/rpc/email_status') return json(200, { live: false, from_email: null, admin_email: 'thelobbysupport@gmail.com', sent_7d: 0, queued: 2, errors_7d: 0, last_sent_at: null });
+  if (path === '/rest/v1/rpc/growth_stats') return json(200, { members: 42, last_7d: 12, verified: 30, premium: 8, pending: 3, sources: [{ source: 'instagram', n: 9 }, { source: 'diretto', n: 3 }] });
   if (path === '/rest/v1/rpc/email_send_test') { mailer.tests += 1; return json(200, 'id-test'); }
   if (path === '/functions/v1/mailer') { if (body.action === 'recover') mailer.recover.push(body); return json(200, { ok: true }); }
   if (path === '/rest/v1/rpc/submit_premium_application') {
@@ -220,8 +222,8 @@ const base = `http://localhost:${PORT}/`;
 const shot = (n) => page.screenshot({ path: shots + n + '.png', fullPage: true });
 const check = async (cond, msg) => { if (!(await cond)) failures.push('FAIL ' + msg); };
 
-// 1. Welcome
-await page.goto(base);
+// 1. Welcome (arrives from an ad link)
+await page.goto(base + '?utm_source=instagram&utm_campaign=beta');
 await page.waitForSelector('.welcome__hero');
 await page.waitForTimeout(1900);
 await shot('01-welcome');
@@ -261,6 +263,7 @@ await page.click('button[type="submit"]');
 await page.waitForSelector('.h-hello');
 await page.waitForSelector('.resume');
 await check(page.textContent('.h-hello').then((t) => t.includes('Andrea') || t.includes('Giulia')), 'greeting with name');
+await check(Promise.resolve(globalThis.__signupData?.utm_source === 'instagram' && globalThis.__signupData?.utm_campaign === 'beta'), 'campaign source saved at signup');
 await shot('03-home');
 
 // 5. Academy
@@ -373,8 +376,9 @@ await page.waitForSelector('text=Area founder');
 await page.click('text=Area founder');
 await page.waitForSelector('.appcard');
 await page.waitForSelector('.email-strip');
-await check(page.textContent('.email-strip').then((t) => t.includes('Email in preparazione') && t.includes('2 pronte in coda')), 'founder sees email status');
-await page.click('.email-strip button:has-text("Prova")');
+await check(page.textContent('.email-strip:not(.growth-strip)').then((t) => t.includes('Email in preparazione') && t.includes('2 pronte in coda')), 'founder sees email status');
+await check(page.textContent('.growth-strip').then((t) => t.includes('42 iscritti') && t.includes('instagram 9')), 'founder sees growth and sources');
+await page.click('.email-strip:not(.growth-strip) button:has-text("Prova")');
 await page.waitForTimeout(300);
 await check(Promise.resolve(mailer.tests === 1), 'test email requested');
 await shot('10f-admin');

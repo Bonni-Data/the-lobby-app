@@ -192,6 +192,11 @@ export function emailStatus() {
   return rpc<EmailStatus>('email_status', {});
 }
 
+export type GrowthStats = { members: number; last_7d: number; verified: number; premium: number; pending: number; sources: { source: string; n: number }[] };
+export function growthStats() {
+  return rpc<GrowthStats>('growth_stats', {});
+}
+
 export function sendTestEmail() {
   return rpc<string>('email_send_test', {});
 }

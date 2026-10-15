@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { resendVerification, emailStatus, sendTestEmail } from '../lib/data';
+import { resendVerification, emailStatus, sendTestEmail, growthStats } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { Button, toast, useAsync } from './ui';
-import { LuMailCheck, LuMail, LuSend } from 'react-icons/lu';
+import { LuMailCheck, LuMail, LuSend, LuUsers } from 'react-icons/lu';
 
 function resendError(err: any) {
   const m = String(err?.message || '');
@@ -75,6 +75,25 @@ export function EmailStatusStrip() {
         </span>
       </div>
       <Button variant="ghost" onClick={test} loading={busy}><LuSend aria-hidden="true" /> Prova</Button>
+    </section>
+  );
+}
+
+/** Area founder: members, growth and campaign sources (utm_source of the link they arrived from). */
+export function GrowthStrip() {
+  const g = useAsync(() => growthStats(), []);
+  if (!g.data) return null;
+  const d = g.data;
+  return (
+    <section className="email-strip growth-strip" aria-label="Iscritti">
+      <span className="email-strip__icon" aria-hidden="true"><LuUsers /></span>
+      <div className="email-strip__body">
+        <strong>{d.members} iscritti · +{d.last_7d} in 7 giorni</strong>
+        <span>
+          {d.premium} in Premium{d.pending ? ` · ${d.pending} candidature da valutare` : ''}
+          {d.sources.length > 0 && <> · da: {d.sources.map((s) => `${s.source} ${s.n}`).join(', ')} (30 giorni)</>}
+        </span>
+      </div>
     </section>
   );
 }

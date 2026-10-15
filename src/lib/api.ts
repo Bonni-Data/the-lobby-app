@@ -123,12 +123,31 @@ export function refresh(): Promise<Session | null> {
   return refreshing;
 }
 
+// ---------- Where new members come from (utm_* of the first visit, for the ads) ----------
+const SOURCE_KEY = 'thelobby.source';
+(function rememberSource() {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const src = { utm_source: q.get('utm_source'), utm_medium: q.get('utm_medium'), utm_campaign: q.get('utm_campaign') };
+    if (src.utm_source && !localStorage.getItem(SOURCE_KEY)) localStorage.setItem(SOURCE_KEY, JSON.stringify({ ...src, at: new Date().toISOString() }));
+  } catch { /* storage unavailable */ }
+})();
+function signupSource(): Record<string, string> {
+  try {
+    const s = JSON.parse(localStorage.getItem(SOURCE_KEY) || 'null');
+    if (!s?.utm_source) return {};
+    return Object.fromEntries(Object.entries(s).filter(([, v]) => typeof v === 'string' && v).map(([k, v]) => [k, String(v).slice(0, 80)]));
+  } catch {
+    return {};
+  }
+}
+
 // ---------- Auth ----------
 export const auth = {
   async signUp(email: string, password: string, fullName: string) {
     const body = await raw('/auth/v1/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password, data: { full_name: fullName, terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() } }),
+      body: JSON.stringify({ email, password, data: { full_name: fullName, terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString(), ...signupSource() } }),
     });
     const s = toSession(body);
     if (s) save(s);

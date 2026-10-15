@@ -6,7 +6,7 @@ import {
 } from '../lib/data';
 import { DraftPanel } from '../components/drafts';
 import { LiveAdminTab } from '../components/live';
-import { EmailStatusStrip } from '../components/email';
+import { EmailStatusStrip, GrowthStrip } from '../components/email';
 import { Link, useLocation } from '../lib/router';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock, LuBookOpenCheck, LuArrowRight } from 'react-icons/lu';
@@ -52,7 +52,7 @@ function Card({ a, onDone }: { a: Application; onDone: () => void }) {
       {a.status === 'pending' ? (
         <div className="appcard__actions">
           <label className="field">
-            <span>Messaggio per {a.full_name.split(' ')[0]} (facoltativo, lo vede nell'app)</span>
+            <span>Messaggio per {a.full_name.split(' ')[0]} (facoltativo, lo legge nell'app e nell'email)</span>
             <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Es. Ottimo percorso, ti aspetto alla prossima cena." />
           </label>
           <div className="appcard__btns">
@@ -221,6 +221,7 @@ export default function Admin() {
         ) : (
           <>
             <h1 className="h-page">Area founder</h1>
+            <GrowthStrip />
             <EmailStatusStrip />
             <div className="section-tabs" role="tablist" aria-label="Sezioni">
               <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>

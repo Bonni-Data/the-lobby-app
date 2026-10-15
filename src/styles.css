@@ -998,6 +998,7 @@ img, svg, video { display: block; max-width: 100%; }
 .verify-banner__btn:disabled { opacity: .6; cursor: default; }
 .email-strip { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; margin: -6px 0 18px; padding: 10px 12px; border-radius: var(--r-m); background: var(--paper); border: 1px dashed var(--stone); font-size: 13.5px; }
 .email-strip.is-live { border-style: solid; border-color: #b9d5c4; }
+.growth-strip { grid-template-columns: 34px 1fr; border-style: solid; margin-bottom: 10px; }
 .email-strip__icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--navy); color: var(--coral); }
 .email-strip__body { display: grid; gap: 1px; min-width: 0; }
 .email-strip__body span { color: var(--muted); }

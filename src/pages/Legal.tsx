@@ -43,7 +43,7 @@ export function Privacy() {
       <h2>2. Quali dati trattiamo</h2>
       <ul>
         <li><strong>Dati dell'account:</strong> nome, indirizzo email (e se lo hai confermato) e password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla).</li>
-        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, le risposte alle cene e le prenotazioni alle lezioni live.</li>
+        <li><strong>Dati di utilizzo:</strong> lezioni iniziate e completate, risultati dei quiz, stato del tuo accesso Premium, le risposte alle cene e le prenotazioni alle lezioni live. Se arrivi da un link di una nostra campagna, al momento dell'iscrizione salviamo anche il nome della campagna (per esempio «instagram»): serve solo a capire quali annunci funzionano.</li>
         <li><strong>Candidatura a Premium:</strong> se ti candidi, i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi e l'esito della valutazione, con l'eventuale messaggio del founder.</li>
         <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora degli accessi, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
         <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato e una copia dell'app per farla aprire più velocemente. Sono strumenti tecnici necessari: non usiamo cookie di profilazione, pubblicità o sistemi di statistica.</li>
