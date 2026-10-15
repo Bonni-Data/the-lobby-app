@@ -2,6 +2,12 @@
 <html lang="it">
   <head>
     <meta charset="utf-8" />
+    <script>
+      // Always serve the secure address of the main domain.
+      if (location.protocol === 'http:' && /(^|\.)thelobbyitalia\.it$/.test(location.hostname)) {
+        location.replace('https://thelobbyitalia.it' + location.pathname + location.search + location.hash);
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>THE LOBBY · Capisci le regole. Cambia le cose.</title>
     <meta name="description" content="Corsi brevi su Comuni, Parlamento ed Europa, lezioni live con Andrea Bonazzi e tutte le opportunità per i giovani in un solo posto. Gratis." />
