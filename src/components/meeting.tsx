@@ -27,7 +27,7 @@ function friendly(err: any) {
   if (m.includes('too_short')) return `Racconta in qualche riga in più di cosa hai bisogno (almeno ${MSG_MIN} caratteri).`;
   if (m.includes('too_long')) return 'Il testo è troppo lungo: tienilo sotto i 1.500 caratteri.';
   if (m.includes('bad_link')) return 'Il link deve iniziare con https://';
-  if (m.includes('too_many')) return 'Hai già inviato tre richieste questa settimana: Andrea ti risponde a breve.';
+  if (m.includes('too_many')) return 'Hai già fatto tre richieste negli ultimi 30 giorni: è il massimo. Andrea ti risponde a breve.';
   return 'Invio non riuscito. Controlla la connessione e riprova.';
 }
 
@@ -80,6 +80,7 @@ export function MeetingSection() {
       <h2 className="h-section">Prenota un incontro con Andrea</h2>
       <p className="muted">
         Per rivedere un testo, fare le tue domande o chiedere un consiglio. Scegli quanto tempo ti serve: Andrea ti scrive per fissare giorno e ora.
+        Puoi chiedere fino a 3 incontri al mese.
       </p>
 
       {sent ? (
