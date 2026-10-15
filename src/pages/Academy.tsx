@@ -41,11 +41,6 @@ function CourseRow({ c, progress, admin, locked, live }: { c: Course; progress: 
           <span className="course-row__meta">
             {isL ? liveMeta(live) : coming ? `${c.course_modules.length} ${c.course_modules.length === 1 ? 'capitolo' : 'capitoli'} in preparazione` : `${total} ${total === 1 ? 'lezione' : 'lezioni'}, circa ${Math.max(1, Math.round(c.course_modules.reduce((n, m) => n + m.lessons.reduce((k, l) => k + (l.duration_seconds || 0), 0), 0) / 60))} min`}
           </span>
-          {isL && live && !live.starts_at && (
-            <span className="bar" aria-label={`${live.yes_count} iscritti su ${live.min_seats}`}>
-              <span style={{ width: `${Math.min(100, (live.yes_count / live.min_seats) * 100)}%` }} />
-            </span>
-          )}
           {!isL && total > 0 && !locked && (
             <span className="bar" aria-label={`${done} di ${total} lezioni completate`}>
               <span style={{ width: `${(done / total) * 100}%` }} />
@@ -61,9 +56,9 @@ function liveMeta(live?: LiveEdition) {
   if (!live) return 'Live su Teams con Andrea';
   if (live.starts_at && !liveIsOver(live)) {
     const d = new Date(live.starts_at);
-    return `Live il ${d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} alle ${d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} · ${live.yes_count} iscritti`;
+    return `Live il ${d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })} alle ${d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
   }
-  return `Live su Teams · ${live.yes_count} iscritti su ${live.min_seats} per partire`;
+  return 'Live su Teams con Andrea · prenotazioni aperte';
 }
 
 /** What a premium course contains, shown to members who are not in Premium yet. Live courses keep the programme for Premium. */
@@ -86,7 +81,7 @@ function PreviewCard({ c, outline, live }: { c: Course; outline: OutlineLesson[]
         )}
         {isL && (
           <span className="preview__label">
-            Dal vivo con Andrea · si parte a {live?.min_seats ?? 15} iscritti{live && live.yes_count > 0 ? ` · ${live.yes_count} già prenotati` : ''}
+            Dal vivo con Andrea su Teams · prenotazioni riservate a Premium
           </span>
         )}
         {!isL && outline.length === 0 && c.course_modules.length > 0 && (
@@ -218,7 +213,7 @@ export default function Academy() {
               </p>
               <p className="academy-premium__video">
                 <span className="academy-premium__play" aria-hidden="true"><LuRadio /></span>
-                Lezioni live su Teams con Andrea: prenoti il posto, si parte a 15 iscritti
+                Lezioni live su Teams con Andrea: prenoti il posto e ricevi data e link
               </p>
             </section>
 

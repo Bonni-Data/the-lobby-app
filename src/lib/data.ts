@@ -379,3 +379,56 @@ export function liveComplete(eventId: string) {
 export function liveIsOver(e: Pick<LiveEdition, 'starts_at'>) {
   return !!e.starts_at && new Date(e.starts_at).getTime() < Date.now() - 3 * 3600_000;
 }
+
+// ---------- Faccia a faccia con Andrea: meeting requests ----------
+export type MeetingTopic = 'testo' | 'domande' | 'consiglio' | 'altro';
+export type MeetingMode = 'video' | 'telefono' | 'presenza';
+export type MeetingRequest = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  topic: MeetingTopic;
+  message: string;
+  link: string | null;
+  minutes: 5 | 15 | 30;
+  mode: MeetingMode;
+  availability: string | null;
+  status: 'nuova' | 'gestita';
+  created_at: string;
+  handled_at: string | null;
+};
+export type MeetingInput = Pick<MeetingRequest, 'name' | 'email' | 'phone' | 'topic' | 'message' | 'link' | 'minutes' | 'mode' | 'availability'>;
+
+export const MEETING_TOPICS: { id: MeetingTopic; label: string }[] = [
+  { id: 'testo', label: 'Rivedere un testo' },
+  { id: 'domande', label: 'Fare domande' },
+  { id: 'consiglio', label: 'Un consiglio' },
+  { id: 'altro', label: 'Altro' },
+];
+export const MEETING_MODES: { id: MeetingMode; label: string }[] = [
+  { id: 'video', label: 'Videochiamata' },
+  { id: 'telefono', label: 'Telefono' },
+  { id: 'presenza', label: 'Di persona' },
+];
+
+export function requestMeeting(m: MeetingInput) {
+  return rpc<{ id: string; created_at: string }>('request_meeting', {
+    p_name: m.name, p_email: m.email, p_phone: m.phone || null, p_topic: m.topic, p_message: m.message,
+    p_link: m.link || null, p_minutes: m.minutes, p_mode: m.mode, p_availability: m.availability || null,
+  });
+}
+
+export async function myMeetings(): Promise<MeetingRequest[]> {
+  const s = currentSession();
+  if (!s) return [];
+  return select<MeetingRequest>('meeting_requests', `select=*&user_id=eq.${s.user.id}&order=created_at.desc&limit=3`);
+}
+
+export async function listMeetings(): Promise<MeetingRequest[]> {
+  return select<MeetingRequest>('meeting_requests', 'select=*&order=created_at.desc&limit=200');
+}
+
+export async function setMeetingStatus(id: string, status: 'nuova' | 'gestita') {
+  await update('meeting_requests', `id=eq.${id}`, { status, handled_at: status === 'gestita' ? new Date().toISOString() : null });
+}

@@ -7,6 +7,7 @@ import {
 import { DraftPanel } from '../components/drafts';
 import { LiveAdminTab } from '../components/live';
 import { EmailStatusStrip, GrowthStrip } from '../components/email';
+import { MeetingsAdminTab } from '../components/meeting';
 import { Link, useLocation } from '../lib/router';
 import { Button, Empty, ErrorState, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { LuExternalLink, LuMail, LuInbox, LuUtensils, LuUsers, LuMapPin, LuCalendarClock, LuBookOpenCheck, LuArrowRight } from 'react-icons/lu';
@@ -205,8 +206,8 @@ export default function Admin() {
   const [tab, setTab] = useState<ApplicationStatus>('pending');
   const { query } = useLocation();
   const start = query.get('sezione');
-  type Area = 'candidature' | 'cene' | 'corsi' | 'live';
-  const pick = (v: string | null): Area => (v === 'corsi' || v === 'cene' || v === 'live' ? v : v === 'video' ? 'live' : 'candidature');
+  type Area = 'candidature' | 'incontri' | 'cene' | 'corsi' | 'live';
+  const pick = (v: string | null): Area => (v === 'corsi' || v === 'cene' || v === 'live' || v === 'incontri' ? v : v === 'video' ? 'live' : 'candidature');
   const [area, setArea] = useState<Area>(pick(start));
   useEffect(() => { if (start) setArea(pick(start)); }, [start]);
   const all = data.data || [];
@@ -225,11 +226,12 @@ export default function Admin() {
             <EmailStatusStrip />
             <div className="section-tabs" role="tablist" aria-label="Sezioni">
               <button role="tab" aria-selected={area === 'candidature'} className={area === 'candidature' ? 'is-on' : ''} onClick={() => setArea('candidature')}>Candidature</button>
+              <button role="tab" aria-selected={area === 'incontri'} className={area === 'incontri' ? 'is-on' : ''} onClick={() => setArea('incontri')}>Incontri</button>
               <button role="tab" aria-selected={area === 'cene'} className={area === 'cene' ? 'is-on' : ''} onClick={() => setArea('cene')}>Cene</button>
               <button role="tab" aria-selected={area === 'corsi'} className={area === 'corsi' ? 'is-on' : ''} onClick={() => setArea('corsi')}>Corsi</button>
               <button role="tab" aria-selected={area === 'live'} className={area === 'live' ? 'is-on' : ''} onClick={() => setArea('live')}>Live</button>
             </div>
-            {area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : area === 'live' ? <LiveAdminTab /> : (<>
+            {area === 'incontri' ? <MeetingsAdminTab /> : area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : area === 'live' ? <LiveAdminTab /> : (<>
             <p className="muted">Leggi il percorso di chi vuole entrare in Premium e decidi tu chi è pronto per il prossimo livello.</p>
             <div className="chips" role="group" aria-label="Filtra per stato">
               {TABS.map((t) => (

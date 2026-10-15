@@ -1411,3 +1411,48 @@ img, svg, video { display: block; max-width: 100%; }
   .screen--player .player { padding-top: 8px; }
   .lcard { min-height: 58vh; }
 }
+
+/* ---------- Faccia a faccia con Andrea ---------- */
+button.feature__link { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-weight: 700; color: var(--coral-deep); }
+.section-tabs { overflow-x: auto; scrollbar-width: none; }
+.section-tabs::-webkit-scrollbar { display: none; }
+.section-tabs button { flex: none; }
+.meet { scroll-margin-top: 70px; padding: 22px 18px; border-radius: var(--r-l) var(--r-l) var(--r-m) var(--r-m); background: var(--paper); border: 1px solid var(--line); }
+.meet .h-section { margin-top: 0; }
+.meet__form { margin-top: 8px; }
+.meet__row { display: grid; gap: 18px; }
+.meet__group { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+.meet__group legend { padding: 0; margin-bottom: 8px; font-weight: 700; font-size: 16px; }
+.meet__group .chips { margin: 0; }
+.meet .field input { background: #fff; }
+.meet .field small { font-weight: 500; }
+.meet__dur { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.meet__dur button { display: grid; gap: 2px; justify-items: start; text-align: left; padding: 12px 12px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; }
+.meet__dur button strong { font-family: var(--f-display); font-weight: 700; font-size: 22px; line-height: 1; white-space: nowrap; }
+.meet__dur button span { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.meet__dur button { min-width: 0; padding: 12px 10px; }
+.meet__dur button.is-on { border-color: var(--navy); background: var(--navy); color: var(--ivory); }
+.meet__dur button.is-on span { color: rgba(244, 240, 232, 0.8); }
+.meet__pending { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: #fff3d6; font-size: 14px; }
+.meet__pending svg { flex: none; margin-top: 3px; }
+.meet__done { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; padding: 18px; border-radius: 16px; background: #e7f3ec; }
+.meet__done-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--ok); color: #fff; font-size: 20px; }
+.meet__done div { display: grid; gap: 4px; justify-items: start; }
+.meet__done strong { font-family: var(--f-display); font-size: 22px; }
+.meet-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.meet-card { display: grid; gap: 10px; padding: 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--paper); }
+.meet-card.is-done { opacity: .75; }
+.meet-card__head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.meet-card__head strong { font-family: var(--f-display); font-weight: 600; font-size: 21px; margin-right: 4px; }
+.meet-card__msg { margin: 0; white-space: pre-line; line-height: 1.55; }
+.meet-card__facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14.5px; }
+.meet-card__facts li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.meet-card__facts svg { flex: none; color: var(--coral-deep); }
+.meet-card__facts a { color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meet-card__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.meet-card__foot .small { margin-right: auto; }
+.meet-card__foot .btn { min-height: 42px; padding: 0 16px; font-size: 15px; }
+@media (min-width: 700px) {
+  .meet { padding: 28px 28px; }
+  .meet__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

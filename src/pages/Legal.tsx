@@ -47,6 +47,7 @@ export function Privacy() {
         <li><strong>Account:</strong> nome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
         <li><strong>Accesso con Google:</strong> se lo scegli, Google ci comunica nome, indirizzo email, identificativo dell'account ed eventualmente l'immagine del profilo. Non riceviamo mai la tua password Google.</li>
         <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e certificati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
+        <li><strong>Richieste di incontro con Andrea:</strong> nome, email, telefono se lo indichi, di cosa hai bisogno, il testo e l'eventuale link che condividi, durata, modalità e disponibilità.</li>
         <li><strong>Candidatura a Premium:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
         <li><strong>Email di servizio:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna).</li>
         <li><strong>Provenienza:</strong> se ti iscrivi da un link di una nostra campagna, il nome della campagna presente nel link (per esempio «instagram»). Lo leggiamo dall'indirizzo della pagina al momento dell'iscrizione, senza salvare nulla sul tuo dispositivo.</li>
@@ -64,6 +65,7 @@ export function Privacy() {
       <ul>
         <li><strong>Creare e gestire il tuo account, farti seguire corsi, quiz, opportunità e lezioni live.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
         <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi: nessuna decisione è presa da un sistema automatico.</li>
+        <li><strong>Organizzare gli incontri che chiedi ad Andrea.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La richiesta arriva via email ad Andrea, che ti scrive per fissare giorno e ora.</li>
         <li><strong>Inviarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni, date e link delle lezioni live, promemoria, esito della candidatura. Base: esecuzione del contratto (art. 6.1.b). Non sono newsletter né pubblicità.</li>
         <li><strong>Capire quali campagne portano nuovi iscritti</strong>, con dati aggregati. Base: legittimo interesse a far conoscere il progetto (art. 6.1.f). Puoi opporti scrivendoci.</li>
         <li><strong>Garantire la sicurezza del servizio, prevenire abusi e difendere i nostri diritti.</strong> Base: legittimo interesse (art. 6.1.f).</li>
@@ -110,6 +112,7 @@ export function Privacy() {
       <ul>
         <li><strong>Account e utilizzo:</strong> finché l'account è attivo. Se lo elimini dall'app, i dati vengono cancellati subito; le copie tecniche di sicurezza dei fornitori vengono sovrascritte nei giorni successivi.</li>
         <li><strong>Candidature a Premium:</strong> 12 mesi dalla decisione, per gestire eventuali nuove candidature; prima, se elimini l'account o ce lo chiedi.</li>
+        <li><strong>Richieste di incontro:</strong> 12 mesi dalla richiesta; prima, se elimini l'account o ce lo chiedi.</li>
         <li><strong>Registro delle email di servizio:</strong> 12 mesi. I link di conferma scaduti o usati: 30 giorni.</li>
         <li><strong>Dati tecnici:</strong> per i tempi stabiliti dai fornitori per sicurezza e funzionamento, di norma pochi giorni o settimane.</li>
       </ul>

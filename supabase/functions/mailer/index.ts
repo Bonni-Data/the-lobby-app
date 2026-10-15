@@ -19,7 +19,7 @@ async function key() {
   return resendKey;
 }
 
-const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura']);
+const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura', 'incontro']);
 const FIXED_ORIGINS = ['https://thelobbyitalia.it', 'https://www.thelobbyitalia.it', 'https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
 
 type Settings = { from_email: string | null; from_name: string; reply_to: string; admin_email: string; app_url: string; live: boolean };
@@ -136,21 +136,16 @@ function render(r: Row, s: Settings): Mail {
           { small: 'Il link vale 7 giorni. Se non ti sei iscritto tu, ignora questa email.' },
         ],
       };
-    case 'live_prenotata': {
-      const yes = Number(p.yes_count || 0), min = Number(p.min_seats || 15);
+    case 'live_prenotata':
       return {
         subject: `Posto prenotato: ${p.course}`,
         title: 'Il tuo posto è prenotato.',
         blocks: [
           { p: `${hi} hai prenotato la lezione live <strong>«${course}»</strong> con Andrea, su Microsoft Teams.` },
-          { p: yes >= min
-            ? `Siete già ${yes}: si parte. Andrea sta fissando la data e ti scriviamo qui con giorno, ora e link per entrare.`
-            : `Si parte a ${min} iscritti: per ora siete ${yes}. Appena ci arriviamo, Andrea fissa la data e ti scriviamo qui con giorno, ora e link per entrare.` },
-          { small: 'Vuoi partire prima? Porta qualcuno con te: chi è in Premium può prenotare dalla pagina del corso.' },
+          { p: 'Quando Andrea fissa la data ti scriviamo qui con giorno, ora e link per entrare. Li trovi anche nella pagina del corso.' },
           { button: { label: 'Vai al corso', url: courseUrl } },
         ],
       };
-    }
     case 'live_pronta':
       return {
         subject: `${p.course}: ${p.yes_count} iscritti, si parte`,
@@ -218,6 +213,31 @@ function render(r: Row, s: Settings): Mail {
           { button: { label: 'Valuta nell’Area founder', url: `${app}#/admin` } },
         ],
       };
+    case 'incontro':
+      return {
+        subject: `Richiesta di incontro: ${p.name} · ${p.minutes} min`,
+        title: 'Nuova richiesta di incontro.',
+        blocks: [
+          { p: `<strong>${esc(p.name)}</strong> chiede un incontro con te. Rispondi a questa email per scrivergli direttamente.` },
+          { facts: [
+            ['Nome', esc(p.name)], ['Email', esc(p.email)], ['Telefono', esc(p.phone || '-')],
+            ['Per', esc(p.topic)], ['Durata', `${esc(p.minutes)} minuti`], ['Come', esc(p.mode)],
+            ['Disponibilità', esc(p.availability || '-')], ['Link', p.link ? `<a href="${esc(p.link)}" style="color:#E2553E">${esc(p.link)}</a>` : '-'],
+          ] },
+          { quote: esc(p.message) },
+          { button: { label: 'Apri le richieste nell’Area founder', url: `${app}#/admin?sezione=incontri` } },
+        ],
+      };
+    case 'incontro_ricevuto':
+      return {
+        subject: 'Richiesta di incontro ricevuta',
+        title: 'Ho ricevuto la tua richiesta.',
+        blocks: [
+          { p: `${hi} grazie: la tua richiesta di incontro mi è arrivata.` },
+          { facts: [['Per', esc(p.topic)], ['Durata', `${esc(p.minutes)} minuti`], ['Come', esc(p.mode)]] },
+          { p: 'Ti scrivo io per fissare giorno e ora. Se vuoi aggiungere qualcosa, rispondi pure a questa email.' },
+        ],
+      };
     case 'password':
       return {
         subject: 'Reimposta la tua password',
@@ -249,7 +269,7 @@ async function deliver(r: Row, s: Settings) {
     body: JSON.stringify({
       from,
       to: [r.to_email],
-      reply_to: s.reply_to,
+      reply_to: r.kind === 'incontro' && r.payload?.email ? r.payload.email : s.reply_to,
       subject: m.subject,
       html: layout(m.title, m.blocks, s),
       text: plain(m.title, m.blocks),

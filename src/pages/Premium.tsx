@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth';
 import { listEvents, listCourses, listLive, isLive, liveIsOver, submitApplication, EventItem } from '../lib/data';
 import { Button, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { FounderAvatar } from '../components/founder';
+import { MeetingSection } from '../components/meeting';
 import { CONTACT_EMAIL } from '../config';
 import { Link } from '../lib/router';
 import {
@@ -37,14 +38,15 @@ const FEATURES = [
     icon: <LuHandshake />,
     kicker: 'Dal vivo e online',
     title: 'Faccia a faccia con Andrea.',
-    text: 'Il founder di THE LOBBY, senza filtri. Domande dirette, risposte vere: cosa studiare, a quale porta bussare, come prepararti a un bando o a un colloquio nelle istituzioni.',
+    text: 'Il founder di THE LOBBY, senza filtri. Prenoti 5, 15 o 30 minuti con lui per rivedere un testo, fare domande dirette o chiedere un consiglio: cosa studiare, a quale porta bussare, come prepararti a un bando o a un colloquio nelle istituzioni.',
+    link: { to: '#incontro', label: 'Prenota un incontro' },
   },
   {
     n: '04',
     icon: <LuGraduationCap />,
     kicker: 'Live su Teams con Andrea',
     title: 'Le masterclass, dal vivo.',
-    text: 'I corsi più avanzati li tiene Andrea in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Prenoti il posto e quando si arriva a 15 iscritti Andrea fissa la data. In più, corsi Premium da leggere con quiz: executive presence, bandi europei, entrare nelle istituzioni, lobbying.',
+    text: 'I corsi più avanzati li tiene Andrea in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Prenoti il posto e ricevi data e link per entrare. In più, corsi Premium da leggere con quiz: executive presence, bandi europei, entrare nelle istituzioni, lobbying.',
     link: { to: '/academy?sezione=premium', label: 'Vai ai corsi Premium' },
   },
 ];
@@ -68,8 +70,9 @@ const FAQ = [
   { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
   { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
   { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
-  { q: 'Come sono fatte le lezioni Premium?', a: 'In due modi. I corsi da leggere sono come quelli gratuiti, ma più avanzati, con quiz alla fine di ogni lezione. Le lezioni live le tiene Andrea in diretta su Microsoft Teams: prenoti il posto dalla pagina del corso e, quando si arriva a 15 iscritti, Andrea fissa la data e il link compare lì.' },
-  { q: 'Quando parte una lezione live?', a: 'Appena ci sono 15 persone prenotate. Nella pagina del corso vedi quante sono e quante ne mancano. Quando la data è fissata, chi è iscritto trova nel corso giorno, ora e il link per entrare su Teams.' },
+  { q: 'Come sono fatte le lezioni Premium?', a: 'In due modi. I corsi da leggere sono come quelli gratuiti, ma più avanzati, con quiz alla fine di ogni lezione. Le lezioni live le tiene Andrea in diretta su Microsoft Teams: prenoti il posto dalla pagina del corso e, quando Andrea fissa la data, la trovi lì insieme al link per entrare, e ti arriva anche per email.' },
+  { q: 'Quando parte una lezione live?', a: 'Andrea apre un’edizione alla volta e fissa la data quando il gruppo è pronto. Chi è iscritto trova nel corso giorno, ora e il link per entrare su Teams, e riceve tutto per email.' },
+  { q: 'Come funzionano gli incontri con Andrea?', a: 'Chi è in Premium può chiedere 5, 15 o 30 minuti con Andrea, in videochiamata, al telefono o di persona: per rivedere un testo, fare domande o chiedere un consiglio. Compili il modulo in questa pagina e Andrea ti scrive per fissare giorno e ora.' },
   { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },
   { q: 'E se non vengo selezionato?', a: 'Ricevi un riscontro e puoi ricandidarti dopo 30 giorni, quando il tuo percorso sarà cresciuto.' },
   { q: 'Chi paga i viaggi delle opportunità?', a: 'Gli enti che le pubblicano, quando il bando lo prevede. THE LOBBY non organizza né finanzia le opportunità: le cerca, le verifica sulle fonti ufficiali e te le mette tutte in un solo posto. Ti candidi direttamente sul sito dell’ente.' },
@@ -275,8 +278,14 @@ export default function Premium() {
                 </ul>
               )}
               {f.link && (
-                plan.premium ? (
-                  <Link to={f.link.to} className="feature__link">{f.link.label} <LuArrowRight aria-hidden="true" /></Link>
+                plan.premium || plan.admin ? (
+                  f.link.to.startsWith('#') ? (
+                    <button className="feature__link" onClick={() => document.getElementById(f.link!.to.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                      {f.link.label} <LuArrowRight aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <Link to={f.link.to} className="feature__link">{f.link.label} <LuArrowRight aria-hidden="true" /></Link>
+                  )
                 ) : (
                   <span className="feature__lock"><LuLock aria-hidden="true" /> Si sblocca entrando in Premium</span>
                 )
@@ -284,6 +293,8 @@ export default function Premium() {
             </li>
           ))}
         </ol>
+
+        {(plan.premium || plan.admin) && <MeetingSection />}
 
         <section className="block">
           <h2 className="h-section">Come si entra</h2>
@@ -356,7 +367,7 @@ export default function Premium() {
 
         <section className="block" id="live">
           <h2 className="h-section">Lezioni live con Andrea</h2>
-          <p className="muted">Su Microsoft Teams. Si parte quando un corso arriva a 15 iscritti.</p>
+          <p className="muted">Su Microsoft Teams, dal vivo con Andrea. Prenoti il posto e ricevi data e link per entrare.</p>
           {lives.loading && <Spinner />}
           {lives.data && (
             <ul className="live-strip">
@@ -367,7 +378,7 @@ export default function Premium() {
                     <span className="live-strip__body">
                       <strong>{c.title}</strong>
                       <span>
-                        {e?.starts_at && !liveIsOver(e) ? `In calendario: ${when(e.starts_at)}` : e ? `${e.yes_count} su ${e.min_seats} iscritti` : 'Prossima edizione in arrivo'}
+                        {e?.starts_at && !liveIsOver(e) ? `In calendario: ${when(e.starts_at)}` : e ? 'Prenotazioni aperte' : 'Prossima edizione in arrivo'}
                       </span>
                     </span>
                     <LuArrowRight aria-hidden="true" />

@@ -47,6 +47,7 @@ const notified = [];
 const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
 let failures = [];
+const meetings = [];
 const checksL1 = [
   { type: 'choice', after: 'Passi', prompt: 'Chi approva il bilancio?', options: ['Il sindaco', 'Il consiglio comunale', 'Il prefetto'], correct: 1, why: 'Lo approva il consiglio comunale.' },
   { type: 'truefalse', prompt: '', statement: 'Il sindaco nomina gli assessori.', answer: true, why: 'La giunta la sceglie il sindaco.' },
@@ -156,6 +157,23 @@ async function mock(route) {
       withLessons(course4, isAdmin || draftPublished ? [{ id: 'd1', position: 1, title: '[TEST] Lezione in bozza', duration_seconds: 300, status: draftPublished ? 'published' : 'draft' }] : [])];
     const slug = url.searchParams.get('slug');
     return json(200, slug ? all.filter((c) => 'eq.' + c.slug === slug) : all);
+  }
+  if (path === '/rest/v1/rpc/request_meeting') {
+    if (!approved && !isAdmin) return json(400, { code: 'P0001', message: 'premium_only' });
+    if ((body.p_message || '').trim().length < 20) return json(400, { code: 'P0001', message: 'too_short' });
+    const m = { id: 'mt' + (meetings.length + 1), name: body.p_name, email: body.p_email, phone: body.p_phone, topic: body.p_topic, message: body.p_message,
+      link: body.p_link, minutes: body.p_minutes, mode: body.p_mode, availability: body.p_availability, status: 'nuova', created_at: new Date().toISOString(), handled_at: null };
+    meetings.unshift(m);
+    return json(200, { id: m.id, created_at: m.created_at });
+  }
+  if (path === '/rest/v1/meeting_requests') {
+    if (req.method() === 'PATCH') {
+      const id = (url.searchParams.get('id') || '').replace('eq.', '');
+      const m = meetings.find((x) => x.id === id);
+      if (m) Object.assign(m, body);
+      return json(200, m ? [m] : []);
+    }
+    return json(200, meetings);
   }
   if (path === '/rest/v1/rpc/my_stats') return json(200, loggedIn ? statsNow() : null);
   if (path === '/rest/v1/rpc/check_answer') {
@@ -633,13 +651,13 @@ await shot('10g3c-verified');
 await page.goto(base + '#/corso/test-live');
 await page.reload();
 await page.waitForSelector('.live-panel button:has-text("Prenota il tuo posto")');
-await check(page.textContent('.live-meter').then((t) => t.includes('14') && t.includes('15')), 'live counter before booking');
+await check(page.textContent('.live-panel').then((t) => t.includes('Prenotazioni aperte') && !/15|iscritti su/.test(t)), 'live panel without the seat threshold');
+await check(page.locator('.live-panel .live-meter').count().then((n) => n === 0), 'no seat counter for members');
 await check(page.locator('.modules--live li').count().then((n) => n === 1), 'live programme visible to Premium');
 await shot('10g4-live-premium');
 await page.click('.live-panel button:has-text("Prenota il tuo posto")');
 await page.waitForSelector('.live-panel__badge:has-text("Sei iscritto")');
-await check(page.textContent('.live-meter').then((t) => /15\s*\/\s*15/.test(t)), 'live counter after booking');
-await check(page.textContent('.live-panel').then((t) => t.includes('Andrea sta fissando la data')), 'minimum reached message');
+await check(page.textContent('.live-panel').then((t) => t.includes('Il tuo posto è prenotato')), 'booked message');
 await shot('10g5-live-booked');
 isAdmin = true;
 await page.goto(base + '#/admin?sezione=live');
@@ -693,6 +711,34 @@ await shot('10i-cene-premium');
 await page.goto(base + '#/premium');
 await page.waitForSelector('.feature__link');
 await check(page.locator('.feature__link:has-text("Vai alle cene")').count().then((n) => n === 1), 'premium page links to dinners');
+await check(page.textContent('.premium-hero, .features').then((t) => !/15 iscritti|a 15/.test(t)), 'no seat threshold in the Premium page');
+await page.click('.feature__link:has-text("Prenota un incontro")');
+await page.waitForSelector('#incontro form');
+await page.click('#incontro .chip--btn:has-text("Rivedere un testo")');
+await page.fill('#incontro textarea', 'Corto');
+await page.click('#incontro button:has-text("Invia la richiesta")');
+await page.waitForSelector('#incontro .alert');
+await page.fill('#incontro textarea', 'Ho scritto il mio primo intervento per il consiglio comunale e vorrei capire se funziona.');
+await page.fill('#incontro input[type="url"]', 'https://docs.google.com/document/d/test');
+await page.click('#incontro .meet__dur button:has-text("30 min")');
+await page.click('#incontro .chip--btn:has-text("Telefono")');
+await page.fill('#incontro input[type="tel"]', '+39 333 1234567');
+await page.fill('#incontro input[placeholder^="Es. sere"]', 'Sere dopo le 18');
+await shot('10j-meeting-form');
+await page.click('#incontro button:has-text("Invia la richiesta")');
+await page.waitForSelector('.meet__done');
+await check(Promise.resolve(meetings.length === 1 && meetings[0].minutes === 30 && meetings[0].mode === 'telefono' && meetings[0].topic === 'testo' && meetings[0].email === 'giulia@example.com'), 'meeting request sent with all fields');
+await shot('10k-meeting-sent');
+isAdmin = true;
+await page.goto(base + '#/admin?sezione=incontri');
+await page.reload();
+await page.waitForSelector('.meet-card');
+await check(page.getAttribute('.meet-card a.btn:has-text("Rispondi")', 'href').then((h) => h.startsWith('mailto:giulia@example.com')), 'founder can reply by email');
+await shot('10l-admin-incontri');
+await page.click('.meet-card button:has-text("Gestita")');
+await page.waitForSelector('.center-state:has-text("Nessuna richiesta da gestire")');
+await check(Promise.resolve(meetings[0].status === 'gestita'), 'meeting marked as handled');
+isAdmin = false;
 await page.goto(base + '#/academy');
 await page.waitForSelector('.academy-premium');
 await check(page.locator('.preview').count().then((n) => n === 0), 'no preview when premium');

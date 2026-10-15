@@ -96,7 +96,6 @@ export function LivePanel({ course, edition }: { course: Course; edition?: LiveE
   const enrolled = e.my_response === 'yes';
   const over = liveIsOver(e);
   const scheduled = !!e.starts_at && !over;
-  const missing = Math.max(0, e.min_seats - e.yes_count);
 
   async function answer(r: 'yes' | 'no') {
     setBusy(true);
@@ -104,7 +103,7 @@ export function LivePanel({ course, edition }: { course: Course; edition?: LiveE
       const res = await rsvpEvent(e!.event_id, r);
       setE({ ...e!, my_response: res.response, yes_count: res.yes_count });
       setLeaving(false);
-      toast(r === 'yes' ? 'Posto prenotato. Quando si parte, la data e il link Teams compaiono qui.' : 'Iscrizione annullata.');
+      toast(r === 'yes' ? 'Posto prenotato. Data e link Teams arrivano qui e per email.' : 'Iscrizione annullata.');
       refresh();
     } catch (err) {
       toast(rsvpError(err));
@@ -123,13 +122,13 @@ export function LivePanel({ course, edition }: { course: Course; edition?: LiveE
         <p className="live-panel__date"><LuCalendarClock aria-hidden="true" /> {liveWhen(e.starts_at!)}</p>
       ) : null}
 
-      {!over && <LiveMeter e={e} />}
+      {!over && plan.admin && <LiveMeter e={e} />}
 
       {!over && !scheduled && (
         <p className="live-panel__text">
-          {missing > 0
-            ? <>Si parte a {e.min_seats} iscritti: {missing === 1 ? 'manca 1 persona' : `mancano ${missing} persone`}. Appena ci arriviamo, Andrea fissa la data e il link Teams compare qui.</>
-            : <>Ci siamo: {e.yes_count} iscritti. Andrea sta fissando la data: la trovi qui, insieme al link Teams.</>}
+          {enrolled
+            ? <>Il tuo posto è prenotato. Quando Andrea fissa la data, la trovi qui insieme al link Teams, e ti arriva anche per email.</>
+            : <>Prenotazioni aperte. Quando Andrea fissa la data, chi è iscritto la trova qui insieme al link Teams, e la riceve per email.</>}
         </p>
       )}
       {scheduled && !enrolled && <p className="live-panel__text">La data è fissata. Prenota il posto per ricevere il link Teams.</p>}
@@ -172,10 +171,10 @@ export function LiveTeaser({ edition }: { edition?: LiveEdition }) {
     <section className="live-panel live-panel--locked">
       <span className="live-panel__kicker"><LuLock aria-hidden="true" /> Lezione live su Teams con Andrea</span>
       <p className="live-panel__text">
-        Questo corso si fa dal vivo, su Microsoft Teams. Si parte a {edition?.min_seats ?? 15} iscritti: chi è in Premium vede il
-        programma completo e prenota il posto da qui.
+        Questo corso si fa dal vivo, su Microsoft Teams, con Andrea. Chi è in Premium vede il programma completo e prenota il
+        posto da qui.
       </p>
-      {edition && edition.yes_count > 0 && (
+      {edition && edition.yes_count >= 10 && (
         <p className="live-panel__count"><LuUsers aria-hidden="true" /> {edition.yes_count === 1 ? '1 persona ha già prenotato' : `${edition.yes_count} persone hanno già prenotato`}</p>
       )}
     </section>

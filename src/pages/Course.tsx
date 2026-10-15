@@ -189,7 +189,7 @@ function LiveCourse({ c, live, locked }: { c: CourseT; live?: LiveEdition; locke
         <h1 className="course-hero__title">{c.title}</h1>
         {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
         <TeacherLine tone="ivory" />
-        <p className="course-hero__done"><LuRadio aria-hidden="true" /> Dal vivo su Microsoft Teams · si parte a {live?.min_seats ?? 15} iscritti</p>
+        <p className="course-hero__done"><LuRadio aria-hidden="true" /> Dal vivo su Microsoft Teams con Andrea</p>
         {locked && <ButtonLink to="/premium" block><LuKeyRound aria-hidden="true" /> Sblocca con Premium</ButtonLink>}
       </section>
 
