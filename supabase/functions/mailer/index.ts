@@ -20,7 +20,7 @@ async function key() {
 }
 
 const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura']);
-const FIXED_ORIGINS = ['https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
+const FIXED_ORIGINS = ['https://thelobbyitalia.it', 'https://www.thelobbyitalia.it', 'https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
 
 type Settings = { from_email: string | null; from_name: string; reply_to: string; admin_email: string; app_url: string; live: boolean };
 type Row = { id: string; kind: string; to_email: string; to_name: string | null; payload: Record<string, any>; attempts: number; status: string };
@@ -306,7 +306,8 @@ async function flush(s: Settings) {
 async function recover(email: string, redirectTo: string, s: Settings) {
   const addr = String(email || '').trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addr)) return;
-  const okRedirect = origins(s).some((o) => String(redirectTo || '').startsWith(o));
+  let okRedirect = false;
+  try { okRedirect = origins(s).includes(new URL(String(redirectTo)).origin); } catch { /* not a URL */ }
   const redirect = okRedirect ? redirectTo : s.app_url;
   const since = new Date(Date.now() - 3600_000).toISOString();
   const { count } = await db.from('email_outbox').select('id', { count: 'exact', head: true }).eq('kind', 'password').eq('to_email', addr).gt('created_at', since);

@@ -4,7 +4,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
-const FIXED = ['https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
+const FIXED = ['https://thelobbyitalia.it', 'https://www.thelobbyitalia.it', 'https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
 
 async function allowed() {
   const { data } = await admin.from('mail_settings').select('app_url').eq('id', 1).maybeSingle();
