@@ -43,7 +43,7 @@ img, svg, video { display: block; max-width: 100%; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
-#root { min-height: 100dvh; }
+#root { min-height: 100vh; min-height: 100dvh; }
 
 /* ---------- Typography ---------- */
 .wordmark {
@@ -87,7 +87,7 @@ img, svg, video { display: block; max-width: 100%; }
 .prose { white-space: pre-line; line-height: 1.7; }
 
 /* ---------- App frame ---------- */
-.screen { max-width: var(--maxw); margin: 0 auto; min-height: 100dvh; background: var(--ivory); position: relative; }
+.screen { max-width: var(--maxw); margin: 0 auto; min-height: 100vh; min-height: 100dvh; background: var(--ivory); position: relative; }
 .screen--nav { padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + 16px); }
 .page { padding: 4px var(--gutter) 24px; }
 .page--flush { padding: 0; }
@@ -97,6 +97,7 @@ img, svg, video { display: block; max-width: 100%; }
   display: flex; align-items: center; gap: 12px;
   height: calc(56px + var(--safe-t));
   padding: var(--safe-t) var(--gutter) 0;
+  background: rgba(244, 240, 232, 0.92);
   background: color-mix(in srgb, var(--ivory) 88%, transparent);
   backdrop-filter: saturate(1.4) blur(10px);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);
@@ -181,7 +182,7 @@ img, svg, video { display: block; max-width: 100%; }
 .door-card { scroll-snap-align: start; text-decoration: none; }
 
 /* ---------- Welcome ---------- */
-.welcome { max-width: var(--maxw); margin: 0 auto; background: var(--ivory); min-height: 100dvh; }
+.welcome { max-width: var(--maxw); margin: 0 auto; background: var(--ivory); min-height: 100vh; min-height: 100dvh; }
 .welcome__hero {
   position: relative; overflow: hidden;
   background: var(--navy); color: var(--ivory);
@@ -208,7 +209,7 @@ img, svg, video { display: block; max-width: 100%; }
 .pillars span { color: var(--muted); }
 
 /* ---------- Auth ---------- */
-.auth { max-width: var(--maxw); margin: 0 auto; min-height: 100dvh; background: var(--navy); display: flex; flex-direction: column; }
+.auth { max-width: var(--maxw); margin: 0 auto; min-height: 100vh; min-height: 100dvh; background: var(--navy); display: flex; flex-direction: column; }
 .auth__head { display: flex; align-items: center; gap: 14px; padding: calc(14px + var(--safe-t)) var(--gutter) 18px; }
 .auth__brand { display: inline-flex; align-items: center; gap: 10px; }
 .auth__card {
@@ -1021,3 +1022,73 @@ img, svg, video { display: block; max-width: 100%; }
 .mydata__confirm p { margin: 0; }
 .mydata__confirm input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font: inherit; }
 .mydata__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- Every screen size ---------- */
+.tabbar__brand { display: none; }
+
+/* Tablets: a wider column and two columns for card lists */
+@media (min-width: 700px) {
+  :root { --maxw: 760px; --gutter: 28px; }
+  .opp-cards, .previews, .features, .events, .dinners, .live-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .doors-row { grid-auto-columns: 30%; }
+  .course-hero__title { font-size: 46px; }
+}
+
+/* Computers: side navigation, wide content, two-column lists */
+@media (min-width: 1080px) {
+  :root { --maxw: 1240px; --gutter: 40px; --side: 252px; }
+  body { background: var(--ivory); }
+  .screen, .welcome, .auth { box-shadow: none; }
+  .screen--nav { padding-left: var(--side); padding-bottom: 48px; }
+  .screen--nav .topbar__brand { visibility: hidden; }
+
+  .tabbar {
+    top: 0; bottom: 0; transform: none; left: max(0px, calc((100vw - var(--maxw)) / 2));
+    width: var(--side); max-width: none; height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 22px 18px 28px; border-top: 0; border-right: 1px solid var(--line);
+  }
+  .tabbar__brand { display: inline-flex; align-items: center; gap: 10px; padding: 6px 10px 26px; text-decoration: none; }
+  .tabbar__item { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 12px 14px; border-radius: 12px; font-size: 15.5px; }
+  .tabbar__item:hover { background: #f1ece3; color: var(--navy); }
+  .tabbar__item.is-active { background: #efe8dc; }
+  .tabbar__item.is-active::before { top: 50%; left: -18px; width: 4px; height: 22px; transform: translateY(-50%); border: 0; border-radius: 0 4px 4px 0; background: var(--coral); }
+  .tabbar__icon { font-size: 20px; }
+
+  .page { padding-inline: var(--gutter); }
+  .screen--nav > .page, .screen--nav > main { max-width: 1000px; }
+  .course-list, .opp-cards, .previews, .features, .events, .dinners, .live-strip, .appcards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .doors-row { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; margin: 0; padding-inline: 0; }
+  .lesson-text, .legal { max-width: 74ch; }
+  .course-hero, .premium-hero, .story-hero { padding-inline: var(--gutter); }
+  .course-hero__title { font-size: 54px; max-width: 18ch; }
+  .toast { bottom: 28px; }
+  body:has(.screen--nav) .toast { left: calc(50% + var(--side) / 2); }
+  .course-hero .btn, .premium-hero .btn, .premium-cta .btn { max-width: 380px; }
+
+  /* Welcome: full-width navy hero, text on the left and the arch on the right */
+  .welcome { max-width: none; }
+  .welcome__hero {
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); column-gap: 64px; align-content: center;
+    grid-template-areas: 'brand arch' 'tagline arch' 'lead arch' 'ctas arch';
+    padding-inline: max(48px, calc((100vw - 1160px) / 2)); min-height: 86vh;
+  }
+  .welcome__arch { grid-area: arch; width: min(100%, 360px); max-height: 460px; margin: 0 auto; align-self: center; }
+  .welcome__arch svg { max-height: 460px; }
+  .welcome__brand { grid-area: brand; align-self: end; }
+  .welcome__tagline { grid-area: tagline; font-size: 40px; }
+  .welcome__lead { grid-area: lead; font-size: 18px; }
+  .welcome__ctas { grid-area: ctas; grid-template-columns: repeat(2, minmax(0, 220px)); }
+  .welcome__section, .welcome__footer { max-width: 1160px; margin-inline: auto; padding-inline: 48px; }
+  .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 40px; }
+
+  /* Sign-in: a centred card on the navy page */
+  .auth { max-width: none; align-items: center; }
+  .auth__head { width: 100%; max-width: 1160px; }
+  .auth__card { flex: none; width: 100%; max-width: 520px; margin: 4vh auto 64px; border-radius: var(--r-l); padding: 28px 32px 32px; }
+}
+
+/* Reduced motion: show the arch already drawn */
+@media (prefers-reduced-motion: reduce) {
+  .welcome__arch-outer { stroke-dashoffset: 0; }
+}

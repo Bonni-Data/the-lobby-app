@@ -52,6 +52,7 @@ function GoogleButton() {
 export default function Auth() {
   const { query } = useLocation();
   const [tab, setTab] = useState<Tab>(query.get('tab') === 'registrati' ? 'registrati' : 'accedi');
+  const oauthError = query.get('errore');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -151,6 +152,14 @@ export default function Auth() {
         <p className="muted">
           {tab === 'accedi' ? 'Riprendi da dove avevi lasciato.' : 'Un account gratuito per seguire i corsi e salvare i progressi.'}
         </p>
+
+        {oauthError && !error && (
+          <div className="alert" role="alert">
+            {oauthError === 'access_denied'
+              ? 'Accesso con Google annullato. Puoi riprovare o entrare con email e password.'
+              : 'L’accesso con Google non è riuscito. Riprova tra poco o entra con email e password.'}
+          </div>
+        )}
 
         <form onSubmit={submit} noValidate className="form">
           {tab === 'registrati' && (

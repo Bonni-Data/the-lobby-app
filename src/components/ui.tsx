@@ -83,6 +83,10 @@ export function TabBar() {
   ];
   return (
     <nav className="tabbar" aria-label="Navigazione principale">
+      <Link to="/home" className="tabbar__brand" aria-label="THE LOBBY, Home">
+        <ArchMark size={22} />
+        <Wordmark size={20} />
+      </Link>
       {items.map((i) => (
         <Link key={i.to} to={i.to} className={`tabbar__item ${i.active ? 'is-active' : ''}`} aria-current={i.active ? 'page' : undefined}>
           <span className="tabbar__icon">{i.icon}</span>

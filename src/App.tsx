@@ -26,8 +26,10 @@ import { TermsGate } from './components/terms';
   if (h.includes('access_token=')) {
     const type = auth.adoptFromFragment(h);
     window.history.replaceState(null, '', window.location.pathname + (type === 'recovery' ? '#/nuova-password' : '#/home'));
-  } else if (h.includes('error_description=')) {
-    window.history.replaceState(null, '', window.location.pathname + '#/accedi');
+  } else if (h.includes('error_description=') || h.includes('error=')) {
+    const p = new URLSearchParams(h.replace(/^#/, ''));
+    const code = p.get('error_code') || p.get('error') || 'errore';
+    window.history.replaceState(null, '', window.location.pathname + window.location.search + '#/accedi?errore=' + encodeURIComponent(code));
   }
 })();
 

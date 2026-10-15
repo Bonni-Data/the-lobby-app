@@ -7,7 +7,7 @@ const require = createRequire('/opt/npm-tools/node_modules/');
 const { chromium } = require('playwright');
 
 const root = new URL('..', import.meta.url).pathname;
-const shots = root + 'tests/shots/';
+const shots = root + 'tests/shots/' + (process.env.VW ? `w${process.env.VW}/` : '');
 mkdirSync(shots, { recursive: true });
 const PORT = 4173;
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '-d', root + 'dist'], { stdio: 'ignore' });
@@ -222,7 +222,7 @@ async function mock(route) {
 }
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }).catch(() => chromium.launch());
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'it-IT', reducedMotion: process.env.MOTION ? 'no-preference' : 'reduce' });
+const ctx = await browser.newContext({ viewport: { width: Number(process.env.VW || 390), height: Number(process.env.VH || 844) }, deviceScaleFactor: process.env.VW ? 1 : 2, locale: 'it-IT', reducedMotion: process.env.MOTION ? 'no-preference' : 'reduce' });
 const page = await ctx.newPage();
 const consoleErrors = [];
 page.on('console', (m) => m.type() === 'error' && !/fonts|ERR_|Failed to load resource/.test(m.text()) && consoleErrors.push(m.text()));
