@@ -121,6 +121,9 @@ function page({ path, title, description, body, crumbs = [], jsonld = [], type =
 <meta property="og:image" content="${SITE}/img/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#111C35">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/favicon-192.png">
 <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
 <link rel="apple-touch-icon" href="/icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">

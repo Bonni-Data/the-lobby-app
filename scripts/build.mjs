@@ -45,7 +45,34 @@ for (const [size, name, src] of [
   [192, 'icon-192.png', svg],
   [512, 'icon-512.png', svg],
   [512, 'icon-maskable-512.png', maskable],
+  // PNG favicons for Google Search (it does not read the SVG one): multiples of 48 px
+  [48, 'favicon-48.png', svg],
+  [96, 'favicon-96.png', svg],
+  [192, 'favicon-192.png', svg],
 ]) {
-  await sharp(src).resize(size, size).png().toFile(dist + 'icons/' + name);
+  await sharp(src, { density: 300 }).resize(size, size).png().toFile(dist + 'icons/' + name);
 }
+
+// /favicon.ico at the site root (16, 32 and 48 px, PNG-compressed entries): the path every crawler tries first
+const icoSizes = [16, 32, 48];
+const pngs = await Promise.all(icoSizes.map((s) => sharp(svg, { density: 300 }).resize(s, s).png().toBuffer()));
+const header = Buffer.alloc(6);
+header.writeUInt16LE(0, 0); // reserved
+header.writeUInt16LE(1, 2); // type: icon
+header.writeUInt16LE(pngs.length, 4);
+let offset = 6 + 16 * pngs.length;
+const entries = pngs.map((png, i) => {
+  const e = Buffer.alloc(16);
+  e.writeUInt8(icoSizes[i], 0); // width
+  e.writeUInt8(icoSizes[i], 1); // height
+  e.writeUInt8(0, 2); // palette
+  e.writeUInt8(0, 3); // reserved
+  e.writeUInt16LE(1, 4); // colour planes
+  e.writeUInt16LE(32, 6); // bits per pixel
+  e.writeUInt32LE(png.length, 8);
+  e.writeUInt32LE(offset, 12);
+  offset += png.length;
+  return e;
+});
+writeFileSync(dist + 'favicon.ico', Buffer.concat([header, ...entries, ...pngs]));
 console.log('Built to', dist);
