@@ -30,3 +30,6 @@ create policy avatars_delete_own on storage.objects for delete to authenticated
 -- mvp_37_track_install_events: track() accepts 'install_click' and 'app_installed' (the «Aggiungi alla Home» card).
 -- mvp_37b_usage_metrics_installs: usage_metrics() = usage_metrics_core() || install_clicks_7d, installs_7d, installs_total.
 -- The account edge function (v5) exports avatar_url and deletes the photo when the account is deleted.
+
+-- mvp_38_install_popup_event: the card became a pop-up shown after 5 minutes of use (and on demand from the Profile);
+--   track() also accepts 'install_prompt' (pop-up shown) and usage_metrics() adds install_prompts_7d.

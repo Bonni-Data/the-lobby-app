@@ -7,7 +7,8 @@ import { useGame } from '../components/game';
 import { Button, Screen, TopBar, toast, useAsync } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuScale, LuCamera } from 'react-icons/lu';
+import { canInstall, openInstall } from '../components/install';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuScale, LuCamera, LuSmartphone } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, avatarUrl, setAvatarUrl, plan } = useAuth();
@@ -154,6 +155,14 @@ export default function Profile() {
                 <span><LuInbox /> Area founder</span>
                 <em className="is-premium">Candidature e cene</em>
               </Link>
+            </li>
+          )}
+          {canInstall() && (
+            <li>
+              <button className="menu__link" onClick={openInstall}>
+                <span><LuSmartphone /> Aggiungi alla schermata Home</span>
+                <em>Aprila come un’app</em>
+              </button>
             </li>
           )}
           <li><Link to="/andrea" className="menu__link"><span><LuUser /> Chi è Andrea</span><em>La storia del founder</em></Link></li>

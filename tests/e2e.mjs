@@ -436,21 +436,33 @@ await check(page.textContent('.h-hello').then((t) => t.includes('Andrea') || t.i
 await check(Promise.resolve(globalThis.__signupData?.utm_source === 'instagram' && globalThis.__signupData?.utm_campaign === 'beta'), 'campaign source saved at signup');
 await shot('03-home');
 
-// 4b. «Aggiungi alla schermata Home»: hidden without a way to install, the browser's own prompt when there is one
-await check(page.locator('.install').count().then((n) => n === 0), 'no install card when the browser cannot install');
-await page.evaluate(() => {
+// 4b. «Aggiungi alla schermata Home» pop-up: not before 5 minutes of use, then the browser's own prompt
+const fakeInstallPrompt = () => page.evaluate(() => {
   const e = new Event('beforeinstallprompt', { cancelable: true });
   e.prompt = async () => { window.__installPrompted = true; };
   e.userChoice = Promise.resolve({ outcome: 'accepted' });
   window.dispatchEvent(e);
 });
-await page.waitForSelector('.install');
-await check(page.textContent('.install').then((t) => t.includes('Installa THE LOBBY sul computer')), 'install card in Home (computer wording)');
-await shot('03b-home-install');
-await page.click('.install button:has-text("Installa l’app")');
-await page.waitForSelector('.install', { state: 'detached' });
+await fakeInstallPrompt();
+await page.waitForTimeout(6000);
+await check(page.locator('.install-pop').count().then((n) => n === 0), 'no install pop-up in the first minutes');
+await page.evaluate(() => localStorage.setItem('thelobby.usage', '296'));
+await page.reload();
+await page.waitForSelector('.h-hello');
+await fakeInstallPrompt();
+await page.waitForSelector('.install-pop', { timeout: 15000 });
+await check(page.textContent('.install-pop').then((t) => t.includes('Installa THE LOBBY sul computer')), 'install pop-up after 5 minutes (computer wording)');
+await check(Promise.resolve(tracked.includes('install_prompt')), 'pop-up appearance tracked');
+await shot('03b-install-popup');
+await page.click('.install-pop button:has-text("Installa l’app")');
+await page.waitForSelector('.install-pop', { state: 'detached' });
 await check(page.evaluate(() => window.__installPrompted === true), 'install opens the browser prompt');
 await check(Promise.resolve(tracked.includes('install_click')), 'install click tracked');
+await page.reload();
+await page.waitForSelector('.h-hello');
+await fakeInstallPrompt();
+await page.waitForTimeout(6000);
+await check(page.locator('.install-pop').count().then((n) => n === 0), 'pop-up does not come back after installing');
 
 // 5. Academy: the recommended path first, then the full catalogue
 await page.click('.tabbar__item:has-text("Academy")');
@@ -970,12 +982,14 @@ await page.click('.mydata__confirm button:has-text("Elimina per sempre")');
 await page.waitForSelector('.welcome__hero');
 await check(Promise.resolve(accountCalls.some((c) => c.action === 'delete' && c.confirm === 'ELIMINA')), 'account deleted');
 
-// 15. iPhone: no install prompt, so the card shows the two taps; Instagram's browser explains how to open Safari
-for (const [ua, label, expect] of [
-  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1', 'iphone', 'Aggiungi alla schermata Home'],
-  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0.0', 'instagram', 'Apri nel browser'],
+// 15. iPhone: no install prompt, so the pop-up shows the two taps (from the Profile on demand, or by itself after 5 minutes);
+//     Instagram's browser explains how to open the real browser
+for (const [ua, label, expect, auto] of [
+  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1', 'iphone', 'Aggiungi alla schermata Home', false],
+  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0.0', 'instagram', 'Apri nel browser', true],
 ]) {
   const ictx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, userAgent: ua, locale: 'it-IT', reducedMotion: 'reduce' });
+  if (auto) await ictx.addInitScript(() => { if (!sessionStorage.getItem('t')) { localStorage.setItem('thelobby.usage', '296'); sessionStorage.setItem('t', '1'); } });
   const ip = await ictx.newPage();
   ip.on('pageerror', (e) => consoleErrors.push('PAGEERROR ' + e.message));
   await ip.route('**/*.supabase.co/**', mock);
@@ -985,17 +999,26 @@ for (const [ua, label, expect] of [
   await ip.fill('input[type="email"]', 'giulia@example.com');
   await ip.fill('input[type="password"]', 'password456');
   await ip.click('button[type="submit"]');
-  await ip.waitForSelector('.install');
-  await check(ip.textContent('.install').then((t) => t.includes('Metti THE LOBBY sul telefono')), `phone wording on ${label}`);
-  await ip.click('.install button:has-text("Aggiungi alla Home")');
-  await ip.waitForSelector('.install__steps');
-  await check(ip.textContent('.install__steps').then((t) => t.includes(expect)), `install steps on ${label}`);
+  await ip.waitForSelector('.h-hello');
+  if (auto) {
+    await ip.waitForSelector('.install-pop', { timeout: 15000 });
+  } else {
+    await ip.waitForTimeout(1000);
+    await check(ip.locator('.install-pop').count().then((n) => n === 0), `no pop-up at the start on ${label}`);
+    await ip.click('.tabbar__item:has-text("Profilo")');
+    await ip.click('.menu button:has-text("Aggiungi alla schermata Home")');
+    await ip.waitForSelector('.install-pop');
+  }
+  await check(ip.textContent('.install-pop').then((t) => t.includes('Porta THE LOBBY sul telefono') && t.includes(expect)), `install steps on ${label}`);
   await ip.screenshot({ path: shots + `03c-install-${label}.png` });
-  await ip.click('.install__close');
-  await ip.waitForSelector('.install', { state: 'detached' });
+  await ip.click('.install-pop__later');
+  await ip.waitForSelector('.install-pop', { state: 'detached' });
+  await ip.evaluate(() => localStorage.setItem('thelobby.usage', '400'));
+  await ip.goto(base + '#/home');
   await ip.reload();
   await ip.waitForSelector('.h-hello');
-  await check(ip.locator('.install').count().then((n) => n === 0), `«Non ora» hides the card on ${label}`);
+  await ip.waitForTimeout(1500);
+  await check(ip.locator('.install-pop').count().then((n) => n === 0), `«Non ora» keeps the pop-up away on ${label}`);
   await ictx.close();
 }
 

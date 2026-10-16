@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { RouterProvider, useLocation, match, navigate } from './lib/router';
 import { AuthProvider, useAuth } from './lib/auth';
+import { InstallPrompt } from './components/install';
 import { auth } from './lib/api';
 import { ToastHost, Empty, ButtonLink, Screen, TopBar } from './components/ui';
 import Welcome from './pages/Welcome';
@@ -93,6 +94,7 @@ export default function App() {
         <Routes />
         <ToastHost />
         <GameHost />
+        <InstallPrompt />
       </AuthProvider>
     </RouterProvider>
   );
