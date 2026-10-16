@@ -1,6 +1,7 @@
 {
-  "name": "The Lobby Academy",
-  "short_name": "The Lobby",
+  "id": "./",
+  "name": "THE LOBBY",
+  "short_name": "THE LOBBY",
   "description": "Corsi brevi su come funzionano davvero le istituzioni, con opportunità per costruirci una carriera.",
   "lang": "it",
   "start_url": "./#/home",
@@ -10,8 +11,21 @@
   "background_color": "#111C35",
   "theme_color": "#111C35",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
