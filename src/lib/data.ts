@@ -335,12 +335,13 @@ export async function courseOutline(courseId: string): Promise<OutlineLesson[]> 
 }
 
 /** Label for course doors: level, Premium, coming soon. */
-export type CategoryId = 'europa' | 'italia' | 'comune' | 'skill';
+export type CategoryId = 'europa' | 'italia' | 'comune' | 'skill' | 'attualita';
 export const CATEGORIES: { id: CategoryId; label: string; blurb: string }[] = [
   { id: 'europa', label: 'Europa', blurb: 'Come funziona l\u2019Unione e come coglierne le opportunit\u00e0.' },
   { id: 'italia', label: 'Italia', blurb: 'Parlamento, governo, conti pubblici e la storia che li spiega.' },
   { id: 'comune', label: 'Comune', blurb: 'Il livello pi\u00f9 vicino a te: come funziona e come entrarci.' },
   { id: 'skill', label: 'Skill personali', blurb: 'Parlare, convincere, costruire relazioni: le competenze di chi fa politica.' },
+  { id: 'attualita', label: 'Attualit\u00e0', blurb: 'Intelligenza artificiale, clima, lavoro, fisco, nuove leggi: i temi del presente, aggiornati ogni mese.' },
 ];
 export const CATEGORY_NAME: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
 export const categoryOf = (c: Course): CategoryId => (c.category as CategoryId) || 'italia';

@@ -8,7 +8,7 @@ import { CONTACT_EMAIL } from '../config';
 import { Link } from '../lib/router';
 import {
   LuCompass, LuUtensils, LuHandshake, LuGraduationCap, LuCheck, LuMinus, LuMapPin, LuUsers, LuCalendarClock, LuPlane, LuBriefcase,
-  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass, LuArrowRight, LuLock, LuRadio,
+  LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass, LuArrowRight, LuLock, LuRadio, LuGlobe,
 } from 'react-icons/lu';
 
 const FEATURES = [
@@ -36,6 +36,14 @@ const FEATURES = [
     text: 'È la tappa extra del percorso, quella che si fa solo dal vivo. Andrea la tiene in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Si parte con gruppi piccoli: prenoti il posto e ricevi data e link per entrare.',
     link: { to: '/academy', label: 'Vai alla tappa nel percorso' },
   },
+  {
+    n: '04',
+    icon: <LuGlobe />,
+    kicker: 'In arrivo',
+    title: 'Masterclass con ospiti.',
+    text: 'Presto in Premium arrivano anche masterclass tenute da esperti internazionali e personaggi pubblici: persone che istituzioni, politica e organizzazioni internazionali le vivono da dentro. Nomi e date li annunciamo qui quando sono confermati.',
+    link: { to: '/academy', label: 'Intanto, continua il percorso' },
+  },
 ];
 
 const STEPS = [
@@ -48,6 +56,7 @@ const COMPARE: { label: string; free: string | boolean; premium: string | boolea
   { label: 'Tutto il percorso, con quiz e simulazioni', free: true, premium: true },
   { label: 'Tutte le opportunità, ogni mattina', free: true, premium: true },
   { label: 'Masterclass live su Teams con Andrea', free: false, premium: true },
+  { label: 'Masterclass con esperti internazionali e ospiti (in arrivo)', free: false, premium: true },
   { label: 'Cene della Lobby', free: false, premium: true },
   { label: 'Incontri con Andrea', free: false, premium: true },
 ];
@@ -56,8 +65,9 @@ const FAQ = [
   { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
   { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
   { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
-  { q: 'Cosa resta gratis per tutti?', a: 'Tutto il percorso dell’Academy, con quiz, simulazioni e certificati, e tutte le opportunità. Premium aggiunge solo quello che si può fare dal vivo: le masterclass su Teams, le cene e gli incontri con Andrea.' },
+  { q: 'Cosa resta gratis per tutti?', a: 'Tutto il percorso dell’Academy, con quiz, simulazioni e certificati, e tutte le opportunità. Premium aggiunge solo quello che si può fare dal vivo: le masterclass su Teams, le cene e gli incontri con Andrea, e presto le masterclass con esperti internazionali e personaggi pubblici.' },
   { q: 'Come sono fatte le masterclass?', a: 'Le tiene Andrea in diretta su Microsoft Teams, in gruppi piccoli. Prenoti il posto dalla pagina del corso e, quando Andrea fissa la data, la trovi lì insieme al link per entrare, e ti arriva anche per email.' },
+  { q: 'Chi terrà le masterclass con ospiti?', a: 'Esperti internazionali e personaggi pubblici, che annunceremo qui quando nomi e date saranno confermati. Saranno riservate a chi è in Premium, come le altre attività dal vivo.' },
   { q: 'Quando parte una lezione live?', a: 'Andrea apre un’edizione alla volta e fissa la data quando il gruppo è pronto. Chi è iscritto trova nel corso giorno, ora e il link per entrare su Teams, e riceve tutto per email.' },
   { q: 'Come funzionano gli incontri con Andrea?', a: 'Chi è in Premium può chiedere 5, 15 o 30 minuti con Andrea, in videochiamata, al telefono o di persona: per rivedere un testo, fare domande o chiedere un consiglio. Compili il modulo in questa pagina e Andrea ti scrive per fissare giorno e ora. Puoi chiederne fino a 3 al mese.' },
   { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },

@@ -140,7 +140,7 @@ export default function Home() {
                   <span className="teaser__arch" aria-hidden="true" />
                   <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · gratuito, su selezione</span>
                   <strong className="teaser__title">La sala riservata.</strong>
-                  <span className="teaser__text">Masterclass live su Teams con Andrea, cene a numero chiuso e incontri faccia a faccia. Non si compra: si conquista.</span>
+                  <span className="teaser__text">Masterclass live con Andrea, cene a numero chiuso, incontri faccia a faccia e, in arrivo, masterclass con ospiti internazionali. Non si compra: si conquista.</span>
                   <span className="teaser__go">{plan.application?.status === 'pending' ? 'Candidatura in valutazione' : 'Candidati'} <LuArrowRight aria-hidden="true" /></span>
                 </Link>
               )}

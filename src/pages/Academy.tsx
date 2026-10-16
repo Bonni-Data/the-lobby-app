@@ -6,7 +6,7 @@ import {
 import { useAuth } from '../lib/auth';
 import { ButtonLink, DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link, useLocation, navigate } from '../lib/router';
-import { LuSearch, LuLock, LuKeyRound, LuTarget, LuGlobe, LuLandmark, LuBuilding2, LuMic, LuRadio, LuBookOpen, LuCheck, LuArrowRight, LuRoute, LuFlag } from 'react-icons/lu';
+import { LuSearch, LuLock, LuKeyRound, LuTarget, LuGlobe, LuLandmark, LuBuilding2, LuMic, LuRadio, LuBookOpen, LuCheck, LuArrowRight, LuRoute, LuFlag, LuNewspaper } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 
 const CAT_ICON: Record<CategoryId, React.ReactNode> = {
@@ -14,6 +14,7 @@ const CAT_ICON: Record<CategoryId, React.ReactNode> = {
   italia: <LuLandmark />,
   comune: <LuBuilding2 />,
   skill: <LuMic />,
+  attualita: <LuNewspaper />,
 };
 
 function CourseRow({ c, progress, admin, locked, live, optional }: { c: Course; progress: Progress[]; admin?: boolean; locked?: boolean; live?: LiveEdition; optional?: boolean }) {
@@ -336,7 +337,7 @@ export default function Academy() {
               <p className="academy-premium__text">
                 {plan.premium
                   ? 'Sei dentro: le masterclass live sono aperte per te. Prenota il posto dalla pagina del corso.'
-                  : 'Il percorso è tutto gratis. Premium aggiunge quello che si può fare solo dal vivo: masterclass su Teams con Andrea, cene a numero chiuso e incontri faccia a faccia.'}
+                  : 'Il percorso è tutto gratis. Premium aggiunge quello che si può fare solo dal vivo: masterclass su Teams con Andrea, cene a numero chiuso e incontri faccia a faccia. In arrivo anche masterclass con esperti internazionali e personaggi pubblici.'}
               </p>
               <p className="academy-premium__video">
                 <span className="academy-premium__play" aria-hidden="true"><LuRadio /></span>
