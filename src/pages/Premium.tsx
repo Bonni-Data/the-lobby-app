@@ -163,7 +163,7 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
     <form className="apply" onSubmit={send} noValidate>
       <label className="apply__field">
         <span className="apply__label">Nome e cognome</span>
-        <input value={fullName} onChange={(e) => setFullName(e.target.value.slice(0, 80))} autoComplete="name" autoCapitalize="words" placeholder="Es. Giulia Rossi" />
+        <input value={fullName} onChange={(e) => setFullName(e.target.value.slice(0, 80))} autoComplete="name" autoCapitalize="words" placeholder="es. Rebecca Rossi" />
       </label>
       {QUESTIONS.map((q, i) => (
         <label key={q.key} className="apply__field">
@@ -183,7 +183,7 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
       <label className="apply__field">
         <span className="apply__label"><em>04</em> Un link che parla di te <small>(facoltativo)</small></span>
         <span className="apply__hint">Per esempio il tuo profilo LinkedIn, ma va bene anche un sito, un portfolio, un articolo o un progetto.</span>
-        <input type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="Es. https://www.linkedin.com/in/giulia-rossi" />
+        <input type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="Es. https://www.linkedin.com/in/rebecca-rossi" />
       </label>
       {error && <div className="alert" role="alert">{error}</div>}
       <Button type="submit" block loading={busy}>Invia la candidatura</Button>

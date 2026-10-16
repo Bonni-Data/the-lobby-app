@@ -165,7 +165,7 @@ export default function Auth() {
           {tab === 'registrati' && (
             <label className="field">
               <span>Nome e cognome</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoCapitalize="words" placeholder="Es. Giulia Rossi" />
+              <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoCapitalize="words" placeholder="es. Rebecca Rossi" />
             </label>
           )}
           <label className="field">

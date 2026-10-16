@@ -102,7 +102,7 @@ export default function Profile() {
           </div>
           {editing ? (
             <form onSubmit={saveName} className="inline-form">
-              <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Nome e cognome" placeholder="Nome e cognome" autoComplete="name" autoFocus />
+              <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Nome e cognome" placeholder="es. Rebecca Rossi" autoComplete="name" autoFocus />
               <Button type="submit" loading={busy}>Salva</Button>
             </form>
           ) : (
