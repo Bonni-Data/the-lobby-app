@@ -19,7 +19,7 @@ async function key() {
   return resendKey;
 }
 
-const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura', 'incontro', 'segnalazione', 'avviso_limiti']);
+const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura', 'incontro', 'segnalazione', 'avviso_limiti', 'backup']);
 // Engagement emails: capped by the plan limits and always with a one-click unsubscribe.
 const GROWTH_KINDS = new Set(['benvenuto', 'primo_passo', 'serie', 'settimana', 'rientro']);
 const UNSUB_WHAT: Record<string, string> = { primo_passo: 'reminders', serie: 'reminders', rientro: 'reminders', settimana: 'digest', benvenuto: 'digest' };
@@ -376,6 +376,16 @@ function render(r: Row, s: Settings): Mail {
         ],
       };
     }
+    case 'backup':
+      return {
+        subject: `Backup dei contenuti di THE LOBBY · ${p.date || ''}`.trim(),
+        title: 'Il backup della settimana.',
+        blocks: [
+          { p: 'In allegato trovi tutti i contenuti dell’app in un solo file: corsi, lezioni, quiz con le risposte, verifiche, simulazioni, percorso, opportunità ed eventi live, più lo storico delle revisioni.' },
+          { p: 'Non devi fare niente: conservalo e basta. Se un giorno il database avesse un problema, da questo file si ricostruisce tutto quello che hai scritto.' },
+          { small: 'Il file non contiene dati degli iscritti. Arriva ogni domenica mattina; i backup più vecchi di qualche mese puoi cancellarli.' },
+        ],
+      };
     case 'test':
       return {
         subject: 'Email di prova da THE LOBBY',
@@ -401,8 +411,19 @@ async function unsubLinks(r: Row, s: Settings) {
   };
 }
 
+/** The weekly content backup, built at send time so the outbox never stores a copy. */
+async function backupAttachment(date: string) {
+  const { data, error } = await db.rpc('content_backup');
+  if (error) throw new Error(`backup: ${error.message}`);
+  const bytes = new TextEncoder().encode(JSON.stringify(data, null, 1));
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return { filename: `the-lobby-contenuti-${date || new Date().toISOString().slice(0, 10)}.json`, content: btoa(bin), content_type: 'application/json' };
+}
+
 async function deliver(r: Row, s: Settings) {
   const m = render(r, s);
+  if (r.kind === 'backup') m.attachments = [await backupAttachment(String(r.payload?.date || ''))];
   const from = s.from_email ? `${s.from_name} <${s.from_email}>` : `${s.from_name} <onboarding@resend.dev>`;
   const unsub = await unsubLinks(r, s);
   const res = await fetch('https://api.resend.com/emails', {
