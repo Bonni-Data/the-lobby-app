@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PAGES="${PAGES_DIR:-/tmp/claude-0/ghp}"
 MSG="${1:-Aggiornamento app}"
 cd "$ROOT" && node scripts/build.mjs
-if [ ! -d "$PAGES/.git" ]; then git clone -q --branch gh-pages https://github.com/Bonni-Data/the-lobby-app "$PAGES"; fi
+if [ ! -e "$PAGES/.git" ]; then git clone -q --branch gh-pages https://github.com/Bonni-Data/the-lobby-app "$PAGES"; fi
 cd "$PAGES"
 git fetch -q origin gh-pages && git reset -q --hard origin/gh-pages
 # Keep: git data, custom domain, and everything the Action generates.
