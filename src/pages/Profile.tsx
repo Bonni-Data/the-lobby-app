@@ -1,21 +1,54 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { auth, invoke, ApiError } from '../lib/api';
-import { saveDisplayName, myInvite, inviteLink, myEmailPrefs, setEmailPrefs, track, EmailPrefs } from '../lib/data';
+import { saveDisplayName, isFullName, saveAvatar, removeAvatar, squarePhoto, myInvite, inviteLink, myEmailPrefs, setEmailPrefs, track, EmailPrefs } from '../lib/data';
 import { levelFor } from '../lib/game';
 import { useGame } from '../components/game';
 import { Button, Screen, TopBar, toast, useAsync } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuScale } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuScale, LuCamera } from 'react-icons/lu';
 
 export default function Profile() {
-  const { session, displayName, setDisplayName, plan } = useAuth();
+  const { session, displayName, setDisplayName, avatarUrl, setAvatarUrl, plan } = useAuth();
   const game = useGame();
   const level = game ? levelFor(game.xp) : null;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(displayName);
   const [busy, setBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return toast('Scegli una foto (JPG, PNG o HEIC).');
+    if (file.size > 20 * 1024 * 1024) return toast('La foto è troppo grande: massimo 20 MB.');
+    setPhotoBusy(true);
+    try {
+      const url = await saveAvatar(await squarePhoto(file));
+      setAvatarUrl(url);
+      toast('Foto profilo aggiornata.');
+    } catch {
+      toast('Caricamento non riuscito. Prova con un’altra foto.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function dropPhoto() {
+    setPhotoBusy(true);
+    try {
+      await removeAvatar();
+      setAvatarUrl('');
+      toast('Foto rimossa.');
+    } catch {
+      toast('Non sono riuscito a rimuovere la foto. Riprova.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   const initials = (displayName || session?.user?.email || '?')
     .split(/\s+/)
@@ -26,11 +59,12 @@ export default function Profile() {
 
   async function saveName(e: React.FormEvent) {
     e.preventDefault();
-    if (name.trim().length < 2) return;
+    const full = name.trim().replace(/\s+/g, ' ');
+    if (!isFullName(full)) return toast('Scrivi nome e cognome.');
     setBusy(true);
     try {
-      await saveDisplayName(name.trim());
-      setDisplayName(name.trim());
+      await saveDisplayName(full);
+      setDisplayName(full);
       setEditing(false);
       toast('Nome aggiornato.');
     } catch {
@@ -50,18 +84,42 @@ export default function Profile() {
       <TopBar />
       <main className="page">
         <section className="profile-head">
-          <span className="avatar" aria-hidden="true">{initials}</span>
+          <div className={`avatar-wrap ${photoBusy ? 'is-busy' : ''}`}>
+            <span className={`avatar ${avatarUrl ? 'avatar--photo' : ''}`} aria-hidden="true">
+              {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
+            </span>
+            <button
+              type="button"
+              className="avatar-edit"
+              onClick={() => fileRef.current?.click()}
+              disabled={photoBusy}
+              aria-label={avatarUrl ? 'Cambia la foto profilo' : 'Aggiungi una foto profilo'}
+            >
+              <LuCamera aria-hidden="true" />
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={pickPhoto} />
+          </div>
           {editing ? (
             <form onSubmit={saveName} className="inline-form">
-              <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Il tuo nome" autoFocus />
+              <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Nome e cognome" placeholder="Nome e cognome" autoComplete="name" autoFocus />
               <Button type="submit" loading={busy}>Salva</Button>
             </form>
           ) : (
             <div>
               <h1 className="h-title">{displayName || 'Il tuo profilo'}</h1>
-              <button className="link-quiet" onClick={() => { setName(displayName); setEditing(true); }}>
-                <LuPencil /> Modifica nome
-              </button>
+              <div className="profile-head__actions">
+                <button className="link-quiet" onClick={() => { setName(displayName); setEditing(true); }}>
+                  <LuPencil /> Modifica nome
+                </button>
+                <button className="link-quiet" onClick={() => fileRef.current?.click()} disabled={photoBusy}>
+                  <LuCamera /> {photoBusy ? 'Carico la foto…' : avatarUrl ? 'Cambia foto' : 'Aggiungi foto'}
+                </button>
+                {avatarUrl && !photoBusy && (
+                  <button className="link-quiet" onClick={dropPhoto}>
+                    <LuTrash2 /> Rimuovi foto
+                  </button>
+                )}
+              </div>
             </div>
           )}
           <p className="muted small"><LuMail /> {session?.user?.email}</p>

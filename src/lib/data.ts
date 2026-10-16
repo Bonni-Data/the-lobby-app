@@ -1,4 +1,5 @@
-import { select, upsert, update, rpc, currentSession } from './api';
+import { select, upsert, update, rpc, currentSession, storageUpload, storageRemove } from './api';
+import { SUPABASE_URL } from '../config';
 import type { Check } from './game';
 
 export type Lesson = {
@@ -222,7 +223,7 @@ export async function reviewApplication(id: string, decision: 'approved' | 'reje
 export async function getProfile() {
   const s = currentSession();
   if (!s) return null;
-  const rows = await select<{ id: string; display_name: string | null }>('profiles', `select=id,display_name&id=eq.${s.user.id}`);
+  const rows = await select<{ id: string; display_name: string | null; avatar_url: string | null }>('profiles', `select=id,display_name,avatar_url&id=eq.${s.user.id}`);
   return rows[0] ?? null;
 }
 
@@ -230,6 +231,61 @@ export async function saveDisplayName(name: string) {
   const s = currentSession();
   if (!s) return;
   await update('profiles', `id=eq.${s.user.id}`, { display_name: name });
+}
+
+/** «Nome Cognome»: at least two words of two letters or more. */
+export function isFullName(v: string) {
+  const parts = v.trim().split(/\s+/).filter((w) => w.replace(/[^\p{L}]/gu, '').length >= 2);
+  return parts.length >= 2;
+}
+
+/** Profile photo: one square JPEG per member in the public 'avatars' bucket, at <user id>/avatar.jpg. */
+export async function saveAvatar(photo: Blob): Promise<string> {
+  const s = currentSession();
+  if (!s) throw new Error('not_authenticated');
+  const path = `${s.user.id}/avatar.jpg`;
+  await storageUpload('avatars', path, photo, 'image/jpeg');
+  const url = `${SUPABASE_URL}/storage/v1/object/public/avatars/${path}?v=${Date.now()}`;
+  await update('profiles', `id=eq.${s.user.id}`, { avatar_url: url });
+  return url;
+}
+
+export async function removeAvatar() {
+  const s = currentSession();
+  if (!s) return;
+  await storageRemove('avatars', [`${s.user.id}/avatar.jpg`]);
+  await update('profiles', `id=eq.${s.user.id}`, { avatar_url: null });
+}
+
+/** Turns any photo into a centred square JPEG (faces sit high in portraits, so the crop leans to the top). */
+export async function squarePhoto(file: File, size = 360): Promise<Blob> {
+  let src: CanvasImageSource;
+  let w: number;
+  let h: number;
+  let url = '';
+  try {
+    const bmp = await createImageBitmap(file);
+    src = bmp; w = bmp.width; h = bmp.height;
+  } catch {
+    url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    src = img; w = img.naturalWidth; h = img.naturalHeight;
+  }
+  const side = Math.min(w, h);
+  const sx = (w - side) / 2;
+  const sy = h > w ? (h - side) * 0.25 : (h - side) / 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.drawImage(src, sx, sy, side, side, 0, 0, size, size);
+  if (url) URL.revokeObjectURL(url);
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('encode_failed'))), 'image/jpeg', 0.86));
 }
 
 export async function assertEmailAvailable(email: string) {

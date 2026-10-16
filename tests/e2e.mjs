@@ -52,6 +52,8 @@ const tracked = [];
 const reports = [];
 const unsubscribed = [];
 let emailPrefs = { digest: true, reminders: true };
+const TEST_PHOTO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAHgAAABQCAIAAABd+SbeAAABNklEQVR42u3bzXHCMBgE0KBxBbSQlnKgDAqjJVqgheSQI3Bh9LOS3l7BmHmzFnj86fR7vXxJ+xQEoEELaNCgBTRoAZ2aY5Yver7d3730+PkG3dD3+T3J4sfUxC8PyeQ+1iDO5y6LKVf/nDWh6+pEWZdVldOsy8LKUdZlbeUc67K8coi1W/A9oHsWbWypNXoD6P4VG1hqjQYNeuqreNR5NRo0aAENGjQC0KBlIuhRT6lHnVejQYOe9yoeOFWj0XtA96zY2CExjd4Guk/Rhs88RjS6tULCZGnK0tHOImR+N2iNbiGSMyWd9WNY1yVqFj3uX0ctnbSJ/8StFf9GHz+utoelObddWRVWAPsMt7iBdgsOWkCDBi2gQQto0KAFNGgBDRq0gAYtoEGDFtCgBTRo0AIatIDunT/R8lfcb4k0OgAAAABJRU5ErkJggg==', 'base64');
+const profile = { name: 'Andrea Bonazzi', avatar: null, patches: [], upload: null, deletes: 0 };
 const checksL1 = [
   { type: 'choice', after: 'Passi', prompt: 'Chi approva il bilancio?', options: ['Il sindaco', 'Il consiglio comunale', 'Il prefetto'], correct: 1, why: 'Lo approva il consiglio comunale.' },
   { type: 'truefalse', prompt: '', statement: 'Il sindaco nomina gli assessori.', answer: true, why: 'La giunta la sceglie il sindaco.' },
@@ -101,7 +103,8 @@ async function mock(route) {
   const req = route.request();
   const url = new URL(req.url());
   const path = url.pathname;
-  const body = req.postDataJSON?.() ?? null;
+  let body = null;
+  try { body = req.postDataJSON?.() ?? null; } catch { body = null; }
   const json = (status, data) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
 
   if (path === '/rest/v1/rpc/assert_email_available') {
@@ -323,9 +326,25 @@ async function mock(route) {
     signups_by_day: Array.from({ length: 14 }, (_, i) => ({ d: new Date(Date.now() - (13 - i) * 86400000).toISOString().slice(0, 10), n: (i * 7) % 11 + 1 })),
     sources: [{ source: 'instagram', n: 60 }, { source: 'invito', n: 19 }, { source: 'diretto', n: 49 }],
   });
+  if (path.startsWith('/storage/v1/object/public/avatars/')) {
+    return route.fulfill({ status: 200, contentType: 'image/jpeg', body: profile.upload?.bytes || TEST_PHOTO });
+  }
+  if (path === `/storage/v1/object/avatars/${uid}/avatar.jpg` && req.method() === 'POST') {
+    profile.upload = { bytes: req.postDataBuffer(), type: req.headers()['content-type'], upsert: req.headers()['x-upsert'] };
+    return json(200, { Key: `avatars/${uid}/avatar.jpg` });
+  }
+  if (path === '/storage/v1/object/avatars' && req.method() === 'DELETE') {
+    if ((body?.prefixes || []).includes(`${uid}/avatar.jpg`)) profile.deletes++;
+    return json(200, []);
+  }
   if (path === '/rest/v1/profiles') {
-    if (req.method() === 'PATCH') return json(200, [{ id: uid, display_name: body.display_name }]);
-    return json(200, [{ id: uid, display_name: 'Andrea Bonazzi' }]);
+    if (req.method() === 'PATCH') {
+      profile.patches.push(body);
+      if ('display_name' in body) profile.name = body.display_name;
+      if ('avatar_url' in body) profile.avatar = body.avatar_url;
+      return json(200, [{ id: uid, display_name: profile.name, avatar_url: profile.avatar }]);
+    }
+    return json(200, [{ id: uid, display_name: profile.name, avatar_url: profile.avatar }]);
   }
   failures.push('UNMOCKED ' + req.method() + ' ' + path);
   return json(404, { message: 'not mocked' });
@@ -375,12 +394,17 @@ await shot('01-welcome');
 // 2. Signup with an existing email -> warning, back to Accedi
 await page.click('text=Crea il tuo account');
 await page.waitForSelector('.segmented');
-await page.fill('input[autocomplete="given-name"]', 'Andrea');
+await page.fill('input[autocomplete="name"]', 'Andrea');
 await page.fill('input[type="email"]', 'andrea@example.com');
 await page.fill('input[autocomplete="new-password"] >> nth=0', 'qualcosa123');
 await page.fill('input[autocomplete="new-password"] >> nth=1', 'qualcosa123');
+await check(page.textContent('label.field:has(input[autocomplete="name"]) span').then((t) => t.trim() === 'Nome e cognome'), 'signup asks for name and surname');
 await page.click('button[type="submit"]');
 await page.waitForSelector('.alert');
+await check(page.textContent('.alert').then((t) => t.includes('nome e cognome')), 'first name alone is not enough');
+await page.fill('input[autocomplete="name"]', 'Andrea Bonazzi');
+await page.click('button[type="submit"]');
+await page.waitForSelector('.alert:has-text("Termini")');
 await check(page.textContent('.alert').then((t) => t.includes('accetta i Termini')), 'terms acceptance required');
 await page.check('.check input');
 await page.click('button[type="submit"]');
@@ -400,7 +424,7 @@ await check(page.getAttribute('.oauth__google', 'href').then((h) => h.includes('
 
 // 4. New signup -> Home
 await page.click('.segmented button:has-text("Registrati")');
-await page.fill('input[autocomplete="given-name"]', 'Giulia Rossi');
+await page.fill('input[autocomplete="name"]', 'Giulia Rossi');
 await page.fill('input[type="email"]', 'giulia@example.com');
 await page.fill('input[autocomplete="new-password"] >> nth=0', 'password456');
 await page.fill('input[autocomplete="new-password"] >> nth=1', 'password456');
@@ -411,6 +435,22 @@ await page.waitForSelector('.resume');
 await check(page.textContent('.h-hello').then((t) => t.includes('Andrea') || t.includes('Giulia')), 'greeting with name');
 await check(Promise.resolve(globalThis.__signupData?.utm_source === 'instagram' && globalThis.__signupData?.utm_campaign === 'beta'), 'campaign source saved at signup');
 await shot('03-home');
+
+// 4b. «Aggiungi alla schermata Home»: hidden without a way to install, the browser's own prompt when there is one
+await check(page.locator('.install').count().then((n) => n === 0), 'no install card when the browser cannot install');
+await page.evaluate(() => {
+  const e = new Event('beforeinstallprompt', { cancelable: true });
+  e.prompt = async () => { window.__installPrompted = true; };
+  e.userChoice = Promise.resolve({ outcome: 'accepted' });
+  window.dispatchEvent(e);
+});
+await page.waitForSelector('.install');
+await check(page.textContent('.install').then((t) => t.includes('Installa THE LOBBY sul computer')), 'install card in Home (computer wording)');
+await shot('03b-home-install');
+await page.click('.install button:has-text("Installa l’app")');
+await page.waitForSelector('.install', { state: 'detached' });
+await check(page.evaluate(() => window.__installPrompted === true), 'install opens the browser prompt');
+await check(Promise.resolve(tracked.includes('install_click')), 'install click tracked');
 
 // 5. Academy: the recommended path first, then the full catalogue
 await page.click('.tabbar__item:has-text("Academy")');
@@ -619,11 +659,19 @@ await check(page.textContent('.apply .alert').then((t) => t.includes('almeno 30'
 await page.fill('.apply textarea >> nth=0', 'Ho 22 anni, studio Scienze politiche a Milano e seguo la vita del mio Comune.');
 await page.fill('.apply textarea >> nth=1', 'Due anni di volontariato in un centro giovani e rappresentante degli studenti in facoltà.');
 await page.fill('.apply textarea >> nth=2', 'Voglio candidarmi a un tirocinio nelle istituzioni europee entro un anno.');
-await page.fill('.apply input', 'https://linkedin.com/in/giulia');
+await check(page.textContent('.apply__field:has(input[type="url"])').then((t) => t.includes('LinkedIn') && t.includes('portfolio')), 'link field suggests LinkedIn or another link');
+await page.fill('.apply input[type="url"]', 'https://linkedin.com/in/giulia');
+await page.fill('.apply input[autocomplete="name"]', 'Giulia');
+await page.click('button:has-text("Invia la candidatura")');
+await page.waitForSelector('.apply .alert:has-text("nome e cognome")');
+await page.fill('.apply input[autocomplete="name"]', 'Giulia Rossi');
 await shot('10d-premium-form');
+await page.locator('.apply__field:has(input[autocomplete="name"])').screenshot({ path: shots + '10d1-premium-name.png' });
+await page.locator('.apply__field:has(input[type="url"])').screenshot({ path: shots + '10d2-premium-link.png' });
 await page.click('button:has-text("Invia la candidatura")');
 await page.waitForSelector('.apply-status .premium-status');
 await check(page.textContent('.apply-status').then((t) => t.includes('Candidatura inviata')), 'application pending state');
+await check(Promise.resolve(profile.patches.some((x) => x.display_name === 'Giulia Rossi')), 'full name saved to the profile before applying');
 await page.waitForTimeout(300);
 await check(Promise.resolve(notified.length === 0), 'no third-party form service called');
 await shot('10e-premium-pending');
@@ -885,6 +933,29 @@ await page.click('.terms-gate button:has-text("Entra nella Lobby")');
 await page.waitForSelector('.h-hello');
 await check(Promise.resolve(!termsMissing), 'terms accepted through metadata');
 
+// 13b. Profile photo: add, see it in the tab bar, remove
+await page.goto(base + '#/profilo');
+await page.waitForSelector('.profile-head');
+await check(page.locator('.avatar img').count().then((n) => n === 0), 'no photo yet: initials');
+await page.setInputFiles('.avatar-wrap input[type="file"]', { name: 'io.png', mimeType: 'image/png', buffer: TEST_PHOTO });
+await page.waitForSelector('.avatar img');
+await check(Promise.resolve(profile.upload?.type === 'image/jpeg' && profile.upload?.upsert === 'true' && profile.upload.bytes.length > 500), 'photo uploaded as a square JPEG');
+await check(Promise.resolve(String(profile.avatar).startsWith(`https://unyqeshkfkvijehnlnex.supabase.co/storage/v1/object/public/avatars/${uid}/avatar.jpg?v=`)), 'photo address saved on the profile');
+await check(page.locator('.tabbar__avatar').count().then((n) => n === 1), 'photo shown in the tab bar');
+await check(page.evaluate(() => { const i = document.querySelector('.avatar img'); return i.complete && i.naturalWidth === 360 && i.naturalHeight === 360; }), 'photo cropped to a square');
+await shot('17a-profile-photo');
+await page.click('.profile-head button:has-text("Rimuovi foto")');
+await page.waitForSelector('.avatar img', { state: 'detached' });
+await check(Promise.resolve(profile.deletes === 1 && profile.avatar === null), 'photo removed');
+await page.click('.profile-head button:has-text("Modifica nome")');
+await page.fill('.inline-form input', 'Giulia');
+await page.click('.inline-form button[type="submit"]');
+await page.waitForSelector('.toast:has-text("nome e cognome")');
+await check(page.locator('.inline-form').count().then((n) => n === 1), 'profile name needs name and surname');
+await page.fill('.inline-form input', 'Giulia  Rossi');
+await page.click('.inline-form button[type="submit"]');
+await page.waitForSelector('.profile-head h1:has-text("Giulia Rossi")');
+
 // 14. Data rights from the profile: download, then delete
 await page.goto(base + '#/profilo');
 await page.waitForSelector('.mydata');
@@ -898,6 +969,35 @@ await shot('17-delete-account');
 await page.click('.mydata__confirm button:has-text("Elimina per sempre")');
 await page.waitForSelector('.welcome__hero');
 await check(Promise.resolve(accountCalls.some((c) => c.action === 'delete' && c.confirm === 'ELIMINA')), 'account deleted');
+
+// 15. iPhone: no install prompt, so the card shows the two taps; Instagram's browser explains how to open Safari
+for (const [ua, label, expect] of [
+  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1', 'iphone', 'Aggiungi alla schermata Home'],
+  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0.0', 'instagram', 'Apri nel browser'],
+]) {
+  const ictx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, userAgent: ua, locale: 'it-IT', reducedMotion: 'reduce' });
+  const ip = await ictx.newPage();
+  ip.on('pageerror', (e) => consoleErrors.push('PAGEERROR ' + e.message));
+  await ip.route('**/*.supabase.co/**', mock);
+  await ip.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+  await ip.goto(base + '#/accedi');
+  await ip.waitForSelector('.segmented');
+  await ip.fill('input[type="email"]', 'giulia@example.com');
+  await ip.fill('input[type="password"]', 'password456');
+  await ip.click('button[type="submit"]');
+  await ip.waitForSelector('.install');
+  await check(ip.textContent('.install').then((t) => t.includes('Metti THE LOBBY sul telefono')), `phone wording on ${label}`);
+  await ip.click('.install button:has-text("Aggiungi alla Home")');
+  await ip.waitForSelector('.install__steps');
+  await check(ip.textContent('.install__steps').then((t) => t.includes(expect)), `install steps on ${label}`);
+  await ip.screenshot({ path: shots + `03c-install-${label}.png` });
+  await ip.click('.install__close');
+  await ip.waitForSelector('.install', { state: 'detached' });
+  await ip.reload();
+  await ip.waitForSelector('.h-hello');
+  await check(ip.locator('.install').count().then((n) => n === 0), `«Non ora» hides the card on ${label}`);
+  await ictx.close();
+}
 
 await browser.close();
 server.kill();

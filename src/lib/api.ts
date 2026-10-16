@@ -268,6 +268,23 @@ export async function invoke<T = any>(fn: string, body: Record<string, any>): Pr
   return raw(`/functions/v1/${fn}`, { method: 'POST', body: JSON.stringify(body) }, token);
 }
 
+// ---------- Storage ----------
+/** Uploads (or replaces) a file in a Storage bucket as the signed-in user. */
+export async function storageUpload(bucket: string, path: string, body: Blob, contentType: string) {
+  const token = await validToken();
+  return raw(`/storage/v1/object/${bucket}/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': contentType, 'x-upsert': 'true', 'cache-control': 'max-age=3600' },
+    body,
+  }, token);
+}
+
+/** Deletes files from a Storage bucket as the signed-in user. */
+export async function storageRemove(bucket: string, paths: string[]) {
+  const token = await validToken();
+  return raw(`/storage/v1/object/${bucket}`, { method: 'DELETE', body: JSON.stringify({ prefixes: paths }) }, token);
+}
+
 export async function rpc<T = any>(fn: string, args: Record<string, any>): Promise<T> {
   const token = await validToken();
   return raw(`/rest/v1/rpc/${fn}`, { method: 'POST', body: JSON.stringify(args) }, token);

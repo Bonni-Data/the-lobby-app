@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { auth, ApiError } from '../lib/api';
-import { assertEmailAvailable } from '../lib/data';
+import { assertEmailAvailable, isFullName } from '../lib/data';
 import { navigate, useLocation, Link } from '../lib/router';
 import { ArchMark, Button, Wordmark, toast } from '../components/ui';
 import { LuEye, LuEyeOff, LuArrowLeft } from 'react-icons/lu';
@@ -77,7 +77,7 @@ export default function Auth() {
     if (!isEmail(mail)) return setError({ text: "Inserisci un indirizzo email valido." });
 
     if (tab === 'registrati') {
-      if (name.trim().length < 2) return setError({ text: 'Scrivi il tuo nome.' });
+      if (!isFullName(name)) return setError({ text: 'Scrivi nome e cognome.' });
       if (password.length < 8) return setError({ text: 'La password deve avere almeno 8 caratteri.' });
       if (password !== confirm) return setError({ text: 'Le due password non coincidono.' });
       if (!accept) return setError({ text: "Per creare l'account accetta i Termini di servizio." });
@@ -92,7 +92,7 @@ export default function Auth() {
         navigate('/home', true);
       } else {
         await assertEmailAvailable(mail);
-        const { session } = await auth.signUp(mail, password, name.trim());
+        const { session } = await auth.signUp(mail, password, name.trim().replace(/\s+/g, ' '));
         if (session) {
           toast(`Benvenuto nella Lobby, ${name.trim().split(' ')[0]}.`);
           navigate('/home', true);
@@ -164,8 +164,8 @@ export default function Auth() {
         <form onSubmit={submit} noValidate className="form">
           {tab === 'registrati' && (
             <label className="field">
-              <span>Nome</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" placeholder="Come ti chiami" />
+              <span>Nome e cognome</span>
+              <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" autoCapitalize="words" placeholder="Es. Giulia Rossi" />
             </label>
           )}
           <label className="field">

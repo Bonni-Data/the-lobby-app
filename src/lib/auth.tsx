@@ -6,13 +6,15 @@ type AuthState = {
   session: Session | null;
   displayName: string;
   setDisplayName: (n: string) => void;
+  avatarUrl: string;
+  setAvatarUrl: (u: string) => void;
   plan: Plan;
   setPlan: (p: Plan) => void;
   refreshPlan: () => void;
 };
 
 const FREE: Plan = FREE_PLAN;
-const Ctx = createContext<AuthState>({ session: null, displayName: '', setDisplayName: () => {}, plan: FREE, setPlan: () => {}, refreshPlan: () => {} });
+const Ctx = createContext<AuthState>({ session: null, displayName: '', setDisplayName: () => {}, avatarUrl: '', setAvatarUrl: () => {}, plan: FREE, setPlan: () => {}, refreshPlan: () => {} });
 
 function nameFrom(s: Session | null) {
   const meta = s?.user?.user_metadata || {};
@@ -22,12 +24,13 @@ function nameFrom(s: Session | null) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(currentSession());
   const [displayName, setDisplayName] = useState<string>(nameFrom(currentSession()));
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [plan, setPlan] = useState<Plan>(FREE);
 
   useEffect(() => onSession((s) => {
     setSession(s);
     setDisplayName(nameFrom(s));
-    if (!s) setPlan(FREE);
+    if (!s) { setPlan(FREE); setAvatarUrl(''); }
   }), []);
 
   // Refresh an expired stored session on start-up.
@@ -39,16 +42,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!session) return;
     getProfile()
-      .then((p) => p?.display_name && setDisplayName(p.display_name))
+      .then((p) => {
+        if (p?.display_name) setDisplayName(p.display_name);
+        setAvatarUrl(p?.avatar_url || '');
+      })
       .catch(() => {});
     getPlan().then(setPlan).catch(() => {});
   }, [session?.user?.id]);
 
   const setName = useCallback((n: string) => setDisplayName(n), []);
+  const setAvatar = useCallback((u: string) => setAvatarUrl(u), []);
   const setP = useCallback((p: Plan) => setPlan(p), []);
   const refreshPlan = useCallback(() => { getPlan().then(setPlan).catch(() => {}); }, []);
   return (
-    <Ctx.Provider value={{ session, displayName, setDisplayName: setName, plan, setPlan: setP, refreshPlan }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ session, displayName, setDisplayName: setName, avatarUrl, setAvatarUrl: setAvatar, plan, setPlan: setP, refreshPlan }}>{children}</Ctx.Provider>
   );
 }
 

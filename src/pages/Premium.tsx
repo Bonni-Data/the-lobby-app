@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { listEvents, listCourses, listLive, isLive, liveIsOver, submitApplication, EventItem } from '../lib/data';
+import { listEvents, listCourses, listLive, isLive, liveIsOver, submitApplication, saveDisplayName, isFullName, EventItem } from '../lib/data';
 import { Button, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { FounderAvatar } from '../components/founder';
 import { MeetingSection } from '../components/meeting';
@@ -126,6 +126,8 @@ const QUESTIONS: { key: Field; label: string; hint: string; placeholder: string 
 ];
 
 function ApplicationForm({ onDone }: { onDone: () => void }) {
+  const { displayName, setDisplayName } = useAuth();
+  const [fullName, setFullName] = useState(displayName);
   const [values, setValues] = useState<Record<Field, string>>({ about: '', experience: '', goal: '' });
   const [link, setLink] = useState('');
   const [busy, setBusy] = useState(false);
@@ -134,12 +136,19 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
   async function send(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    const full = fullName.trim().replace(/\s+/g, ' ');
+    if (!isFullName(full)) return setError('Scrivi nome e cognome: Andrea li vede nella candidatura.');
     if (QUESTIONS.some((q) => values[q.key].trim().length < MIN)) {
       return setError(`Scrivi qualche riga in più per ogni domanda (almeno ${MIN} caratteri).`);
     }
     if (link.trim() && !/^https?:\/\//i.test(link.trim())) return setError('Il link deve iniziare con https://');
     setBusy(true);
     try {
+      // The application takes the name from the profile: save the full name there first.
+      if (full !== displayName) {
+        await saveDisplayName(full);
+        setDisplayName(full);
+      }
       await submitApplication({ about: values.about, experience: values.experience, goal: values.goal, link: link.trim() });
       toast('Candidatura inviata. Andrea la leggerà personalmente.');
       onDone();
@@ -152,6 +161,10 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form className="apply" onSubmit={send} noValidate>
+      <label className="apply__field">
+        <span className="apply__label">Nome e cognome</span>
+        <input value={fullName} onChange={(e) => setFullName(e.target.value.slice(0, 80))} autoComplete="name" autoCapitalize="words" placeholder="Es. Giulia Rossi" />
+      </label>
       {QUESTIONS.map((q, i) => (
         <label key={q.key} className="apply__field">
           <span className="apply__label"><em>{String(i + 1).padStart(2, '0')}</em> {q.label}</span>
@@ -169,7 +182,8 @@ function ApplicationForm({ onDone }: { onDone: () => void }) {
       ))}
       <label className="apply__field">
         <span className="apply__label"><em>04</em> Un link che parla di te <small>(facoltativo)</small></span>
-        <input type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://linkedin.com/in/..." />
+        <span className="apply__hint">Per esempio il tuo profilo LinkedIn, ma va bene anche un sito, un portfolio, un articolo o un progetto.</span>
+        <input type="url" inputMode="url" value={link} onChange={(e) => setLink(e.target.value)} placeholder="Es. https://www.linkedin.com/in/giulia-rossi" />
       </label>
       {error && <div className="alert" role="alert">{error}</div>}
       <Button type="submit" block loading={busy}>Invia la candidatura</Button>

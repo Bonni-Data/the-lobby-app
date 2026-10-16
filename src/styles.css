@@ -500,6 +500,16 @@ img, svg, video { display: block; max-width: 100%; }
 .profile-head { display: grid; justify-items: start; gap: 6px; padding: 8px 0 18px; }
 .profile-head .muted { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; }
 .avatar { display: grid; place-items: center; width: 74px; height: 88px; border-radius: 999px 999px 12px 12px; background: var(--navy); color: var(--ivory); font-family: var(--f-display); font-weight: 700; font-size: 28px; padding-top: 10px; }
+.avatar--photo { padding: 0; overflow: hidden; box-shadow: inset 0 0 0 2px var(--coral); }
+.avatar--photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-wrap { position: relative; width: 74px; }
+.avatar-wrap.is-busy .avatar { opacity: .55; }
+.avatar-edit { position: absolute; right: -8px; bottom: -6px; width: 32px; height: 32px; border-radius: 999px; border: 2px solid var(--ivory); background: var(--coral); color: var(--navy); display: grid; place-items: center; font-size: 15px; cursor: pointer; padding: 0; }
+.avatar-edit:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.avatar-edit:disabled { cursor: progress; }
+.profile-head__actions { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; }
+.tabbar__avatar { width: 24px; height: 24px; border-radius: 999px; object-fit: cover; display: block; box-shadow: 0 0 0 1.5px var(--line); }
+.tabbar__item.is-active .tabbar__avatar { box-shadow: 0 0 0 2px var(--coral-deep); }
 .inline-form { display: flex; gap: 8px; width: 100%; }
 .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 18px; }
 .profile-stats div { display: grid; gap: 2px; padding: 16px 4px; }
@@ -1589,3 +1599,14 @@ button.feature__link { background: none; border: 0; padding: 0; cursor: pointer;
 }
 .invite__link .iconbtn { background: rgba(244, 240, 232, 0.14); color: var(--ivory); border: 0; width: 38px; height: 38px; }
 .stage--premium .stage__body > .btn { justify-self: start; }
+
+/* «Aggiungi alla schermata Home» */
+.install { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; margin: 4px 0 18px; padding: 16px 44px 16px 16px; background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--coral); border-radius: var(--r-m); }
+.install__icon { display: grid; place-items: center; width: 42px; height: 50px; border-radius: 999px 999px 10px 10px; background: var(--navy); padding-top: 4px; }
+.install__body { display: grid; gap: 8px; justify-items: start; min-width: 0; }
+.install__title { font-family: var(--f-display); font-size: 21px; line-height: 1.1; letter-spacing: .01em; }
+.install__text { color: var(--muted); font-size: 14.5px; line-height: 1.45; }
+.install__close { position: absolute; top: 8px; right: 8px; }
+.install__steps { margin: 2px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: step; }
+.install__steps li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; font-size: 14.5px; line-height: 1.45; }
+.install__steps li svg { color: var(--coral-deep); font-size: 18px; margin-top: 2px; }

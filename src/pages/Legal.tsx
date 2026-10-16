@@ -44,7 +44,8 @@ export function Privacy() {
 
       <h2>2. Quali dati trattiamo</h2>
       <ul>
-        <li><strong>Account:</strong> nome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
+        <li><strong>Account:</strong> nome e cognome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
+        <li><strong>Foto profilo:</strong> facoltativa. Se la carichi, la ritagliamo in un quadrato piccolo sul tuo dispositivo e la salviamo a un indirizzo pubblico ma non elencato, raggiungibile solo da chi lo conosce. La cambi o la rimuovi quando vuoi dal Profilo, e viene cancellata con l'account.</li>
         <li><strong>Accesso con Google:</strong> se lo scegli, Google ci comunica nome, indirizzo email, identificativo dell'account ed eventualmente l'immagine del profilo. Non riceviamo mai la tua password Google.</li>
         <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e certificati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
         <li><strong>Richieste di incontro con Andrea:</strong> nome, email, telefono se lo indichi, di cosa hai bisogno, il testo e l'eventuale link che condividi, durata, modalità e disponibilità.</li>
@@ -89,7 +90,7 @@ export function Privacy() {
       <h2>4. Chi può vedere i dati</h2>
       <p>I dati li vede solo Andrea Bonazzi. Per erogare il servizio ci appoggiamo a fornitori nominati responsabili del trattamento (art. 28 GDPR):</p>
       <ul>
-        <li><strong>Supabase</strong>: database e autenticazione, con dati ospitati nell'Unione europea (Francoforte).</li>
+        <li><strong>Supabase</strong>: database, autenticazione e archivio delle foto profilo, con dati ospitati nell'Unione europea (Francoforte).</li>
         <li><strong>Resend</strong>: invio delle email di servizio; riceve il tuo indirizzo email e il contenuto del messaggio.</li>
         <li><strong>GitHub</strong>: pubblicazione delle pagine dell'app; riceve dati tecnici come l'indirizzo IP.</li>
         <li><strong>Google</strong>: caratteri tipografici dell'app (Google Fonts, che riceve l'indirizzo IP) e casella {CONTACT_EMAIL} (Gmail), dove arrivano richieste e candidature.</li>

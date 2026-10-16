@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
   if (body.action === 'export') {
     const uid = user.id;
     const [profile, progress, attempts, applications, rsvps, membership, xp, meetings] = await Promise.all([
-      admin.from('profiles').select('display_name,email_verified_at,created_at').eq('id', uid).maybeSingle(),
+      admin.from('profiles').select('display_name,avatar_url,email_verified_at,created_at').eq('id', uid).maybeSingle(),
       admin.from('lesson_progress').select('lesson_id,status,completed_at,updated_at').eq('user_id', uid),
       admin.from('quiz_attempts').select('quiz_id,score,max_score,created_at').eq('user_id', uid),
       admin.from('premium_applications').select('full_name,email,about,experience,goal,link,status,reviewer_note,created_at,reviewed_at').eq('user_id', uid),
@@ -56,6 +56,9 @@ Deno.serve(async (req) => {
     if (body.confirm !== 'ELIMINA') return reply({ error: 'confirm_required' }, 400);
     const { count } = await admin.from('user_roles').select('user_id', { count: 'exact', head: true }).eq('user_id', user.id).eq('role', 'admin');
     if (count) return reply({ error: 'founder_account' }, 403);
+    // The profile photo lives in Storage, outside the tables that are deleted with the user.
+    const { error: photoError } = await admin.storage.from('avatars').remove([`${user.id}/avatar.jpg`]);
+    if (photoError) console.error(photoError);
     const { error } = await admin.auth.admin.deleteUser(user.id);
     if (error) { console.error(error); return reply({ error: 'delete_failed' }, 500); }
     return reply({ ok: true });
