@@ -1,7 +1,25 @@
 import React from 'react';
-import { Opportunity, TAG_LABEL, CATEGORY_LABEL, daysUntil } from '../lib/data';
-import { ButtonLink, formatDate } from './ui';
-import { LuExternalLink, LuMapPin, LuCalendar, LuLock, LuCircleCheck, LuUserCheck, LuKeyRound } from 'react-icons/lu';
+import { Opportunity, TAG_LABEL, CATEGORY_LABEL, daysUntil, track } from '../lib/data';
+import { formatDate, toast } from './ui';
+import { LuExternalLink, LuMapPin, LuCalendar, LuCircleCheck, LuUserCheck, LuShare2 } from 'react-icons/lu';
+
+const PUBLIC_OPPS = 'https://thelobbyitalia.it/opportunita/';
+
+/** Send an opportunity to a friend: native share sheet on phones, copied link elsewhere. */
+async function shareOpp(o: Opportunity) {
+  track('opp_share', { tag: o.tag });
+  const text = `${o.title}${o.deadline ? ` · scade il ${formatDate(o.deadline)}` : ''}. L'ho trovata su THE LOBBY:`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: o.title || 'Opportunità', text, url: PUBLIC_OPPS });
+      return;
+    }
+    await navigator.clipboard.writeText(`${text} ${PUBLIC_OPPS}`);
+    toast('Link copiato: incollalo a chi vuoi.');
+  } catch {
+    /* share sheet closed */
+  }
+}
 
 export function TagChip({ tag }: { tag: Opportunity['tag'] }) {
   return <span className={`chip chip--tag chip--${tag}`}>{TAG_LABEL[tag] || tag}</span>;
@@ -58,44 +76,17 @@ export function OppCard({ o }: { o: Opportunity }) {
         {!o.deadline && !opensLater && <span><LuCalendar aria-hidden="true" /> Candidature sempre aperte</span>}
         {o.location && (<span><LuMapPin aria-hidden="true" /> {o.location}</span>)}
       </p>
-      {o.url && (
-        <a className="btn btn--secondary btn--block" href={o.url} target="_blank" rel="noopener noreferrer">
-          Candidati sul sito ufficiale <LuExternalLink aria-hidden="true" />
-        </a>
-      )}
-    </li>
-  );
-}
-
-export function LockedCard({ o }: { o: Opportunity }) {
-  const urgency = deadlineLabel(o);
-  return (
-    <li className="opp-card opp-card--locked" aria-label={`Opportunità ${TAG_LABEL[o.tag]} riservata a Premium`}>
-      <div className="opp-card__top">
-        <TagChip tag={o.tag} />
-        {urgency && <span className={`chip ${urgency.urgent ? 'chip--urgent' : ''}`}>{urgency.text}</span>}
+      <div className="opp-card__actions">
+        {o.url && (
+          <a className="btn btn--secondary btn--block" href={o.url} target="_blank" rel="noopener noreferrer" onClick={() => track('opp_click', { tag: o.tag })}>
+            Candidati sul sito <LuExternalLink aria-hidden="true" />
+          </a>
+        )}
+        <button className="iconbtn opp-card__share" onClick={() => shareOpp(o)} aria-label={`Manda «${o.title}» a un amico`}>
+          <LuShare2 aria-hidden="true" />
+        </button>
       </div>
-      <div className="locked-lines" aria-hidden="true">
-        <span style={{ width: '82%' }} />
-        <span style={{ width: '54%' }} />
-        <span style={{ width: '92%' }} />
-      </div>
-      <p className="locked-note"><LuLock aria-hidden="true" /> Riservata a Premium</p>
     </li>
-  );
-}
-
-export function PremiumNudge({ count }: { count: number }) {
-  return (
-    <aside className="nudge">
-      <span className="nudge__arch" aria-hidden="true" />
-      <LuKeyRound className="nudge__icon" aria-hidden="true" />
-      <h2 className="nudge__title">
-        {count === 1 ? 'Un’altra occasione ti aspetta.' : `Altre ${count} occasioni ti aspettano.`}
-      </h2>
-      <p className="nudge__text">Con Premium apri l'archivio completo, aggiornato ogni mattina. È gratuito: si entra su selezione di Andrea.</p>
-      <ButtonLink to="/premium" variant="primary">Candidati a Premium</ButtonLink>
-    </aside>
   );
 }
 

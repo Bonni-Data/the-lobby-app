@@ -48,6 +48,10 @@ const taken = new Set(['andrea@example.com']);
 const users = { 'andrea@example.com': 'password123' };
 let failures = [];
 const meetings = [];
+const tracked = [];
+const reports = [];
+const unsubscribed = [];
+let emailPrefs = { digest: true, reminders: true };
 const checksL1 = [
   { type: 'choice', after: 'Passi', prompt: 'Chi approva il bilancio?', options: ['Il sindaco', 'Il consiglio comunale', 'Il prefetto'], correct: 1, why: 'Lo approva il consiglio comunale.' },
   { type: 'truefalse', prompt: '', statement: 'Il sindaco nomina gli assessori.', answer: true, why: 'La giunta la sceglie il sindaco.' },
@@ -210,7 +214,8 @@ async function mock(route) {
     if (!l || !loggedIn) return json(200, []);
     return json(200, [{ ...l, checks: [], lesson_checks: id === 'l1' ? { checks: checksL1 } : null, transcript: 'Trascrizione di prova.\n\n## Passi\n\n1. **Uno**: primo passo.\n2. Secondo passo.\n\n- Kit:\n  - CV\n  - SPID\n\n## Chi decide\n\nIl **consiglio comunale** vota il bilancio, la **giunta** lo prepara.\n\n## In breve\n\n- Primo punto\n- Secondo punto', module_id: 'm1',
       course_modules: { id: 'm1', title: '[TEST] Modulo 1', position: 1, courses: { slug: 'test-comune', title: course.title } },
-      quizzes: id === 'l1' ? [{ id: 'q1', title: '[TEST] Quiz lezione 1' }] : [], lesson_assets: [] }]);
+      quizzes: id === 'l1' ? [{ id: 'q1', title: '[TEST] Quiz lezione 1' }] : [], lesson_assets: [],
+      sources: id === 'l1' ? [{ title: 'TUEL, d.lgs. 267/2000 (Normattiva)', url: 'https://www.normattiva.it/' }] : [], reviewed_at: id === 'l1' ? '2026-10-16T08:00:00Z' : null, updated_at: '2026-10-14T08:00:00Z' }]);
   }
   if (path === '/rest/v1/lesson_progress') {
     if (req.method() === 'POST') {
@@ -293,6 +298,31 @@ async function mock(route) {
   }
   if (path === '/rest/v1/premium_waitlist') { waitlisted = true; return route.fulfill({ status: 201, body: '' }); }
   if (path === '/rest/v1/premium_events') return json(200, []);
+  if (path === '/rest/v1/path_stages') return json(200, [
+    { id: 'orientarsi', position: 1, title: 'Orientarsi', skill: 'Leggere la mappa del potere', summary: 'Chi decide cosa.', premium: false },
+    { id: 'il-comune', position: 2, title: 'Il Comune, da vicino', skill: 'Muoverti nel livello più vicino a te', summary: 'Sindaco, giunta, consiglio.', premium: false },
+    { id: 'dal-vivo', position: 3, title: 'Dal vivo con Andrea', skill: 'Fare il salto', summary: 'Masterclass live.', premium: true },
+  ]);
+  if (path === '/rest/v1/path_items') return json(200, [
+    { course_id: 'c1', stage_id: 'orientarsi', position: 1, optional: false },
+    { course_id: 'c2', stage_id: 'il-comune', position: 1, optional: false },
+    { course_id: 'c5', stage_id: 'dal-vivo', position: 1, optional: false },
+  ]);
+  if (path === '/rest/v1/rpc/track') { tracked.push(body.p_name); return route.fulfill({ status: 204, body: '' }); }
+  if (path === '/rest/v1/rpc/my_email_prefs') return json(200, emailPrefs);
+  if (path === '/rest/v1/rpc/set_email_prefs') { emailPrefs = { digest: body.p_digest, reminders: body.p_reminders }; return json(200, emailPrefs); }
+  if (path === '/rest/v1/rpc/email_unsubscribe') { unsubscribed.push(body.p_what); return json(200, body.p_token === '9f1c2d3e-4b5a-4c6d-8e7f-001122334455' ? 'ok' : 'invalid'); }
+  if (path === '/rest/v1/rpc/my_invite') return json(200, { code: 'K7MQ2X', joined: 2 });
+  if (path === '/rest/v1/rpc/report_content') { reports.push(body); return json(200, 'rep-1'); }
+  if (path === '/rest/v1/content_reports') return json(200, reports.map((r, i) => ({ id: 'r' + i, lesson_id: r.p_lesson, message: r.p_message, status: 'nuova', created_at: new Date().toISOString(), lessons: { title: '[TEST] Lezione 1' } })));
+  if (path === '/rest/v1/rpc/admin_metrics') return json(200, {
+    members: 128, new_7d: 31, new_30d: 128, active_7d: 54, activated: 77, activated_24h: 60, eligible_d7: 80, returned_d7: 28,
+    visits_7d: 940, opp_clicks_7d: 212, invited: 19, applications_pending: 3, premium: 8, reports_open: reports.length,
+    digest_subs: 84, sent_24h: 86, sent_month: 1450, deferred: 0,
+    stages: [{ title: 'Orientarsi', n: 77 }, { title: 'Il Comune, da vicino', n: 41 }, { title: 'Dal vivo con Andrea', n: 6 }],
+    signups_by_day: Array.from({ length: 14 }, (_, i) => ({ d: new Date(Date.now() - (13 - i) * 86400000).toISOString().slice(0, 10), n: (i * 7) % 11 + 1 })),
+    sources: [{ source: 'instagram', n: 60 }, { source: 'invito', n: 19 }, { source: 'diretto', n: 49 }],
+  });
   if (path === '/rest/v1/profiles') {
     if (req.method() === 'PATCH') return json(200, [{ id: uid, display_name: body.display_name }]);
     return json(200, [{ id: uid, display_name: 'Andrea Bonazzi' }]);
@@ -382,15 +412,22 @@ await check(page.textContent('.h-hello').then((t) => t.includes('Andrea') || t.i
 await check(Promise.resolve(globalThis.__signupData?.utm_source === 'instagram' && globalThis.__signupData?.utm_campaign === 'beta'), 'campaign source saved at signup');
 await shot('03-home');
 
-// 5. Academy
+// 5. Academy: the recommended path first, then the full catalogue
 await page.click('.tabbar__item:has-text("Academy")');
+await page.waitForSelector('.path-hero');
+await check(page.locator('.stages > .stage').count().then((n) => n === 3), 'path shows every stage');
+await check(page.textContent('.next-step').then((t) => t.includes('Tappa 1') && t.includes('[TEST] Lezione 1')), 'next step points to the first lesson');
+await check(page.locator('.stage--current').count().then((n) => n === 1), 'one current stage');
+await check(page.locator('.stage--premium .preview').count().then((n) => n >= 1), 'premium stage shows a preview to free members');
+await shot('04-academy-path');
+await page.click('.section-tabs button:has-text("Tutti i corsi")');
 await page.waitForSelector('.course-row');
 await page.waitForSelector('.preview');
 await check(page.textContent('.preview').then((t) => t.includes('Come si legge un bando europeo')), 'premium course preview shows lesson titles');
 await check(page.locator('.cat-section').count().then((n) => n === 4), 'courses grouped by area');
 await check(page.textContent('.preview:has-text("Public speaking avanzato")').then((t) => t.includes('Live su Teams') && !t.includes('Fuori dalla zona di comfort')), 'live preview without programme');
 await check(page.locator('.course-row .cover--small').count().then((n) => n > 0), 'light course covers');
-await shot('04-academy');
+await shot('04-academy-corsi');
 await page.click('.chips .chip--btn:has-text("Comune")');
 await check(page.locator('.cat-section').count().then((n) => n === 1), 'area filter');
 await shot('04b-academy-comune');
@@ -407,6 +444,8 @@ await page.waitForSelector('.course-row');
 // 6. Course
 await page.click('.course-row:has-text("Come funziona davvero un Comune")');
 await page.waitForSelector('.course-hero');
+await page.waitForSelector('.course-hero__stage');
+await check(page.textContent('.course-hero__stage').then((t) => t.includes('Tappa 1') && t.includes('Orientarsi')), 'course shows its stage in the path');
 await shot('05-course');
 
 // 7. Lesson as cards: intro, sections, checks, listen, completion
@@ -456,6 +495,12 @@ await page.waitForSelector('.lcard__end');
 await page.waitForFunction(() => document.querySelector('.lcard__end h2')?.textContent.includes('Lezione completata'));
 await check(Promise.resolve(progress.some((p) => p.lesson_id === 'l1' && p.status === 'completed')), 'lesson completed at the last card');
 await check(page.textContent('.lcard__score').then((t) => t.includes('2 su 3 sfide')), 'checks score on end card');
+await check(page.textContent('.lcard__end .lesson-foot').then((t) => t.includes('Normattiva') && t.includes('Ricontrollata sulle fonti')), 'lesson shows sources and review date');
+await page.click('.lcard__end .lesson-foot button:has-text("Segnala un errore")');
+await page.fill('.report textarea', 'Il numero dei consiglieri è cambiato nel 2024.');
+await page.click('.report button:has-text("Invia")');
+await page.waitForSelector('.lcard__end .lesson-foot >> text=Segnalazione inviata');
+await check(Promise.resolve(reports.length === 1 && reports[0].p_lesson === 'l1'), 'error report sent for the lesson');
 await page.waitForTimeout(400);
 await shot('06-lesson');
 // Page mode: whole text plus the checks, then back to cards
@@ -543,13 +588,14 @@ globalThis.__opps = [
     location: 'Bruxelles', deadline: new Date(Date.now() + 40 * 86400000).toISOString().slice(0, 10), url: 'https://example.com/2' }),
   opp('o3', 'sviluppo', { title: 'Corpo europeo di solidarietà', organization: 'Commissione europea', category: 'volontariato',
     summary: 'Volontariato in Europa da 2 a 12 mesi: impari, viaggi, conosci gente.', requirements: '18-30 anni', location: 'Varie città UE', url: 'https://example.com/3' }),
-  opp('o4', 'sviluppo', { locked: true, deadline: new Date(Date.now() + 9 * 86400000).toISOString().slice(0, 10) }),
-  opp('o5', 'lavoro', { locked: true, deadline: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10) }),
+  opp('o4', 'sviluppo', { title: 'Corso EU Academy sui fondi europei', organization: 'Commissione europea', category: 'formazione', deadline: new Date(Date.now() + 9 * 86400000).toISOString().slice(0, 10), url: 'https://example.com/4' }),
+  opp('o5', 'lavoro', { title: 'Concorso EPSO per assistenti', organization: 'EPSO', category: 'concorso', deadline: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10), url: 'https://example.com/5' }),
 ];
 await page.reload();
 await page.waitForSelector('.opp-card');
-await check(page.locator('.opp-card--locked').count().then((n) => n === 2), 'two locked cards');
-await check(page.textContent('.nudge__title').then((t) => t.includes('Altre 2')), 'premium nudge count');
+await check(page.locator('.opp-cards > .opp-card').count().then((n) => n === 5), 'all opportunities open to everyone');
+await check(page.locator('.nudge, .opp-card--locked').count().then((n) => n === 0), 'no premium lock on opportunities');
+await check(page.locator('.opp-card__share').count().then((n) => n === 5), 'share button on every opportunity');
 await shot('10-opps');
 await page.click('.chip--btn:has-text("Viaggi")');
 await check(page.locator('.opp-card').count().then((n) => n === 1), 'tag filter');
@@ -557,7 +603,8 @@ await check(page.locator('.opp-card').count().then((n) => n === 1), 'tag filter'
 // 9b. Home shows the 3 free ones + Premium teaser
 await page.click('.tabbar__item:has-text("Home")');
 await page.waitForSelector('.teaser');
-await check(page.locator('.opp-list li').count().then((n) => n === 3), 'home shows 3 free opportunities');
+await check(page.locator('.opp-list li').count().then((n) => n === 3), 'home shows the top 3 opportunities');
+await check(page.textContent('.block__head:has-text("Opportunità")').then((t) => t.includes('Vedi tutte (5)')), 'home links to all opportunities');
 await shot('10b-home-opps');
 
 // 9c. Premium page + application
@@ -587,6 +634,12 @@ await page.reload();
 await page.click('.tabbar__item:has-text("Profilo")');
 await page.waitForSelector('text=Area founder');
 await page.click('text=Area founder');
+await page.waitForSelector('.ntiles');
+await check(page.textContent('.ntiles').then((t) => t.includes('128') && t.includes('tornano dopo 7 giorni')), 'founder numbers: members and retention');
+await check(page.textContent('.nlimits').then((t) => t.includes('Quasi al limite')), 'founder warned before the free email limit');
+await check(page.locator('.nchart span').count().then((n) => n === 14), 'signups chart');
+await shot('10f0-admin-numeri');
+await page.click('.section-tabs button:has-text("Candidature")');
 await page.waitForSelector('.appcard');
 await page.waitForSelector('.email-strip');
 await check(page.textContent('.email-strip:not(.growth-strip)').then((t) => t.includes('Email in preparazione') && t.includes('2 pronte in coda')), 'founder sees email status');
@@ -744,9 +797,16 @@ await page.waitForSelector('.academy-premium');
 await check(page.locator('.preview').count().then((n) => n === 0), 'no preview when premium');
 approved = false;
 
-// 10. Profile + logout
+// 10. Profile: invite a friend, email preferences, then logout
 await page.click('.tabbar__item:has-text("Profilo")');
 await page.waitForSelector('.profile-head');
+await page.waitForSelector('.invite__link');
+await check(page.textContent('.invite').then((t) => t.includes('thelobbyitalia.it/?invito=K7MQ2X') && t.includes('2')), 'invite link and friends count');
+await page.waitForSelector('.mail-prefs .switch input:not([disabled])');
+await page.click('.mail-prefs .switch:has-text("Riepilogo del lunedì")');
+await page.waitForTimeout(300);
+await check(Promise.resolve(emailPrefs.digest === false && emailPrefs.reminders === true), 'weekly digest switched off from profile');
+await check(page.locator('.menu a[href="#/neutralita"]').count().then((n) => n === 1), 'profile links the neutrality page');
 await page.waitForTimeout(300);
 await shot('11-profile');
 await page.click('button:has-text("Esci")');
@@ -777,6 +837,27 @@ await check(page.locator('.cert a[href*="linkedin"]').count().then((n) => n === 
 await shot('14b-certificate-public');
 await page.goto(base + '#/certificato/00000000-0000-0000-0000-000000000000');
 await page.waitForSelector('.empty');
+
+// 10g. Neutrality page, opportunities and unsubscribe work without an account
+await page.goto(base + '#/neutralita');
+await page.waitForSelector('.legal h2');
+await check(page.textContent('.legal').then((t) => t.includes('Nessun partito') && t.includes('I tuoi dati non fanno politica')), 'neutrality page content');
+await shot('14c-neutralita');
+await page.goto(base + '#/opportunita');
+await page.waitForSelector('.guest-cta');
+await check(page.locator('.opp-cards > .opp-card').count().then((n) => n === 5), 'guest sees every opportunity');
+await check(page.locator('.tabbar').count().then((n) => n === 0), 'guest view without the member tab bar');
+await shot('14d-opps-guest');
+await page.goto(base + '#/email?u=9f1c2d3e-4b5a-4c6d-8e7f-001122334455&k=digest');
+await page.waitForSelector('.unsub button:has-text("Sì, disiscrivimi")');
+await check(Promise.resolve(unsubscribed.length === 0), 'unsubscribe waits for a click (link scanners do nothing)');
+await page.click('.unsub button:has-text("Sì, disiscrivimi")');
+await page.waitForSelector('.unsub h1:has-text("Fatto")');
+await check(Promise.resolve(unsubscribed[0] === 'digest'), 'unsubscribed from the weekly digest');
+await shot('14e-unsubscribe');
+await page.goto(base + '#/email?u=bad&k=digest');
+await page.waitForSelector('.unsub h1:has-text("Link non valido")');
+await check(Promise.resolve(tracked.includes('visit') && tracked.includes('lesson_open') && tracked.includes('path_open')), 'cookie-free usage events');
 
 // 11. Protected route redirects to Accedi when logged out
 await page.goto(base + '#/academy');

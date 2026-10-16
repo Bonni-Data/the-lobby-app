@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync, useReveal } from '../components/ui';
-import { listCourses, courseLabel } from '../lib/data';
+import { listCourses, courseLabel, track, PATH_NAME } from '../lib/data';
 import { FounderCard } from '../components/founder';
 import { LuLandmark, LuGraduationCap, LuCompass, LuKeyRound } from 'react-icons/lu';
 
@@ -8,6 +8,7 @@ export default function Welcome() {
   const courses = useAsync(() => listCourses(), []);
   const ref = React.useRef<HTMLDivElement>(null);
   useReveal(ref);
+  React.useEffect(() => { track('visit', { page: 'home' }); }, []);
 
   return (
     <div className="welcome" ref={ref}>
@@ -42,6 +43,7 @@ export default function Welcome() {
             Ho già un account
           </ButtonLink>
         </div>
+        <a href="#/opportunita" className="welcome__peek">Guarda le opportunità aperte, anche senza account</a>
       </section>
 
       <section className="welcome__section">
@@ -57,14 +59,14 @@ export default function Welcome() {
           <li>
             <LuGraduationCap aria-hidden="true" />
             <div>
-              <strong>Lezioni da pochi minuti</strong>
-              <span>Lezioni brevi da leggere, quiz per fissare i concetti, progressi salvati.</span>
+              <strong>Un percorso a tappe</strong>
+              <span>{PATH_NAME}: dalla mappa del potere fino alle candidature, con lezioni da cinque minuti e quiz. Puoi saltare dove vuoi.</span>
             </div>
           </li>
           <li>
             <LuCompass aria-hidden="true" />
             <div>
-              <strong>Tutte le opportunità, in un solo posto</strong>
+              <strong>Tutte le opportunità, gratis</strong>
               <span>Bandi, tirocini, programmi e viaggi spesati dagli enti: li cerchiamo noi sulle fonti ufficiali, ogni mattina alle 7.</span>
             </div>
           </li>
@@ -99,7 +101,14 @@ export default function Welcome() {
       <footer className="welcome__footer">
         <ArchMark size={20} />
         <span>The Lobby Academy · fondata da Andrea Bonazzi</span>
+        <nav className="welcome__explore" aria-label="Esplora THE LOBBY">
+          <a href="/percorso/">Il percorso</a>
+          <a href="/corsi/">I corsi</a>
+          <a href="/opportunita/">Opportunità</a>
+          <a href="/andrea/">Chi è Andrea</a>
+        </nav>
         <nav className="welcome__legal" aria-label="Note legali">
+          <a href="#/neutralita">Neutralità</a>
           <a href="#/privacy">Privacy</a>
           <a href="#/termini">Termini</a>
         </nav>

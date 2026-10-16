@@ -14,19 +14,6 @@ import {
 const FEATURES = [
   {
     n: '01',
-    icon: <LuCompass />,
-    kicker: 'Ogni mattina alle 7',
-    title: 'Tutte le opportunità. Non solo 3.',
-    text: 'Le opportunità pubbliche sono sparse su decine di siti. Noi le cerchiamo ogni giorno sulle fonti ufficiali e le mettiamo in un unico archivio: chi è free ne vede tre, tu le vedi tutte. Arrivi prima, scegli meglio.',
-    tags: [
-      { icon: <LuPlane />, label: 'Viaggi spesati dagli enti verso eventi ONU e UE' },
-      { icon: <LuBriefcase />, label: 'Tirocini retribuiti nelle istituzioni' },
-      { icon: <LuSprout />, label: 'Programmi e fondi per crescere' },
-    ],
-    link: { to: '/opportunita', label: 'Apri l’archivio completo' },
-  },
-  {
-    n: '02',
     icon: <LuUtensils />,
     kicker: 'A numero chiuso',
     title: 'Le cene della Lobby.',
@@ -34,7 +21,7 @@ const FEATURES = [
     link: { to: '/opportunita?sezione=cene', label: 'Vai alle cene e rispondi presente' },
   },
   {
-    n: '03',
+    n: '02',
     icon: <LuHandshake />,
     kicker: 'Dal vivo e online',
     title: 'Faccia a faccia con Andrea.',
@@ -42,12 +29,12 @@ const FEATURES = [
     link: { to: '#incontro', label: 'Prenota un incontro' },
   },
   {
-    n: '04',
+    n: '03',
     icon: <LuGraduationCap />,
     kicker: 'Live su Teams con Andrea',
     title: 'Le masterclass, dal vivo.',
-    text: 'I corsi più avanzati li tiene Andrea in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Prenoti il posto e ricevi data e link per entrare. In più, corsi Premium da leggere con quiz: executive presence, bandi europei, entrare nelle istituzioni, lobbying.',
-    link: { to: '/academy?sezione=premium', label: 'Vai ai corsi Premium' },
+    text: 'È la tappa extra del percorso, quella che si fa solo dal vivo. Andrea la tiene in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Si parte con gruppi piccoli: prenoti il posto e ricevi data e link per entrare.',
+    link: { to: '/academy', label: 'Vai alla tappa nel percorso' },
   },
 ];
 
@@ -58,10 +45,9 @@ const STEPS = [
 ];
 
 const COMPARE: { label: string; free: string | boolean; premium: string | boolean }[] = [
-  { label: 'Corsi base e quiz', free: true, premium: true },
-  { label: 'Archivio opportunità, aggiornato ogni mattina', free: 'Le prime 3', premium: 'Tutte' },
-  { label: 'Lezioni live su Teams con Andrea', free: false, premium: true },
-  { label: 'Corsi avanzati con quiz', free: false, premium: true },
+  { label: 'Tutto il percorso, con quiz e simulazioni', free: true, premium: true },
+  { label: 'Tutte le opportunità, ogni mattina', free: true, premium: true },
+  { label: 'Masterclass live su Teams con Andrea', free: false, premium: true },
   { label: 'Cene della Lobby', free: false, premium: true },
   { label: 'Incontri con Andrea', free: false, premium: true },
 ];
@@ -70,7 +56,8 @@ const FAQ = [
   { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
   { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
   { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
-  { q: 'Come sono fatte le lezioni Premium?', a: 'In due modi. I corsi da leggere sono come quelli gratuiti, ma più avanzati, con quiz alla fine di ogni lezione. Le lezioni live le tiene Andrea in diretta su Microsoft Teams: prenoti il posto dalla pagina del corso e, quando Andrea fissa la data, la trovi lì insieme al link per entrare, e ti arriva anche per email.' },
+  { q: 'Cosa resta gratis per tutti?', a: 'Tutto il percorso dell’Academy, con quiz, simulazioni e certificati, e tutte le opportunità. Premium aggiunge solo quello che si può fare dal vivo: le masterclass su Teams, le cene e gli incontri con Andrea.' },
+  { q: 'Come sono fatte le masterclass?', a: 'Le tiene Andrea in diretta su Microsoft Teams, in gruppi piccoli. Prenoti il posto dalla pagina del corso e, quando Andrea fissa la data, la trovi lì insieme al link per entrare, e ti arriva anche per email.' },
   { q: 'Quando parte una lezione live?', a: 'Andrea apre un’edizione alla volta e fissa la data quando il gruppo è pronto. Chi è iscritto trova nel corso giorno, ora e il link per entrare su Teams, e riceve tutto per email.' },
   { q: 'Come funzionano gli incontri con Andrea?', a: 'Chi è in Premium può chiedere 5, 15 o 30 minuti con Andrea, in videochiamata, al telefono o di persona: per rivedere un testo, fare domande o chiedere un consiglio. Compili il modulo in questa pagina e Andrea ti scrive per fissare giorno e ora. Puoi chiederne fino a 3 al mese.' },
   { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },

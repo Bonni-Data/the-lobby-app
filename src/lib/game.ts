@@ -83,6 +83,9 @@ export const BADGES: { id: string; name: string; text: string; icon: string }[] 
   { id: 'area-europa', name: 'Esperto di Europa', text: 'Completa tutti i corsi gratuiti dell’area Europa.', icon: 'globe' },
   { id: 'area-skill', name: 'Skill sbloccate', text: 'Completa tutti i corsi gratuiti dell’area Skill personali.', icon: 'mic' },
   { id: 'sala-riservata', name: 'Sala riservata', text: 'Completa un corso Premium.', icon: 'key' },
+  { id: 'prima-tappa', name: 'Prima tappa', text: 'Completa una tappa del percorso.', icon: 'route' },
+  { id: 'percorso-completo', name: 'Da cittadino a protagonista', text: 'Completa tutte le tappe del percorso.', icon: 'flag' },
+  { id: 'ambasciatore', name: 'Ambasciatore', text: 'Porta nella Lobby 3 amici con il tuo link.', icon: 'users' },
 ];
 
 export const XP = { lesson: 50, check: 10, quizPerAnswer: 10, quizPerfect: 20, course: 200, sim: 100 };

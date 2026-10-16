@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { auth, invoke, ApiError } from '../lib/api';
-import { saveDisplayName } from '../lib/data';
+import { saveDisplayName, myInvite, inviteLink, myEmailPrefs, setEmailPrefs, track, EmailPrefs } from '../lib/data';
 import { levelFor } from '../lib/game';
 import { useGame } from '../components/game';
-import { Button, Screen, TopBar, toast } from '../components/ui';
+import { Button, Screen, TopBar, toast, useAsync } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuScale } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, plan } = useAuth();
@@ -73,6 +73,8 @@ export default function Profile() {
           <div><strong>{game ? game.streak : '–'}</strong><span>giorni di fila</span></div>
         </section>
 
+        <InviteCard />
+
         <ul className="menu">
           <li>
             <Link to="/traguardi" className="menu__link">
@@ -97,9 +99,12 @@ export default function Profile() {
             </li>
           )}
           <li><Link to="/andrea" className="menu__link"><span><LuUser /> Chi è Andrea</span><em>La storia del founder</em></Link></li>
+          <li><Link to="/neutralita" className="menu__link"><span><LuScale /> La nostra linea</span><em>Neutralità</em></Link></li>
           <li><Link to="/privacy" className="menu__link"><span><LuShieldCheck /> Informativa privacy</span><em>Leggi</em></Link></li>
           <li><Link to="/termini" className="menu__link"><span><LuFileText /> Termini di servizio</span><em>Leggi</em></Link></li>
         </ul>
+
+        <EmailSettings />
 
         <Button variant="secondary" block onClick={logout}>
           <LuLogOut /> Esci
@@ -110,6 +115,82 @@ export default function Profile() {
         <p className="tiny muted center">The Lobby Academy, versione {APP_VERSION}</p>
       </main>
     </Screen>
+  );
+}
+
+/** Invite a friend: personal link, native share sheet or copy, and how many joined. */
+function InviteCard() {
+  const inv = useAsync(() => myInvite(), []);
+  const code = inv.data?.code;
+  const link = code ? inviteLink(code) : '';
+  const text = 'Sto usando THE LOBBY per capire come funzionano davvero Comune, Parlamento ed Europa, e trovare opportunità gratis. Entra anche tu:';
+
+  async function share() {
+    if (!link) return;
+    track('invite_share');
+    try {
+      if (navigator.share) { await navigator.share({ title: 'THE LOBBY', text, url: link }); return; }
+      await navigator.clipboard.writeText(`${text} ${link}`);
+      toast('Link copiato: mandalo a chi vuoi.');
+    } catch { /* closed */ }
+  }
+  async function copy() {
+    if (!link) return;
+    track('invite_copy');
+    try { await navigator.clipboard.writeText(link); toast('Link copiato.'); } catch { toast('Copia non riuscita: tieni premuto sul link.'); }
+  }
+
+  return (
+    <section className="invite" aria-label="Invita un amico">
+      <span className="invite__arch" aria-hidden="true" />
+      <span className="invite__kicker"><LuUserPlus aria-hidden="true" /> Invita un amico</span>
+      <h2 className="invite__title">La Lobby è più forte in compagnia.</h2>
+      <p className="invite__text">Manda il tuo link a chi vuole capire come funzionano le istituzioni. Quando si iscrive, lo vedi qui.</p>
+      {link && <p className="invite__link"><span>{link.replace('https://', '')}</span><button className="iconbtn" onClick={copy} aria-label="Copia il link"><LuCopy aria-hidden="true" /></button></p>}
+      <div className="invite__row">
+        <Button onClick={share} disabled={!link}><LuShare2 aria-hidden="true" /> Condividi il link</Button>
+        <span className="invite__count"><strong>{inv.data ? inv.data.joined : '–'}</strong> {inv.data?.joined === 1 ? 'persona portata' : 'persone portate'}</span>
+      </div>
+    </section>
+  );
+}
+
+/** Which engagement emails to receive. Service emails (password, live, Premium) always arrive. */
+function EmailSettings() {
+  const prefs = useAsync(() => myEmailPrefs(), []);
+  const [saving, setSaving] = useState(false);
+  const [local, setLocal] = useState<EmailPrefs | null>(null);
+  const cur = local || prefs.data || null;
+
+  async function toggle(k: keyof EmailPrefs) {
+    if (!cur) return;
+    const nextPrefs = { ...cur, [k]: !cur[k] };
+    setLocal(nextPrefs);
+    setSaving(true);
+    try {
+      await setEmailPrefs(nextPrefs);
+      toast(nextPrefs[k] ? 'Attivato.' : 'Disattivato.');
+    } catch {
+      setLocal(cur);
+      toast('Salvataggio non riuscito.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="mail-prefs" aria-label="Email che ricevi">
+      <h2 className="h-section">Email che ricevi</h2>
+      <label className="switch">
+        <input type="checkbox" checked={!!cur?.digest} disabled={!cur || saving} onChange={() => toggle('digest')} />
+        <span><strong>Riepilogo del lunedì</strong><small>Le opportunità della settimana e a che punto sei nel percorso.</small></span>
+      </label>
+      <label className="switch">
+        <input type="checkbox" checked={!!cur?.reminders} disabled={!cur || saving} onChange={() => toggle('reminders')} />
+        <span><strong>Promemoria</strong><small>La prima lezione, la serie di giorni di fila, un saluto se ti assenti a lungo.</small></span>
+      </label>
+      <p className="tiny muted">Le email di servizio (password, lezioni live, Premium) arrivano sempre.</p>
+    </section>
   );
 }
 

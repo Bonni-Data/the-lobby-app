@@ -19,11 +19,14 @@ async function key() {
   return resendKey;
 }
 
-const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura', 'incontro']);
+const ADMIN_KINDS = new Set(['test', 'live_pronta', 'candidatura', 'incontro', 'segnalazione', 'avviso_limiti']);
+// Engagement emails: capped by the plan limits and always with a one-click unsubscribe.
+const GROWTH_KINDS = new Set(['benvenuto', 'primo_passo', 'serie', 'settimana', 'rientro']);
+const UNSUB_WHAT: Record<string, string> = { primo_passo: 'reminders', serie: 'reminders', rientro: 'reminders', settimana: 'digest', benvenuto: 'digest' };
 const FIXED_ORIGINS = ['https://thelobbyitalia.it', 'https://www.thelobbyitalia.it', 'https://bonni-data.github.io', 'http://localhost:4173', 'http://127.0.0.1:4173'];
 
-type Settings = { from_email: string | null; from_name: string; reply_to: string; admin_email: string; app_url: string; live: boolean };
-type Row = { id: string; kind: string; to_email: string; to_name: string | null; payload: Record<string, any>; attempts: number; status: string };
+type Settings = { from_email: string | null; from_name: string; reply_to: string; admin_email: string; app_url: string; live: boolean; daily_cap: number; monthly_cap: number };
+type Row = { id: string; kind: string; to_email: string; to_name: string | null; user_id: string | null; payload: Record<string, any>; attempts: number; status: string };
 
 async function settings(): Promise<Settings> {
   const { data, error } = await db.from('mail_settings').select('*').eq('id', 1).single();
@@ -77,7 +80,7 @@ function ics(p: Record<string, any>) {
 /* ---------- Layout ---------- */
 type Block = { p?: string; quote?: string; button?: { label: string; url: string }; small?: string; facts?: [string, string][] };
 
-function layout(title: string, blocks: Block[], s: Settings) {
+function layout(title: string, blocks: Block[], s: Settings, unsub?: string) {
   const body = blocks.map((b) => {
     if (b.p) return `<p style="margin:0 0 16px;font-size:16px;line-height:1.55;color:#111C35">${b.p}</p>`;
     if (b.quote) return `<p style="margin:0 0 18px;padding:12px 16px;border-left:3px solid #FF7058;background:#FBF9F5;font-style:italic;font-size:15px;line-height:1.5;color:#111C35">${b.quote}</p>`;
@@ -103,20 +106,43 @@ function layout(title: string, blocks: Block[], s: Settings) {
 </td></tr>
 <tr><td style="padding:18px 28px;background:#FBF9F5;border-top:1px solid #E3DDD1;font-size:12px;line-height:1.5;color:#5B6275">
   Ricevi questa email perché hai un account su THE LOBBY. Domande? Rispondi a questa email o scrivi a ${esc(s.reply_to)}.<br>
+  ${unsub ? `Non vuoi più riceverle? <a href="${esc(unsub)}" style="color:#E2553E">Disiscriviti con un clic</a> o scegli cosa ricevere dal tuo profilo.<br>` : ''}
   <a href="${esc(s.app_url)}" style="color:#E2553E">${esc(s.app_url.replace(/^https?:\/\//, '').replace(/\/$/, ''))}</a>
 </td></tr></table></td></tr></table></body></html>`;
 }
 
-function plain(title: string, blocks: Block[]) {
+function plain(title: string, blocks: Block[], unsub?: string) {
   const strip = (h: string) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   return [title, '', ...blocks.map((b) =>
     b.p ? strip(b.p) : b.quote ? `“${strip(b.quote)}”` : b.small ? strip(b.small)
       : b.facts ? b.facts.map(([k, v]) => `${k}: ${strip(v)}`).join('\n') : b.button ? `${b.button.label}: ${b.button.url}` : ''),
-    '', 'Andrea, founder e docente di THE LOBBY'].join('\n\n');
+    '', 'Andrea, founder e docente di THE LOBBY', ...(unsub ? [`Disiscriviti: ${unsub}`] : [])].join('\n\n');
 }
 
 /* ---------- Templates ---------- */
 type Mail = { subject: string; title: string; blocks: Block[]; attachments?: { filename: string; content: string; content_type?: string }[] };
+
+const TAG_LABEL: Record<string, string> = { viaggio: 'Viaggio spesato', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
+
+function shortDate(d?: string | null) {
+  if (!d) return 'sempre aperta';
+  const [y, m, day] = d.split('-').map(Number);
+  return 'scade il ' + new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long' }).format(new Date(Date.UTC(y, m - 1, day, 12)));
+}
+
+/** The top opportunities, as a short list. Costs are always the publishing body's, never THE LOBBY's. */
+function oppBlocks(p: Record<string, any>, app: string, lead: string): Block[] {
+  const list: any[] = Array.isArray(p.opps) ? p.opps.slice(0, 3) : [];
+  if (!list.length) return [];
+  return [
+    { p: `<strong>${esc(lead)}</strong>` },
+    { facts: list.map((o) => [
+      esc(TAG_LABEL[o.tag] || 'Opportunità'),
+      `<strong>${esc(o.title)}</strong><br><span style="color:#5B6275;font-size:13px">${esc(o.organization || '')}${o.organization ? ' · ' : ''}${esc(shortDate(o.deadline))}${o.covered ? ` · offerto dall’ente: ${esc(o.covered)}` : ''}</span>`,
+    ] as [string, string]) },
+    { small: `Ti candidi sempre sul sito ufficiale dell’ente. Tutte le opportunità sono nella <a href="${esc(`${app}#/opportunita`)}" style="color:#E2553E">sezione Opportunità</a>.` },
+  ];
+}
 
 function render(r: Row, s: Settings): Mail {
   const p = r.payload || {};
@@ -189,7 +215,7 @@ function render(r: Row, s: Settings): Mail {
         blocks: [
           { p: `${hi} ho letto la tua candidatura e ti apro la porta: da oggi sei in Premium.` },
           ...(p.note ? [{ quote: esc(p.note) } as Block] : []),
-          { p: 'Dentro trovi i corsi avanzati, le lezioni live su Teams da prenotare, le cene della Lobby e tutte le opportunità, ogni mattina.' },
+          { p: 'Dentro trovi le lezioni live su Teams con me da prenotare, le cene della Lobby e gli incontri faccia a faccia per rivedere un testo, fare domande o chiedere un consiglio.' },
           { button: { label: 'Entra in Premium', url: `${app}#/premium` } },
         ],
       };
@@ -200,7 +226,7 @@ function render(r: Row, s: Settings): Mail {
         blocks: [
           { p: `${hi} grazie per esserti raccontato. Per ora non ti apro ancora la porta di Premium.` },
           ...(p.note ? [{ quote: esc(p.note) } as Block] : []),
-          { p: 'Tra 30 giorni puoi ricandidarti, con qualche passo in più da raccontare. Intanto i corsi gratuiti e le prime opportunità sono lì per te.' },
+          { p: 'Tra 30 giorni puoi ricandidarti, con qualche passo in più da raccontare. Intanto il percorso dell’Academy e tutte le opportunità sono lì per te.' },
           { button: { label: 'Continua con i corsi', url: `${app}#/academy` } },
         ],
       };
@@ -210,7 +236,7 @@ function render(r: Row, s: Settings): Mail {
         title: 'Nuova candidatura Premium.',
         blocks: [
           { facts: [['Nome', esc(p.name)], ['Email', esc(p.email)], ['Chi è oggi', esc(p.about)], ['Cosa ha fatto', esc(p.experience)], ['Prossimo livello', esc(p.goal)], ['Link', esc(p.link || '-')]] },
-          { button: { label: 'Valuta nell’Area founder', url: `${app}#/admin` } },
+          { button: { label: 'Valuta nell’Area founder', url: `${app}#/admin?sezione=candidature` } },
         ],
       };
     case 'incontro':
@@ -248,6 +274,108 @@ function render(r: Row, s: Settings): Mail {
           { small: 'Il link vale un’ora. Se non sei stato tu, ignora questa email: la password resta quella di prima.' },
         ],
       };
+    case 'benvenuto': {
+      const n = p.next || {};
+      return {
+        subject: 'Sei dentro. Ecco da dove partire',
+        title: 'Benvenuto nella Lobby.',
+        blocks: [
+          { p: `${hi} benvenuto. Qui capisci come funzionano davvero Comuni, Parlamento ed Europa, e trovi le opportunità per entrarci.` },
+          { p: 'Il percorso consigliato si chiama <strong>Da cittadino a protagonista</strong>: sei tappe, dalla mappa del potere fino alle candidature. Puoi saltare dove vuoi, ma se parti dall’inizio non ti perdi niente.' },
+          ...(n.lesson ? [{ facts: [['Prima tappa', esc(n.stage)], ['Primo corso', esc(n.course)], ['Prima lezione', `${esc(n.lesson)} · 5 minuti`]] } as Block] : []),
+          { button: { label: n.lesson_id ? 'Inizia la prima lezione' : 'Apri il percorso', url: n.lesson_id ? `${app}#/lezione/${n.lesson_id}` : `${app}#/academy` } },
+          ...oppBlocks(p, app, 'Intanto, tre occasioni aperte adesso:'),
+          { small: 'Ogni lunedì ti scrivo le opportunità della settimana e a che punto sei. Se preferisci di no, lo disattivi dal profilo quando vuoi.' },
+        ],
+      };
+    }
+    case 'primo_passo': {
+      const n = p.next || {};
+      return {
+        subject: '5 minuti e sei alla prima tappa',
+        title: 'Il primo passo è il più corto.',
+        blocks: [
+          { p: `${hi} ti sei iscritto ma non hai ancora aperto la prima lezione. Ti capisco: c’è sempre qualcosa di più urgente.` },
+          { p: n.lesson
+            ? `La prima lezione, <strong>«${esc(n.lesson)}»</strong>, si legge in cinque minuti. Dopo, quando senti parlare di Comune, Regione o Bruxelles, sai esattamente di chi è la palla.`
+            : 'Le lezioni si leggono in cinque minuti: dopo la prima, quando senti parlare di Comune, Regione o Bruxelles, sai esattamente di chi è la palla.' },
+          { button: { label: 'Apri la lezione', url: n.lesson_id ? `${app}#/lezione/${n.lesson_id}` : `${app}#/academy` } },
+        ],
+      };
+    }
+    case 'serie': {
+      const n = p.next || {};
+      const days = Number(p.streak) || 2;
+      return {
+        subject: `${days} giorni di fila: non fermarti stasera`,
+        title: `Sei a ${days} giorni di fila.`,
+        blocks: [
+          { p: `${hi} oggi non sei ancora passato dalla Lobby. Basta una lezione, anche solo una sfida, per tenere viva la serie.` },
+          ...(n.lesson ? [{ facts: [['Prossima lezione', esc(n.lesson)], ['Corso', esc(n.course)], ['Tappa', `${esc(n.stage_n)} · ${esc(n.stage)}`]] } as Block] : []),
+          { button: { label: 'Tieni viva la serie', url: n.lesson_id ? `${app}#/lezione/${n.lesson_id}` : `${app}#/academy` } },
+        ],
+      };
+    }
+    case 'settimana': {
+      const n = p.next || {};
+      const total = Number(p.opps_total) || 0;
+      return {
+        subject: total > 0 ? `La tua settimana nella Lobby: ${total} opportunità aperte` : 'La tua settimana nella Lobby',
+        title: 'La tua settimana nella Lobby.',
+        blocks: [
+          { p: `${hi} ecco cosa c’è di buono questa settimana.` },
+          ...oppBlocks(p, app, total > 3 ? `Le tre da non perdere, su ${total} aperte:` : 'Le occasioni aperte:'),
+          { button: { label: 'Vedi tutte le opportunità', url: `${app}#/opportunita` } },
+          ...(n.lesson ? [
+            { p: `<strong>A che punto sei.</strong> Tappa ${esc(n.stage_n)}, ${esc(n.stage)}: nel corso «${esc(n.course)}» hai fatto ${esc(n.done)} lezioni su ${esc(n.total)}. La prossima è «${esc(n.lesson)}».` } as Block,
+            { small: `<a href="${esc(`${app}#/lezione/${n.lesson_id}`)}" style="color:#E2553E">Riprendi il percorso da qui</a>` } as Block,
+          ] : []),
+        ],
+      };
+    }
+    case 'rientro': {
+      const n = p.next || {};
+      const total = Number(p.opps_total) || 0;
+      return {
+        subject: 'Ti abbiamo tenuto il posto',
+        title: 'Ti abbiamo tenuto il posto.',
+        blocks: [
+          { p: `${hi} è un po’ che non passi dalla Lobby. Nel frattempo sono arrivate nuove opportunità${total ? `: ora ce ne sono ${total} aperte` : ''}.` },
+          ...oppBlocks(p, app, 'Tre che potrebbero interessarti:'),
+          ...(n.lesson ? [{ p: `Il tuo percorso riparte da <strong>«${esc(n.lesson)}»</strong>. Cinque minuti e sei di nuovo in pista.` } as Block] : []),
+          { button: { label: 'Riprendi da qui', url: n.lesson_id ? `${app}#/lezione/${n.lesson_id}` : `${app}#/home` } },
+        ],
+      };
+    }
+    case 'segnalazione':
+      return {
+        subject: `Segnalazione su «${p.lesson}»`,
+        title: 'Qualcuno ha segnalato un possibile errore.',
+        blocks: [
+          { facts: [['Lezione', esc(p.lesson)], ['Corso', esc(p.course)], ['Da', esc(p.from || '-')]] },
+          { quote: esc(p.message) },
+          { button: { label: 'Apri la lezione', url: `${app}#/lezione/${p.lesson_id}` } },
+          { small: 'La trovi anche nell’Area founder, sezione Numeri. La revisione mensile dei contenuti la controlla e, se serve, corregge il testo citando la fonte.' },
+        ],
+      };
+    case 'avviso_limiti': {
+      const reason = String(p.reason || '');
+      const subject = reason === 'giorno'
+        ? `Email: ${p.day} inviate nelle ultime 24 ore (il piano gratuito ne permette 100)`
+        : reason === 'mese'
+          ? `Email: ${p.month} inviate questo mese (il piano gratuito ne permette 3.000)`
+          : `${p.subs} iscritti al riepilogo del lunedì: è ora di valutare Resend Pro`;
+      return {
+        subject,
+        title: 'È quasi ora di passare a Resend Pro.',
+        blocks: [
+          { p: 'Il piano gratuito di Resend manda al massimo 100 email al giorno e 3.000 al mese. Ci stiamo avvicinando.' },
+          { facts: [['Ultime 24 ore', esc(p.day)], ['Questo mese', esc(p.month)], ['Iscritti al riepilogo', esc(p.subs)]] },
+          { p: 'Per ora non si perde niente: password, verifiche e live hanno sempre la precedenza, mentre benvenuti, promemoria e riepiloghi oltre il limite slittano alle ore successive. Ma con questi numeri il riepilogo del lunedì arriverà in ritardo a una parte degli iscritti.' },
+          { p: 'Resend Pro costa circa 20 dollari al mese e alza il limite a 50.000 email. Si attiva dal tuo account Resend: quando l’hai fatto, dimmelo e alzo i limiti nell’app.' },
+        ],
+      };
+    }
     case 'test':
       return {
         subject: 'Email di prova da THE LOBBY',
@@ -260,9 +388,23 @@ function render(r: Row, s: Settings): Mail {
 }
 
 /* ---------- Sending ---------- */
+/** Unsubscribe links for engagement emails: a page in the app, and a one-click endpoint for mail clients. */
+async function unsubLinks(r: Row, s: Settings) {
+  if (!GROWTH_KINDS.has(r.kind) || !r.user_id) return null;
+  const { data } = await db.from('email_prefs').select('token').eq('user_id', r.user_id).maybeSingle();
+  if (!data?.token) return null;
+  const what = UNSUB_WHAT[r.kind] || 'all';
+  const app = s.app_url.endsWith('/') ? s.app_url : s.app_url + '/';
+  return {
+    page: `${app}#/email?u=${data.token}&k=${what}`,
+    oneClick: `${SUPABASE_URL}/functions/v1/mailer?u=${data.token}&k=${what}`,
+  };
+}
+
 async function deliver(r: Row, s: Settings) {
   const m = render(r, s);
   const from = s.from_email ? `${s.from_name} <${s.from_email}>` : `${s.from_name} <onboarding@resend.dev>`;
+  const unsub = await unsubLinks(r, s);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${await key()}`, 'Content-Type': 'application/json', 'Idempotency-Key': r.id },
@@ -271,9 +413,10 @@ async function deliver(r: Row, s: Settings) {
       to: [r.to_email],
       reply_to: r.kind === 'incontro' && r.payload?.email ? r.payload.email : s.reply_to,
       subject: m.subject,
-      html: layout(m.title, m.blocks, s),
-      text: plain(m.title, m.blocks),
+      html: layout(m.title, m.blocks, s, unsub?.page),
+      text: plain(m.title, m.blocks, unsub?.page),
       attachments: m.attachments,
+      headers: unsub ? { 'List-Unsubscribe': `<${unsub.oneClick}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : undefined,
       tags: [{ name: 'kind', value: r.kind }],
     }),
   });
@@ -292,6 +435,22 @@ async function processRow(id: string, s: Settings): Promise<string> {
   if (!s.live && !ADMIN_KINDS.has(peek.kind) && peek.kind !== 'password') {
     await db.from('email_outbox').update({ error: 'in attesa: dominio email non ancora attivo' }).eq('id', id);
     return 'waiting';
+  }
+  // Free plan limits: engagement emails wait, essential ones (password, verification, live, founder) always go first.
+  if (GROWTH_KINDS.has(peek.kind)) {
+    const dayAgo = new Date(Date.now() - 86400_000).toISOString();
+    const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString();
+    const [{ count: day }, { count: month }] = await Promise.all([
+      db.from('email_outbox').select('id', { count: 'exact', head: true }).eq('status', 'sent').gt('sent_at', dayAgo),
+      db.from('email_outbox').select('id', { count: 'exact', head: true }).eq('status', 'sent').gte('sent_at', monthStart),
+    ]);
+    if ((day || 0) >= (s.daily_cap || 95) || (month || 0) >= (s.monthly_cap || 2900)) {
+      await db.from('email_outbox').update({
+        send_after: new Date(Date.now() + 3600_000).toISOString(),
+        error: (month || 0) >= (s.monthly_cap || 2900) ? 'in attesa: limite mensile del piano email gratuito' : 'in attesa: limite giornaliero del piano email gratuito',
+      }).eq('id', id);
+      return 'deferred';
+    }
   }
   const { data: claimed } = await db.from('email_outbox')
     .update({ status: 'sending', attempts: peek.attempts + 1 })
@@ -312,8 +471,8 @@ async function processRow(id: string, s: Settings): Promise<string> {
 async function flush(s: Settings) {
   const since = new Date(Date.now() - 7 * 86400_000).toISOString();
   const { data } = await db.from('email_outbox').select('id')
-    .in('status', ['queued', 'error']).lt('attempts', 5).gt('created_at', since)
-    .order('created_at', { ascending: true }).limit(40);
+    .in('status', ['queued', 'error']).lt('attempts', 5).gt('created_at', since).lte('send_after', new Date().toISOString())
+    .order('priority', { ascending: true }).order('created_at', { ascending: true }).limit(40);
   const out: Record<string, number> = {};
   for (const row of data || []) {
     const r = await processRow(row.id, s);
@@ -347,6 +506,15 @@ Deno.serve(async (req) => {
   let s: Settings;
   try { s = await settings(); } catch { return new Response(JSON.stringify({ error: 'unavailable' }), { status: 503, headers: { ...cors(origin), 'Content-Type': 'application/json' } }); }
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors(origin, s), 'Content-Type': 'application/json' } });
+  // One-click unsubscribe from the mail client (RFC 8058): POST to ?u=<token>&k=<what>.
+  const qs = new URL(req.url).searchParams;
+  const token = qs.get('u');
+  if (token) {
+    if (req.method !== 'POST' || !/^[0-9a-f-]{36}$/i.test(token)) return new Response('Usa il link nella email per disiscriverti.', { status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    const what = ['digest', 'reminders', 'all'].includes(qs.get('k') || '') ? qs.get('k') : 'all';
+    const { data } = await db.rpc('email_unsubscribe', { p_token: token, p_what: what });
+    return new Response(data === 'ok' ? 'Fatto: non riceverai più queste email.' : 'Link non valido.', { status: data === 'ok' ? 200 : 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  }
   let body: any = {};
   try { body = await req.json(); } catch { return reply({ error: 'bad_request' }, 400); }
   try {

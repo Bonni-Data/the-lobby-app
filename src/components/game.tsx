@@ -5,11 +5,13 @@ import { BADGES, LEVELS, Stats, gameStats, levelFor, loadGame, onGame, onGameEve
 import { Button } from './ui';
 import {
   LuDoorOpen, LuBookOpen, LuAward, LuMedal, LuTarget, LuCrosshair, LuEye, LuFlame, LuSwords, LuCrown, LuLandmark, LuGlobe, LuMic, LuKeyRound, LuLock, LuArrowRight, LuZap,
+  LuRoute, LuFlag, LuUsers,
 } from 'react-icons/lu';
 
 const ICONS: Record<string, React.ReactNode> = {
   door: <LuDoorOpen />, book: <LuBookOpen />, award: <LuAward />, medal: <LuMedal />, target: <LuTarget />, crosshair: <LuCrosshair />,
   eye: <LuEye />, flame: <LuFlame />, swords: <LuSwords />, chess: <LuCrown />, landmark: <LuLandmark />, globe: <LuGlobe />, mic: <LuMic />, key: <LuKeyRound />,
+  route: <LuRoute />, flag: <LuFlag />, users: <LuUsers />,
 };
 
 export function badgeInfo(id: string) {

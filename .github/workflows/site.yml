@@ -1,0 +1,75 @@
+# THE LOBBY · public pages for Google.
+# Every morning (after the opportunities are refreshed) and whenever the generator changes, rebuild the indexable pages
+# (path, courses, lessons, opportunities, founder, neutrality, sitemap) from the public data and publish them on gh-pages.
+name: Pagine pubbliche
+
+on:
+  schedule:
+    - cron: '25 5 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/site.mjs'
+      - 'public/site.css'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-public
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generator
+        uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Published site
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build public pages
+        run: |
+          cp src/public/site.css site/site.css
+          node src/scripts/site.mjs --out site
+      - name: Publish
+        id: publish
+        working-directory: site
+        run: |
+          git config user.name "THE LOBBY bot"
+          git config user.email "thelobbysupport@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing changed"
+            exit 0
+          fi
+          git commit -m "Pagine pubbliche aggiornate $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase origin gh-pages && git push origin HEAD:gh-pages && break
+            sleep 5
+          done
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Tell Bing and other IndexNow engines
+        if: steps.publish.outputs.changed == 'true'
+        continue-on-error: true
+        working-directory: site
+        run: |
+          sleep 60
+          python3 - <<'PY'
+          import json, urllib.request
+          urls = [u.strip() for u in open('site-urls.txt') if u.strip()][:9000]
+          body = json.dumps({"host": "thelobbyitalia.it", "key": "7f3c9a1e5b2d4c8f9e0a6b1c2d3e4f50",
+                             "keyLocation": "https://thelobbyitalia.it/7f3c9a1e5b2d4c8f9e0a6b1c2d3e4f50.txt", "urlList": urls}).encode()
+          req = urllib.request.Request("https://api.indexnow.org/indexnow", data=body, headers={"Content-Type": "application/json; charset=utf-8"})
+          print(urllib.request.urlopen(req, timeout=30).status)
+          PY

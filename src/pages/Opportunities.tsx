@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { listOpportunities, OppTag, FREE_OPPORTUNITIES } from '../lib/data';
+import React, { useEffect, useState } from 'react';
+import { listOpportunities, track, OppTag } from '../lib/data';
 import { useAuth } from '../lib/auth';
-import { Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
-import { OppCard, LockedCard, PremiumNudge, YouthCardPinned } from '../components/opps';
+import { ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
+import { OppCard, YouthCardPinned } from '../components/opps';
 import { DinnersSection } from '../components/dinners';
 import { useLocation, navigate } from '../lib/router';
 import { LuLock } from 'react-icons/lu';
@@ -11,36 +11,40 @@ const FILTERS: ('tutte' | OppTag)[] = ['tutte', 'viaggio', 'lavoro', 'sviluppo']
 const FILTER_LABEL: Record<string, string> = { tutte: 'Tutte', viaggio: 'Viaggi', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
 
 export default function Opportunities() {
-  const { plan } = useAuth();
+  const { plan, session } = useAuth();
   const { query } = useLocation();
-  const section = query.get('sezione') === 'cene' ? 'cene' : 'bandi';
-  const data = useAsync(() => listOpportunities(), [plan.premium]);
+  const section = query.get('sezione') === 'cene' && session ? 'cene' : 'bandi';
+  const data = useAsync(() => listOpportunities(), []);
   const [tag, setTag] = useState<'tutte' | OppTag>('tutte');
+  useEffect(() => { track(session ? 'page' : 'visit', { page: 'opportunita' }); }, []);
 
   const all = data.data || [];
   const items = all.filter((o) => tag === 'tutte' || o.tag === tag);
-  const open = items.filter((o) => !o.locked);
-  const locked = items.filter((o) => o.locked);
-  const lockedTotal = all.filter((o) => o.locked).length;
 
   return (
-    <Screen>
-      <TopBar />
+    <Screen nav={!!session}>
+      <TopBar back={session ? undefined : '/'} />
       <main className="page">
         <h1 className="h-page">Opportunità</h1>
-        <div className="section-tabs" role="tablist" aria-label="Sezioni">
+        {!session && (
+          <aside className="guest-cta">
+            <p><strong>Sono tutte gratis, anche senza account.</strong> Con l'account segui il percorso dell'Academy e ogni lunedì ti arrivano le nuove opportunità.</p>
+            <ButtonLink to="/accedi?tab=registrati" block>Crea il tuo account gratis</ButtonLink>
+          </aside>
+        )}
+        {session && <div className="section-tabs" role="tablist" aria-label="Sezioni">
           <button role="tab" aria-selected={section === 'bandi'} className={section === 'bandi' ? 'is-on' : ''} onClick={() => navigate('/opportunita', true)}>
             Bandi e programmi
           </button>
           <button role="tab" aria-selected={section === 'cene'} className={section === 'cene' ? 'is-on' : ''} onClick={() => navigate('/opportunita?sezione=cene', true)}>
             Cene {!plan.premium && <LuLock aria-label="riservata a Premium" />}
           </button>
-        </div>
+        </div>}
 
         {section === 'cene' ? <DinnersSection /> : (<>
         <p className="muted">
-          Bandi, tirocini, programmi e viaggi pubblicati da istituzioni ed enti, raccolti in un solo posto e aggiornati ogni mattina alle 7.{' '}
-          {!plan.premium && lockedTotal > 0 && `Le prime ${FREE_OPPORTUNITIES} sono per tutti, l'archivio completo è Premium.`}
+          Bandi, tirocini, programmi e viaggi pubblicati da istituzioni ed enti, raccolti in un solo posto e aggiornati ogni mattina
+          alle 7. Tutti gratis, per tutti.
         </p>
 
         {all.length > 0 && (
@@ -65,17 +69,8 @@ export default function Opportunities() {
         )}
 
         <ul className="opp-cards">
-          {open.map((o) => <OppCard key={o.id} o={o} />)}
+          {items.map((o) => <OppCard key={o.id} o={o} />)}
         </ul>
-
-        {locked.length > 0 && (
-          <>
-            <PremiumNudge count={locked.length} />
-            <ul className="opp-cards opp-cards--locked">
-              {locked.slice(0, 6).map((o) => <LockedCard key={o.id} o={o} />)}
-            </ul>
-          </>
-        )}
         {all.length > 0 && (
           <p className="opp-disclaimer">
             THE LOBBY non organizza né finanzia queste opportunità: le cerca e le raccoglie dalle fonti ufficiali. Viaggi, rimborsi

@@ -203,6 +203,12 @@ export default function Auth() {
               </span>
             </label>
           )}
+          {tab === 'registrati' && (
+            <p className="tiny muted auth__note">
+              Ogni lunedì ti scriviamo le opportunità della settimana e, ogni tanto, un promemoria per non perdere il filo. Li
+              disattivi quando vuoi dal profilo o con un clic in fondo a ogni email.
+            </p>
+          )}
 
           {error && (
             <div className="alert" role="alert">

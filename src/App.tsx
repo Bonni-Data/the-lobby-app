@@ -14,7 +14,8 @@ import Quiz from './pages/Quiz';
 import Opportunities from './pages/Opportunities';
 import Profile from './pages/Profile';
 import Premium from './pages/Premium';
-import { Privacy, Terms } from './pages/Legal';
+import { Privacy, Terms, Neutrality } from './pages/Legal';
+import Unsubscribe from './pages/Unsubscribe';
 import Admin from './pages/Admin';
 import Story from './pages/Story';
 import Verify from './pages/Verify';
@@ -37,7 +38,7 @@ import Achievements from './pages/Achievements';
   }
 })();
 
-const PUBLIC = ['/', '/accedi', '/password', '/privacy', '/termini', '/andrea', '/verifica'];
+const PUBLIC = ['/', '/accedi', '/password', '/privacy', '/termini', '/andrea', '/verifica', '/opportunita', '/neutralita', '/email'];
 
 function Routes() {
   const { path } = useLocation();
@@ -66,6 +67,8 @@ function Routes() {
   if (path === '/andrea') return <Story />;
   if (path === '/privacy') return <Privacy />;
   if (path === '/termini') return <Terms />;
+  if (path === '/neutralita') return <Neutrality />;
+  if (path === '/email') return <Unsubscribe key={window.location.hash} />;
   if (path === '/traguardi') return <Achievements />;
   let p;
   if ((p = match('/corso/:slug', path))) return <Course slug={p.slug} />;

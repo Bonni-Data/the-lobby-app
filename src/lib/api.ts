@@ -133,6 +133,9 @@ export function signupSource(): Record<string, string> {
       const v = q.get(k);
       if (v) out[k] = v.slice(0, 80);
     }
+    // Invite code of the friend who shared the link (?invito=ABC123).
+    const invite = (q.get('invito') || '').trim().toUpperCase();
+    if (/^[A-Z0-9]{4,12}$/.test(invite)) out.invite = invite;
     return out;
   } catch {
     return {};

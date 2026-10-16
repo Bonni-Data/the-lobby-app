@@ -49,10 +49,13 @@ export function Privacy() {
         <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e certificati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
         <li><strong>Richieste di incontro con Andrea:</strong> nome, email, telefono se lo indichi, di cosa hai bisogno, il testo e l'eventuale link che condividi, durata, modalità e disponibilità.</li>
         <li><strong>Candidatura a Premium:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
-        <li><strong>Email di servizio:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna).</li>
+        <li><strong>Email:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna) e le tue preferenze (riepilogo del lunedì e promemoria, attivi o disattivati).</li>
+        <li><strong>Statistiche d'uso interne:</strong> quali pagine e funzioni usi dentro THE LOBBY (per esempio apertura del percorso, clic su un'opportunità, condivisione), collegate al tuo account. Per chi visita il sito senza account contiamo solo il numero di visite, senza alcun identificativo: nessun cookie, nessun indirizzo IP salvato, nessuno strumento di terze parti.</li>
+        <li><strong>Inviti:</strong> il tuo codice invito e, se ti iscrivi dal link di un amico, il suo codice, per mostrargli quante persone ha portato (solo il numero, mai i nomi).</li>
+        <li><strong>Segnalazioni:</strong> il testo che scrivi quando segnali un possibile errore in una lezione.</li>
         <li><strong>Provenienza:</strong> se ti iscrivi da un link di una nostra campagna, il nome della campagna presente nel link (per esempio «instagram»). Lo leggiamo dall'indirizzo della pagina al momento dell'iscrizione, senza salvare nulla sul tuo dispositivo.</li>
         <li><strong>Dati tecnici:</strong> indirizzo IP, tipo di dispositivo e browser, data e ora delle richieste, registrati dai fornitori per far funzionare il servizio e proteggerlo da abusi.</li>
-        <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato, una copia dell'app per aprirla più velocemente e le tue preferenze di lettura (lezione a schede o a pagina unica, scheda a cui eri arrivato, velocità della voce). Sono strumenti tecnici strettamente necessari (art. 122 del Codice privacy): non usiamo cookie di profilazione, pubblicitari o di statistica di terze parti, e per questo non ti chiediamo un consenso.</li>
+        <li><strong>Dati salvati sul tuo dispositivo:</strong> il codice di accesso che ti tiene collegato, una copia dell'app per aprirla più velocemente e le tue preferenze di lettura (lezione a schede o a pagina unica, scheda a cui eri arrivato, velocità della voce). Sono strumenti tecnici strettamente necessari (art. 122 del Codice privacy): non usiamo cookie di profilazione, pubblicitari o di statistica, e per questo non ti chiediamo un consenso.</li>
       </ul>
       <p>
         <strong>Dati che non ti chiediamo.</strong> THE LOBBY parla di istituzioni e politica, ma non ha bisogno di sapere come la
@@ -66,14 +69,21 @@ export function Privacy() {
         <li><strong>Creare e gestire il tuo account, farti seguire corsi, quiz, opportunità e lezioni live.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
         <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi: nessuna decisione è presa da un sistema automatico.</li>
         <li><strong>Organizzare gli incontri che chiedi ad Andrea.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La richiesta arriva via email ad Andrea, che ti scrive per fissare giorno e ora.</li>
-        <li><strong>Inviarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni, date e link delle lezioni live, promemoria, esito della candidatura. Base: esecuzione del contratto (art. 6.1.b). Non sono newsletter né pubblicità.</li>
+        <li><strong>Inviarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni, date e link delle lezioni live, promemoria, esito della candidatura. Base: esecuzione del contratto (art. 6.1.b). Non sono pubblicità.</li>
+        <li><strong>Accompagnarti nel percorso:</strong> l'email di benvenuto, il riepilogo del lunedì con le opportunità della settimana e qualche promemoria (la prima lezione, la serie di giorni, un rientro dopo una pausa). Riguardano solo il servizio a cui ti sei iscritto. Base: legittimo interesse a farti usare il servizio che hai scelto (art. 6.1.f e art. 130, comma 4, del Codice privacy). Li disattivi quando vuoi dal Profilo o con un clic in fondo a ogni email.</li>
+        <li><strong>Migliorare THE LOBBY con statistiche d'uso interne</strong> (quali tappe funzionano, dove ci si ferma). Base: legittimo interesse (art. 6.1.f). Puoi opporti scrivendoci.</li>
         <li><strong>Capire quali campagne portano nuovi iscritti</strong>, con dati aggregati. Base: legittimo interesse a far conoscere il progetto (art. 6.1.f). Puoi opporti scrivendoci.</li>
         <li><strong>Garantire la sicurezza del servizio, prevenire abusi e difendere i nostri diritti.</strong> Base: legittimo interesse (art. 6.1.f).</li>
         <li><strong>Rispettare obblighi di legge</strong> e richieste delle autorità. Base: obbligo legale (art. 6.1.c).</li>
       </ul>
       <p>
         Fornire i dati dell'account è necessario per usare THE LOBBY; la candidatura a Premium è facoltativa. Non vendiamo i tuoi
-        dati, non li usiamo per pubblicità e non ti iscriviamo a newsletter senza il tuo consenso.
+        dati, non li usiamo per pubblicità e non li cediamo a nessuno.
+      </p>
+      <p>
+        <strong>I tuoi dati non fanno politica.</strong> Non usiamo mai i tuoi dati per attività politiche, elettorali o di
+        propaganda, non li comunichiamo a partiti, movimenti, candidati o comitati e non li usiamo per l'eventuale impegno politico
+        personale di chi gestisce THE LOBBY. La nostra linea completa è nella pagina <Link to="/neutralita">Neutralità</Link>.
       </p>
 
       <h2>4. Chi può vedere i dati</h2>
@@ -114,6 +124,8 @@ export function Privacy() {
         <li><strong>Candidature a Premium:</strong> 12 mesi dalla decisione, per gestire eventuali nuove candidature; prima, se elimini l'account o ce lo chiedi.</li>
         <li><strong>Richieste di incontro:</strong> 12 mesi dalla richiesta; prima, se elimini l'account o ce lo chiedi.</li>
         <li><strong>Registro delle email di servizio:</strong> 12 mesi. I link di conferma scaduti o usati: 30 giorni.</li>
+        <li><strong>Statistiche d'uso interne:</strong> 13 mesi, poi vengono cancellate in automatico.</li>
+        <li><strong>Segnalazioni sulle lezioni:</strong> finché servono a correggere il contenuto, al massimo 12 mesi.</li>
         <li><strong>Dati tecnici:</strong> per i tempi stabiliti dai fornitori per sicurezza e funzionamento, di norma pochi giorni o settimane.</li>
       </ul>
 
@@ -165,19 +177,19 @@ export function Terms() {
 
       <h2>2. Cosa offre THE LOBBY</h2>
       <ul>
-        <li>Corsi da leggere, con quiz, su come funzionano le istituzioni e sulle competenze per muoversi al loro interno.</li>
-        <li>Lezioni live su Microsoft Teams con Andrea Bonazzi, riservate a Premium.</li>
-        <li>Una raccolta, aggiornata ogni giorno, di opportunità pubblicate da enti pubblici, istituzioni europee e organizzazioni internazionali.</li>
-        <li>Con Premium, contenuti ed esperienze riservate, come descritto nella pagina Premium.</li>
+        <li>Un percorso a tappe di corsi da leggere, con quiz, su come funzionano le istituzioni e sulle competenze per muoversi al loro interno.</li>
+        <li>Una raccolta, aggiornata ogni giorno, di opportunità pubblicate da enti pubblici, istituzioni europee e organizzazioni internazionali, consultabile da tutti.</li>
+        <li>Con Premium, gratuito e su selezione: lezioni live su Microsoft Teams con Andrea Bonazzi, cene e incontri, come descritto nella pagina Premium.</li>
       </ul>
 
       <h2>3. Natura dei contenuti</h2>
       <p>
         THE LOBBY non è affiliata ad alcun partito, movimento o istituzione e non fa propaganda politica: i contenuti hanno scopo
         formativo e informativo, presentano i temi in modo neutrale e non sono consulenza legale, fiscale o professionale. Alcuni
-        testi sono preparati anche con strumenti di intelligenza artificiale e sono rivisti e pubblicati sotto la responsabilità
-        editoriale di Andrea Bonazzi. Norme, scadenze e dati possono cambiare: per le decisioni importanti verifica sempre sulle
-        fonti ufficiali.
+        testi sono preparati anche con strumenti di intelligenza artificiale e sono pubblicati sotto la responsabilità editoriale di
+        Andrea Bonazzi: ogni mese li ricontrolliamo sulle fonti ufficiali e ogni lezione indica la data dell'ultimo aggiornamento.
+        Se trovi un errore puoi segnalarlo dalla lezione. Norme, scadenze e dati possono cambiare: per le decisioni importanti
+        verifica sempre sulle fonti ufficiali. I principi che seguiamo sono nella pagina <Link to="/neutralita">Neutralità</Link>.
       </p>
 
       <h2>4. Il tuo account</h2>
@@ -202,7 +214,7 @@ export function Terms() {
       <h2>6. Free e Premium</h2>
       <ul>
         <li>THE LOBBY è <strong>interamente gratuita</strong>, Premium compreso.</li>
-        <li>Con l'account base accedi ai corsi base, ai quiz e alle prime tre opportunità della lista quotidiana.</li>
+        <li>Con l'account base accedi a tutto il percorso dell'Academy, ai quiz, alle simulazioni e a tutte le opportunità. Le opportunità sono consultabili anche senza account.</li>
         <li>
           L'accesso a Premium è <strong>su selezione</strong>: ti candidi raccontando il tuo percorso e Andrea Bonazzi valuta
           personalmente ogni candidatura, a sua discrezione e senza discriminazioni. Le opinioni politiche e l'eventuale
@@ -285,6 +297,70 @@ export function Terms() {
       <p>Se una clausola risultasse non valida, le altre restano efficaci. Questi termini sono redatti in italiano, che è la lingua che fa fede.</p>
 
       <p className="legal__links"><Link to="/privacy">Leggi anche l'Informativa privacy</Link></p>
+    </LegalShell>
+  );
+}
+
+export function Neutrality() {
+  return (
+    <LegalShell title="La nostra linea: neutralità">
+      <p className="lede">
+        THE LOBBY spiega come funzionano le regole, non per chi votare. Ecco gli impegni che prendiamo, nero su bianco.
+      </p>
+
+      <h2>1. Nessun partito</h2>
+      <p>
+        THE LOBBY non è affiliata ad alcun partito, movimento, candidato o comitato elettorale, non riceve soldi da loro e non fa
+        propaganda. Non ospitiamo pubblicità politica e non pubblichiamo opportunità offerte da partiti.
+      </p>
+
+      <h2>2. Spieghiamo i meccanismi, non le opinioni</h2>
+      <p>
+        Le lezioni raccontano chi decide cosa, con quali strumenti e con quali soldi. Non diamo giudizi su partiti, leader o
+        schieramenti di oggi e non diciamo a nessuno come votare. La storia dei partiti la trattiamo come storia: fatti, date,
+        fonti.
+      </p>
+
+      <h2>3. Il founder</h2>
+      <p>
+        Andrea Bonazzi ha un impegno civico e un'esperienza amministrativa locale, che racconta nella sua <Link to="/andrea">pagina</Link>.
+        Proprio per questo le sue idee personali restano fuori da THE LOBBY: nei corsi porta l'esperienza di chi le istituzioni le
+        ha viste da dentro, non le sue posizioni.
+      </p>
+
+      <h2>4. I tuoi dati non fanno politica</h2>
+      <p>
+        I dati di chi usa THE LOBBY non vengono mai usati per attività politiche, elettorali o di propaganda, non vengono comunicati
+        a partiti, movimenti, candidati o comitati e non vengono usati per l'impegno politico personale di chi gestisce il progetto.
+        Nella candidatura a Premium le opinioni politiche e l'appartenenza a un partito non contano e non te le chiediamo.
+      </p>
+
+      <h2>5. Fonti e correzioni</h2>
+      <p>
+        Ogni lezione indica la data dell'ultimo aggiornamento e, man mano che le ricontrolliamo, le fonti ufficiali su cui si basa.
+        Ogni mese rileggiamo i contenuti per tenere aggiornati numeri e norme. Se trovi un errore, segnalalo dalla lezione: lo
+        verifichiamo e, se serve, lo correggiamo.
+      </p>
+
+      <h2>6. Ospiti da aree diverse</h2>
+      <p>
+        Quando invitiamo persone delle istituzioni o della politica, a una lezione o a una cena, cerchiamo voci di aree diverse e lo
+        diciamo chiaramente. Gli ospiti parlano a titolo personale e la loro presenza non è un sostegno di THE LOBBY.
+      </p>
+
+      <h2>7. Social e comunicazione</h2>
+      <p>
+        Sui social valgono le stesse regole: pillole su come funzionano le istituzioni e opportunità di enti pubblici, mai prese di
+        posizione su partiti o candidati.
+      </p>
+
+      <h2>8. Se pensi che non stiamo rispettando questa linea</h2>
+      <p>
+        Scrivici a <Contact />, indicando la lezione, il post o la pagina. Rispondiamo a tutti e, se hai ragione, correggiamo e lo
+        diciamo.
+      </p>
+
+      <p className="legal__links"><Link to="/privacy">Informativa privacy</Link> · <Link to="/termini">Termini di servizio</Link></p>
     </LegalShell>
   );
 }

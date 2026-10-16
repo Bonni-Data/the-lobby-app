@@ -142,7 +142,7 @@ export default function Story() {
 
         <p className="story-note">
           THE LOBBY è un progetto indipendente: non è legato ad alcun partito ed è aperto a tutti, qualunque sia la tua idea
-          politica.
+          politica. <a href="#/neutralita">Leggi la nostra linea sulla neutralità</a>.
         </p>
 
         {session ? (

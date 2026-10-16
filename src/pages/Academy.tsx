@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   listCourses, listProgress, completedIn, lessonCount, draftCount, courseOutline, listLive, isLive, liveIsOver, LEVEL_LABEL, CATEGORIES, categoryOf,
-  Course, Progress, OutlineLesson, CategoryId, LiveEdition,
+  listPath, pathView, track, PATH_NAME, Course, Progress, OutlineLesson, CategoryId, LiveEdition, PathStage, PathView, StageView,
 } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { ButtonLink, DoorCover, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
-import { Link, useLocation } from '../lib/router';
-import { LuSearch, LuLock, LuKeyRound, LuTarget, LuGlobe, LuLandmark, LuBuilding2, LuMic, LuRadio, LuBookOpen } from 'react-icons/lu';
+import { Link, useLocation, navigate } from '../lib/router';
+import { LuSearch, LuLock, LuKeyRound, LuTarget, LuGlobe, LuLandmark, LuBuilding2, LuMic, LuRadio, LuBookOpen, LuCheck, LuArrowRight, LuRoute, LuFlag } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 
 const CAT_ICON: Record<CategoryId, React.ReactNode> = {
@@ -16,7 +16,7 @@ const CAT_ICON: Record<CategoryId, React.ReactNode> = {
   skill: <LuMic />,
 };
 
-function CourseRow({ c, progress, admin, locked, live }: { c: Course; progress: Progress[]; admin?: boolean; locked?: boolean; live?: LiveEdition }) {
+function CourseRow({ c, progress, admin, locked, live, optional }: { c: Course; progress: Progress[]; admin?: boolean; locked?: boolean; live?: LiveEdition; optional?: boolean }) {
   const isL = isLive(c);
   const total = lessonCount(c);
   const done = completedIn(c, progress);
@@ -33,6 +33,7 @@ function CourseRow({ c, progress, admin, locked, live }: { c: Course; progress: 
             {c.access_level === 'premium' && <em className="course-row__lock">{locked ? <LuLock aria-hidden="true" /> : <LuKeyRound aria-hidden="true" />} Premium</em>}
             {isL && <em className="chip chip--live"><LuRadio aria-hidden="true" /> Live</em>}
             {coming && !locked && <em className="chip chip--soon">In arrivo</em>}
+            {optional && <em className="chip chip--soon">Facoltativo</em>}
             {drafts > 0 && <em className="chip chip--draft">Bozza da validare</em>}
             {admin && ready && <em className="chip chip--draft">Pronta: fissa la data</em>}
           </span>
@@ -109,26 +110,137 @@ function PreviewCard({ c, outline, live }: { c: Course; outline: OutlineLesson[]
   );
 }
 
+function StageCard({ st, n, data, plan, isNext }: {
+  st: StageView;
+  n: number;
+  data: { progress: Progress[]; outlines: Record<string, OutlineLesson[]>; liveBy: Record<string, LiveEdition> };
+  plan: { premium: boolean; admin: boolean };
+  isNext: boolean;
+}) {
+  const pct = st.total ? Math.round((st.done / st.total) * 100) : 0;
+  const lockedPremium = st.premium && !plan.premium && !plan.admin;
+  return (
+    <li className={`stage stage--${st.state} ${st.premium ? 'stage--premium' : ''}`} id={`tappa-${st.id}`}>
+      <div className="stage__rail" aria-hidden="true">
+        <span className="stage__dot">{st.state === 'done' ? <LuCheck /> : st.premium ? <LuKeyRound /> : n}</span>
+      </div>
+      <div className="stage__body">
+        <span className="stage__kicker">
+          {st.premium ? 'Tappa extra · Premium' : `Tappa ${n}`}
+          {st.state === 'done' && <em className="chip chip--done">Completata</em>}
+          {isNext && <em className="chip chip--now">Sei qui</em>}
+        </span>
+        <h2 className="stage__title">{st.title}</h2>
+        <p className="stage__skill"><LuTarget aria-hidden="true" /> {st.skill}</p>
+        {st.summary && <p className="stage__sum">{st.summary}</p>}
+        {!st.premium && st.total > 0 && (
+          <span className="bar stage__bar" aria-label={`${st.done} di ${st.total} lezioni della tappa completate`}>
+            <span style={{ width: `${pct}%` }} />
+          </span>
+        )}
+        {lockedPremium ? (
+          <ul className="previews">
+            {st.courses.map((c) => <PreviewCard key={c.id} c={c} outline={data.outlines[c.id] || []} live={data.liveBy[c.id]} />)}
+          </ul>
+        ) : (
+          <ul className="course-list">
+            {st.courses.map((c) => (
+              <CourseRow key={c.id} c={c} progress={data.progress} admin={plan.admin} live={data.liveBy[c.id]} optional={c.optional} />
+            ))}
+          </ul>
+        )}
+        {lockedPremium && (
+          <ButtonLink to="/premium" variant="secondary">Candidati a Premium, è gratis</ButtonLink>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function PathSection({ view, data, plan }: {
+  view: PathView;
+  data: { progress: Progress[]; outlines: Record<string, OutlineLesson[]>; liveBy: Record<string, LiveEdition> };
+  plan: { premium: boolean; admin: boolean };
+}) {
+  const next = view.next;
+  let n = 0;
+  return (
+    <>
+      <section className="path-hero">
+        <span className="path-hero__arch" aria-hidden="true" />
+        <span className="path-hero__kicker"><LuRoute aria-hidden="true" /> Il percorso consigliato</span>
+        <h2 className="path-hero__title">{PATH_NAME}.</h2>
+        <p className="path-hero__text">
+          {view.freeStages} tappe, dalla mappa del potere fino alle candidature. Ogni tappa ti dà una competenza. Puoi saltare dove
+          vuoi: tutti i corsi sono aperti, il percorso è il nostro consiglio.
+        </p>
+        <div className="path-hero__meter" aria-label={`${view.doneStages} tappe completate su ${view.freeStages}`}>
+          {view.stages.filter((v) => !v.premium).map((v) => (
+            <span key={v.id} className={`path-hero__seg is-${v.state}`} />
+          ))}
+        </div>
+        <span className="path-hero__count">{view.doneStages} di {view.freeStages} tappe completate</span>
+        {next ? (
+          <Link
+            to={next.lesson ? `/lezione/${next.lesson.id}` : `/corso/${next.course.slug}`}
+            className="next-step"
+            onClick={() => track('stage_open', { stage: next.stage.id })}
+          >
+            <span className="next-step__kicker">Prossimo passo · Tappa {next.index + 1}</span>
+            <strong className="next-step__title">{next.lesson ? next.lesson.title : next.course.title}</strong>
+            <span className="next-step__meta">{next.course.title} · {completedIn(next.course, data.progress)} di {lessonCount(next.course)} lezioni</span>
+            <span className="next-step__go">{completedIn(next.course, data.progress) === 0 && view.doneStages === 0 ? 'Inizia da qui' : 'Continua'} <LuArrowRight aria-hidden="true" /></span>
+          </Link>
+        ) : (
+          <p className="path-hero__done"><LuFlag aria-hidden="true" /> Hai completato tutto il percorso. Adesso tocca a te: le opportunità ti aspettano.</p>
+        )}
+      </section>
+
+      <ol className="stages">
+        {view.stages.map((st) => {
+          if (!st.premium) n += 1;
+          return <StageCard key={st.id} st={st} n={n} data={data} plan={plan} isNext={!!next && next.stage.id === st.id} />;
+        })}
+      </ol>
+
+      {view.others.length > 0 && (
+        <section className="block">
+          <h2 className="h-section">Nuovi corsi</h2>
+          <p className="muted small">Appena usciti: presto avranno il loro posto nel percorso.</p>
+          <ul className="course-list">
+            {view.others.map((c) => <CourseRow key={c.id} c={c} progress={data.progress} admin={plan.admin} live={data.liveBy[c.id]} />)}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}
+
 export default function Academy() {
   const { plan } = useAuth();
   const { query } = useLocation();
+  const view = query.get('vista') === 'corsi' ? 'corsi' : 'percorso';
   const data = useAsync(async () => {
-    const [courses, progress, live] = await Promise.all([listCourses(), listProgress(), listLive().catch(() => [] as LiveEdition[])]);
+    const [courses, progress, live, path] = await Promise.all([
+      listCourses(), listProgress(), listLive().catch(() => [] as LiveEdition[]), listPath().catch(() => [] as PathStage[]),
+    ]);
     const locked = courses.filter((c) => c.access_level === 'premium' && !isLive(c));
     const outlines: Record<string, OutlineLesson[]> = {};
     if (!plan.premium) {
       await Promise.all(locked.map(async (c) => { outlines[c.id] = await courseOutline(c.id).catch(() => []); }));
     }
     const liveBy: Record<string, LiveEdition> = Object.fromEntries(live.map((e) => [e.course_id, e]));
-    return { courses, progress, outlines, liveBy };
+    return { courses, progress, outlines, liveBy, path };
   }, [plan.premium]);
   const [q, setQ] = useState('');
   const [cat, setCat] = useState<'tutti' | CategoryId>('tutti');
 
+  useEffect(() => { track('path_open', { view }); }, [view]);
+
   useEffect(() => {
     const s = query.get('sezione');
     if (!data.data || !s) return;
-    if (CATEGORIES.some((k) => k.id === s)) setCat(s as CategoryId);
+    if (CATEGORIES.some((k) => k.id === s)) { setCat(s as CategoryId); navigate('/academy?vista=corsi', true); }
     if (s === 'premium') document.getElementById('premium')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [data.data]);
 
@@ -145,32 +257,43 @@ export default function Academy() {
     .map((k) => ({ k, items: filtered.filter((c) => categoryOf(c) === k.id) }))
     .filter((s) => s.items.length > 0);
   const pending = plan.application?.status === 'pending';
+  const pv = data.data && data.data.path.length > 0 ? pathView(data.data.path, data.data.courses, data.data.progress) : null;
 
   return (
     <Screen>
       <TopBar />
       <main className="page">
         <h1 className="h-page">Academy</h1>
-        <p className="muted">Quattro aree, dal Comune all'Europa, più le competenze per muoverti dentro. Ogni corso finisce con un quiz.</p>
         <TeacherLine label="founder e docente di tutti i corsi" />
 
-        <label className="search">
-          <LuSearch aria-hidden="true" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca un corso" aria-label="Cerca un corso" />
-        </label>
-        <div className="chips" role="group" aria-label="Filtra per area">
-          {[{ id: 'tutti', label: 'Tutti' }, ...CATEGORIES].map((k) => (
-            <button key={k.id} className={`chip chip--btn ${cat === k.id ? 'is-on' : ''}`} onClick={() => setCat(k.id as 'tutti' | CategoryId)} aria-pressed={cat === k.id}>
-              {k.label}
-            </button>
-          ))}
+        <div className="section-tabs" role="tablist" aria-label="Come vuoi vedere i corsi">
+          <button role="tab" aria-selected={view === 'percorso'} className={view === 'percorso' ? 'is-on' : ''} onClick={() => navigate('/academy', true)}>
+            Il percorso
+          </button>
+          <button role="tab" aria-selected={view === 'corsi'} className={view === 'corsi' ? 'is-on' : ''} onClick={() => navigate('/academy?vista=corsi', true)}>
+            Tutti i corsi
+          </button>
         </div>
 
         {data.loading && <Spinner />}
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
 
-        {data.data && (
+        {data.data && view === 'percorso' && pv && <PathSection view={pv} data={data.data} plan={plan} />}
+
+        {data.data && (view === 'corsi' || !pv) && (
           <>
+            <p className="muted">Quattro aree, dal Comune all'Europa, più le competenze per muoverti dentro. Ogni corso finisce con un quiz.</p>
+            <label className="search">
+              <LuSearch aria-hidden="true" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca un corso" aria-label="Cerca un corso" />
+            </label>
+            <div className="chips" role="group" aria-label="Filtra per area">
+              {[{ id: 'tutti', label: 'Tutti' }, ...CATEGORIES].map((k) => (
+                <button key={k.id} className={`chip chip--btn ${cat === k.id ? 'is-on' : ''}`} onClick={() => setCat(k.id as 'tutti' | CategoryId)} aria-pressed={cat === k.id}>
+                  {k.label}
+                </button>
+              ))}
+            </div>
             {sections.length === 0 && <Empty title="Nessun corso trovato" text="Prova con un'altra parola o un'altra area." />}
             {sections.map(({ k, items }) => {
               const free = items.filter((c) => c.access_level !== 'premium');
@@ -201,15 +324,19 @@ export default function Academy() {
                 </section>
               );
             })}
+          </>
+        )}
 
+        {data.data && (
+          <>
             <section className="academy-premium" id="premium">
               <span className="academy-premium__arch" aria-hidden="true" />
               <span className="academy-premium__kicker"><LuKeyRound aria-hidden="true" /> Area Premium</span>
-              <h2 className="academy-premium__title">Masterclass e corsi avanzati.</h2>
+              <h2 className="academy-premium__title">Dal vivo con Andrea.</h2>
               <p className="academy-premium__text">
                 {plan.premium
-                  ? 'Sei dentro: tutti i corsi Premium sono sbloccati. Buona strada.'
-                  : 'Dove il corso base si ferma, Premium va avanti: corsi avanzati da leggere e lezioni dal vivo. Li trovi in ogni area, segnati con il lucchetto.'}
+                  ? 'Sei dentro: le masterclass live sono aperte per te. Prenota il posto dalla pagina del corso.'
+                  : 'Il percorso è tutto gratis. Premium aggiunge quello che si può fare solo dal vivo: masterclass su Teams con Andrea, cene a numero chiuso e incontri faccia a faccia.'}
               </p>
               <p className="academy-premium__video">
                 <span className="academy-premium__play" aria-hidden="true"><LuRadio /></span>

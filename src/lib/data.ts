@@ -96,7 +96,11 @@ export async function getCourse(slug: string): Promise<Course | null> {
   return rows[0] ? sortCourse(rows[0]) : null;
 }
 
+export type Source = { title: string; url: string };
 export type LessonDetail = Lesson & {
+  sources?: Source[] | null;
+  reviewed_at?: string | null;
+  updated_at?: string | null;
   course_modules: { id: string; title: string; position: number; courses: { slug: string; title: string; access_level?: 'free' | 'premium' } };
   quizzes: { id: string; title: string }[];
   /** Interactive checks shown between the lesson cards. */
@@ -107,7 +111,7 @@ export type LessonDetail = Lesson & {
 export async function getLesson(id: string): Promise<LessonDetail | null> {
   const rows = await select<LessonDetail>(
     'lessons',
-    `select=id,position,title,summary,duration_seconds,transcript,checks,lesson_checks(checks),status,module_id,` +
+    `select=id,position,title,summary,duration_seconds,transcript,checks,lesson_checks(checks),status,module_id,sources,reviewed_at,updated_at,` +
       `course_modules(id,title,position,courses(slug,title,access_level)),quizzes(id,title),lesson_assets(id,kind,title,ref)` +
       `&id=eq.${id}&limit=1`,
   );
@@ -159,9 +163,8 @@ export async function listAttempts() {
   );
 }
 
-/** Ranked feed: free members get the first 3 in full, the rest come back locked. */
+/** Ranked feed, open to everyone (also without an account). */
 export async function listOpportunities(): Promise<Opportunity[]> {
-  if (!currentSession()) return [];
   return (await rpc<Opportunity[]>('opportunities_feed', {})) || [];
 }
 
@@ -277,7 +280,6 @@ export const CATEGORY_LABEL: Record<string, string> = {
   programma: 'Programma',
 };
 export const TAG_LABEL: Record<OppTag, string> = { viaggio: 'Viaggio spesato', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
-export const FREE_OPPORTUNITIES = 3;
 
 /** Days left until a YYYY-MM-DD date (local), or null. */
 export function daysUntil(date?: string | null): number | null {
@@ -431,4 +433,131 @@ export async function listMeetings(): Promise<MeetingRequest[]> {
 
 export async function setMeetingStatus(id: string, status: 'nuova' | 'gestita') {
   await update('meeting_requests', `id=eq.${id}`, { status, handled_at: status === 'gestita' ? new Date().toISOString() : null });
+}
+
+// ---------- Learning path: «Da cittadino a protagonista» ----------
+export type PathStage = {
+  id: string;
+  position: number;
+  title: string;
+  skill: string;
+  summary?: string | null;
+  premium: boolean;
+  items: { course_id: string; position: number; optional: boolean }[];
+};
+export const PATH_NAME = 'Da cittadino a protagonista';
+
+export async function listPath(): Promise<PathStage[]> {
+  const [stages, items] = await Promise.all([
+    select<Omit<PathStage, 'items'>>('path_stages', 'select=id,position,title,skill,summary,premium&order=position.asc'),
+    select<{ course_id: string; stage_id: string; position: number; optional: boolean }>('path_items', 'select=course_id,stage_id,position,optional&order=position.asc'),
+  ]);
+  return stages.map((st) => ({ ...st, items: items.filter((i) => i.stage_id === st.id).sort((a, b) => a.position - b.position) }));
+}
+
+export type StageView = PathStage & {
+  courses: (Course & { optional: boolean })[];
+  done: number;
+  total: number;
+  state: 'done' | 'current' | 'todo';
+};
+export type PathView = {
+  stages: StageView[];
+  /** Recommended next step: first required course of the free path not completed yet. */
+  next: { stage: StageView; course: Course; lesson: Lesson | null; index: number } | null;
+  freeStages: number;
+  doneStages: number;
+  /** Published courses that are not in the path yet (new courses land here until they get a stage). */
+  others: Course[];
+};
+
+export function pathView(stages: PathStage[], courses: Course[], progress: Progress[]): PathView {
+  const byId = new Map(courses.map((c) => [c.id, c]));
+  const inPath = new Set<string>();
+  const views: StageView[] = stages.map((st) => {
+    const list = st.items
+      .map((i) => {
+        inPath.add(i.course_id);
+        const c = byId.get(i.course_id);
+        return c ? { ...c, optional: i.optional } : null;
+      })
+      .filter((c): c is Course & { optional: boolean } => !!c);
+    const required = list.filter((c) => !c.optional && lessonCount(c) > 0);
+    const total = required.reduce((n, c) => n + lessonCount(c), 0);
+    const done = required.reduce((n, c) => n + completedIn(c, progress), 0);
+    const state: StageView['state'] = total > 0 && done >= total ? 'done' : 'todo';
+    return { ...st, courses: list, done, total, state };
+  });
+  let next: PathView['next'] = null;
+  const index = views.findIndex((v) => !v.premium && v.state !== 'done');
+  if (index >= 0) {
+    const stage = views[index];
+    stage.state = 'current';
+    const course = stage.courses.find((c) => !c.optional && lessonCount(c) > 0 && completedIn(c, progress) < lessonCount(c)) || stage.courses[0];
+    if (course) next = { stage, course, lesson: nextLesson(course, progress), index };
+  }
+  const free = views.filter((v) => !v.premium);
+  return {
+    stages: views,
+    next,
+    freeStages: free.length,
+    doneStages: free.filter((v) => v.state === 'done').length,
+    others: courses.filter((c) => !inPath.has(c.id)),
+  };
+}
+
+// ---------- Analytics without cookies ----------
+/** Fire-and-forget event; visitors are counted without any identifier. */
+export function track(name: string, props?: Record<string, string | number | boolean>) {
+  try {
+    const path = (window.location.hash.replace(/^#/, '').split('?')[0] || '/').slice(0, 120);
+    rpc('track', { p_name: name, p_path: path, p_props: props || {} }).catch(() => {});
+  } catch {
+    /* never block the app for analytics */
+  }
+}
+
+// ---------- Email preferences ----------
+export type EmailPrefs = { digest: boolean; reminders: boolean };
+export function myEmailPrefs() {
+  return rpc<EmailPrefs>('my_email_prefs', {});
+}
+export function setEmailPrefs(p: EmailPrefs) {
+  return rpc<EmailPrefs>('set_email_prefs', { p_digest: p.digest, p_reminders: p.reminders });
+}
+export function emailUnsubscribe(token: string, what: string) {
+  return rpc<'ok' | 'invalid'>('email_unsubscribe', { p_token: token, p_what: what });
+}
+
+// ---------- Report an error in a lesson ----------
+export function reportContent(lessonId: string, message: string) {
+  return rpc<string>('report_content', { p_lesson: lessonId, p_message: message });
+}
+export type ContentReport = { id: string; lesson_id: string; message: string; status: 'nuova' | 'gestita'; created_at: string; lessons?: { title: string } | null };
+export async function listReports(): Promise<ContentReport[]> {
+  return select<ContentReport>('content_reports', 'select=id,lesson_id,message,status,created_at,lessons(title)&order=created_at.desc&limit=100');
+}
+export async function setReportStatus(id: string, status: 'nuova' | 'gestita') {
+  await update('content_reports', `id=eq.${id}`, { status, handled_at: status === 'gestita' ? new Date().toISOString() : null });
+}
+
+// ---------- Invite a friend ----------
+export function myInvite() {
+  return rpc<{ code: string; joined: number }>('my_invite', {});
+}
+export const inviteLink = (code: string) => `https://thelobbyitalia.it/?invito=${encodeURIComponent(code)}`;
+
+// ---------- Founder numbers ----------
+export type Metrics = {
+  members: number; new_7d: number; new_30d: number; active_7d: number;
+  activated: number; activated_24h: number; eligible_d7: number; returned_d7: number;
+  visits_7d: number; opp_clicks_7d: number; invited: number;
+  applications_pending: number; premium: number; reports_open: number;
+  digest_subs: number; sent_24h: number; sent_month: number; deferred: number;
+  stages: { title: string; n: number }[];
+  signups_by_day: { d: string; n: number }[];
+  sources: { source: string; n: number }[];
+};
+export function adminMetrics() {
+  return rpc<Metrics>('admin_metrics', {});
 }

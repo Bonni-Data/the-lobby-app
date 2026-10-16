@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   getCourse, listProgress, completedIn, lessonCount, nextLesson, courseMinutes, courseOutline, listLive, isLive, LEVEL_LABEL, CATEGORY_NAME, categoryOf,
-  OutlineLesson, LiveEdition, Course as CourseT,
+  listPath, OutlineLesson, LiveEdition, Course as CourseT, PathStage,
 } from '../lib/data';
 import { ArchProgress, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, formatMinutes } from '../components/ui';
 import { Link } from '../lib/router';
@@ -16,14 +16,16 @@ import { LuCircleCheck, LuCirclePlay, LuTarget, LuKeyRound, LuLock, LuRadio, LuS
 export default function Course({ slug }: { slug: string }) {
   const { plan } = useAuth();
   const data = useAsync(async () => {
-    const [course, progress] = await Promise.all([getCourse(slug), listProgress()]);
+    const [course, progress, path] = await Promise.all([getCourse(slug), listProgress(), listPath().catch(() => [] as PathStage[])]);
     let outline: OutlineLesson[] = [];
     let live: LiveEdition | undefined;
     let sim: { title: string; role: string } | null = null;
     if (course && isLive(course)) live = (await listLive().catch(() => [] as LiveEdition[])).find((e) => e.course_id === course.id);
     else if (course && course.access_level === 'premium' && !plan.premium) outline = await courseOutline(course.id).catch(() => []);
     else if (course) sim = await simulationMeta(course.id).catch(() => null);
-    return { course, progress, outline, live, sim };
+    const stage = course ? path.find((st) => st.items.some((i) => i.course_id === course.id)) || null : null;
+    const optional = !!(course && stage?.items.find((i) => i.course_id === course.id)?.optional);
+    return { course, progress, outline, live, sim, stage, optional };
   }, [slug, plan.premium]);
 
   return (
@@ -34,7 +36,7 @@ export default function Course({ slug }: { slug: string }) {
         {data.error && <ErrorState message={data.error} onRetry={data.reload} />}
         {data.data && !data.data.course && <Empty title="Corso non trovato" text="Potrebbe essere stato spostato o non è più disponibile." />}
         {data.data?.course && (() => {
-          const { course: c, progress, outline, live, sim } = data.data;
+          const { course: c, progress, outline, live, sim, stage, optional } = data.data;
           if (isLive(c)) return <LiveCourse c={c} live={live} locked={c.access_level === 'premium' && !plan.premium} />;
           const total = lessonCount(c);
           const done = completedIn(c, progress);
@@ -46,6 +48,11 @@ export default function Course({ slug }: { slug: string }) {
             <>
               <section className="course-hero">
                 <div className="course-hero__arch" aria-hidden="true" />
+                {stage && (
+                  <Link to="/academy" className="course-hero__stage">
+                    Tappa {stage.position} del percorso · {stage.title}{optional ? ' · facoltativo' : ''}
+                  </Link>
+                )}
                 <span className="course-hero__level">
                   {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'}{coming && ' · In arrivo'}
                 </span>

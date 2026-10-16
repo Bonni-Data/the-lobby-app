@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getLesson, getCourse, listProgress, setProgress, Lesson as L, LessonDetail } from '../lib/data';
+import { getLesson, getCourse, listProgress, setProgress, reportContent, track, Lesson as L, LessonDetail } from '../lib/data';
 import { Check, checkAnswer, refreshGame, XP } from '../lib/game';
 import { speak, stopSpeaking, speechSupported, plainText, RATES, savedRate, saveRate } from '../lib/speech';
-import { ArchProgress, Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, toast, formatMinutes } from '../components/ui';
+import { ArchProgress, Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, toast, formatMinutes, formatDate } from '../components/ui';
 import { Link } from '../lib/router';
 import {
   LuCircleCheck, LuFileText, LuLink, LuPresentation, LuEyeOff, LuArrowLeft, LuArrowRight, LuHeadphones, LuSquare, LuGalleryHorizontal, LuAlignLeft,
-  LuRotateCcw, LuCheck, LuZap, LuListChecks,
+  LuRotateCcw, LuCheck, LuZap, LuListChecks, LuBookMarked, LuMessageSquareWarning, LuExternalLink,
 } from 'react-icons/lu';
 import { TeacherLine } from '../components/founder';
 import { Prose } from '../components/prose';
@@ -106,6 +106,7 @@ export default function Lesson({ id }: { id: string }) {
     setDone(p?.status === 'completed');
     if (!p) setProgress(id, 'in_progress').catch(() => {});
   }, [data.data, id]);
+  useEffect(() => { track('lesson_open', { lesson: id }); }, [id]);
   useEffect(() => () => stopSpeaking(), [id]);
 
   function switchMode() {
@@ -453,7 +454,67 @@ function EndCard(p: Shared & { answered: number; onRestart: () => void }) {
         )}
         <button className="link-quiet center-link" onClick={p.onRestart}><LuRotateCcw aria-hidden="true" /> Rileggi da capo</button>
       </div>
+      <LessonFoot lesson={p.lesson} />
     </div>
+  );
+}
+
+/** Sources, last update and «Segnala un errore»: the honesty footer of every lesson. */
+function LessonFoot({ lesson }: { lesson: LessonDetail }) {
+  const [open, setOpen] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const sources = Array.isArray(lesson.sources) ? lesson.sources.filter((x) => x && x.url) : [];
+  const updated = lesson.reviewed_at || lesson.updated_at;
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    if (msg.trim().length < 10) return;
+    setBusy(true);
+    try {
+      await reportContent(lesson.id, msg.trim());
+      setSent(true);
+      setOpen(false);
+      toast('Grazie: la segnalazione è arrivata ad Andrea.');
+    } catch (err: any) {
+      const m = String(err?.message || '');
+      toast(m.includes('too_many') ? 'Hai già inviato diverse segnalazioni oggi: riprova domani.' : 'Invio non riuscito. Riprova.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="lesson-foot" aria-label="Fonti e aggiornamento">
+      {sources.length > 0 && (
+        <>
+          <h2 className="lesson-foot__title"><LuBookMarked aria-hidden="true" /> Fonti</h2>
+          <ul className="lesson-foot__sources">
+            {sources.map((x, k) => (
+              <li key={k}><a href={x.url} target="_blank" rel="noopener noreferrer">{x.title || x.url.replace(/^https?:\/\//, '')} <LuExternalLink aria-hidden="true" /></a></li>
+            ))}
+          </ul>
+        </>
+      )}
+      {updated && <p className="tiny muted">{lesson.reviewed_at ? 'Ricontrollata sulle fonti il ' : 'Aggiornata il '}{formatDate(updated.slice(0, 10))}.</p>}
+      {sent ? (
+        <p className="tiny muted">Segnalazione inviata. Grazie per aiutarci a tenere tutto giusto.</p>
+      ) : open ? (
+        <form className="report" onSubmit={send}>
+          <label className="field">
+            <span>Cosa non torna?</span>
+            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} maxLength={1000} placeholder="Per esempio: il numero dei consiglieri è cambiato con la legge…" autoFocus />
+          </label>
+          <div className="report__btns">
+            <Button type="submit" loading={busy} disabled={msg.trim().length < 10}>Invia</Button>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Annulla</Button>
+          </div>
+        </form>
+      ) : (
+        <button className="link-quiet" onClick={() => { setOpen(true); track('report_open'); }}><LuMessageSquareWarning aria-hidden="true" /> Segnala un errore</button>
+      )}
+    </section>
   );
 }
 
@@ -559,6 +620,7 @@ function PageView(p: Shared) {
             </Link>
           )}
         </div>
+        <LessonFoot lesson={lesson} />
       </div>
     </>
   );
