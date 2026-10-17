@@ -45,7 +45,7 @@ export default function Story() {
   const { session } = useAuth();
   return (
     <Screen nav={!!session}>
-      <TopBar back={session ? '/home' : '/'} title="Chi è Andrea" />
+      <TopBar back={session ? '/home' : '/'} title="Chi è Andrea?" />
       <section className="story-hero">
         <div className="story-portrait" aria-hidden="true">
           <svg className="story-portrait__arch" viewBox="0 0 300 380" preserveAspectRatio="xMidYMax meet">

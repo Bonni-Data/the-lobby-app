@@ -866,7 +866,7 @@ await page.waitForSelector('.mail-prefs .switch input:not([disabled])');
 await page.click('.mail-prefs .switch:has-text("Riepilogo del lunedì")');
 await page.waitForTimeout(300);
 await check(Promise.resolve(emailPrefs.digest === false && emailPrefs.reminders === true), 'weekly digest switched off from profile');
-await check(page.locator('.menu a[href="#/neutralita"]').count().then((n) => n === 1), 'profile links the neutrality page');
+await check(page.locator('.menu a[href="#/neutralita"]').count().then((n) => n === 0), 'profile no longer lists the neutrality page');
 await page.waitForTimeout(300);
 await shot('11-profile');
 await page.click('button:has-text("Esci")');

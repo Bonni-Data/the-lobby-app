@@ -143,7 +143,7 @@ ${body}
 </main>
 <footer class="s-foot">
   <nav aria-label="Esplora">
-    <a href="/percorso/">Il percorso</a><a href="/corsi/">I corsi</a><a href="/opportunita/">Opportunità</a><a href="/andrea/">Chi è Andrea</a><a href="/neutralita/">Neutralità</a>
+    <a href="/percorso/">Il percorso</a><a href="/corsi/">I corsi</a><a href="/opportunita/">Opportunità</a><a href="/andrea/">Chi è Andrea?</a><a href="/neutralita/">Neutralità</a>
   </nav>
   <nav aria-label="Note legali"><a href="/#/privacy">Privacy</a><a href="/#/termini">Termini</a><a href="${INSTAGRAM}" rel="noopener">Instagram</a></nav>
   <p>THE LOBBY · l'academy gratuita su Comuni, Parlamento ed Europa, fondata da Andrea Bonazzi. Non è affiliata ad alcun partito.</p>
@@ -452,7 +452,7 @@ ${cta('Entra nelle sue lezioni', 'Il percorso dell’Academy è gratis: lezioni 
     path: '/andrea/', stamp, type: 'profile',
     title: 'Andrea Bonazzi, founder di THE LOBBY',
     description: 'Andrea Bonazzi, founder e docente di THE LOBBY: dieci anni di impegno civico, due mandati da consigliere comunale, ambasciatore della Lombardia per l’Anno europeo dei giovani 2022.',
-    crumbs: [{ name: 'Chi è Andrea', path: '/andrea/' }],
+    crumbs: [{ name: 'Chi è Andrea?', path: '/andrea/' }],
     jsonld: [{ '@type': 'Person', '@id': `${SITE}/andrea/#person`, name: 'Andrea Bonazzi', url: `${SITE}/andrea/`, image: `${SITE}/img/andrea-cut.webp`, jobTitle: 'Founder e docente di THE LOBBY', worksFor: { '@id': `${SITE}/#org` }, homeLocation: { '@type': 'Place', name: 'Milano' } }, { ...ORG }],
     body,
   }));

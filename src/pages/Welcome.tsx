@@ -105,7 +105,7 @@ export default function Welcome() {
           <a href="/percorso/">Il percorso</a>
           <a href="/corsi/">I corsi</a>
           <a href="/opportunita/">Opportunità</a>
-          <a href="/andrea/">Chi è Andrea</a>
+          <a href="/andrea/">Chi è Andrea?</a>
         </nav>
         <nav className="welcome__legal" aria-label="Note legali">
           <a href="#/neutralita">Neutralità</a>

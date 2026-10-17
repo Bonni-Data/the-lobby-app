@@ -8,7 +8,7 @@ import { Button, Screen, TopBar, toast, useAsync } from '../components/ui';
 import { navigate, Link } from '../lib/router';
 import { APP_VERSION } from '../config';
 import { canInstall, openInstall } from '../components/install';
-import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuScale, LuCamera, LuSmartphone } from 'react-icons/lu';
+import { LuLogOut, LuPencil, LuShieldCheck, LuFileText, LuMail, LuKeyRound, LuInbox, LuUser, LuDownload, LuTrash2, LuTrophy, LuUserPlus, LuShare2, LuCopy, LuCamera, LuSmartphone } from 'react-icons/lu';
 
 export default function Profile() {
   const { session, displayName, setDisplayName, avatarUrl, setAvatarUrl, plan } = useAuth();
@@ -165,8 +165,7 @@ export default function Profile() {
               </button>
             </li>
           )}
-          <li><Link to="/andrea" className="menu__link"><span><LuUser /> Chi è Andrea</span><em>La storia del founder</em></Link></li>
-          <li><Link to="/neutralita" className="menu__link"><span><LuScale /> La nostra linea</span><em>Neutralità</em></Link></li>
+          <li><Link to="/andrea" className="menu__link"><span><LuUser /> Chi è Andrea?</span><em>La storia del founder</em></Link></li>
           <li><Link to="/privacy" className="menu__link"><span><LuShieldCheck /> Informativa privacy</span><em>Leggi</em></Link></li>
           <li><Link to="/termini" className="menu__link"><span><LuFileText /> Termini di servizio</span><em>Leggi</em></Link></li>
         </ul>
