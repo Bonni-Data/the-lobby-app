@@ -196,8 +196,11 @@ img, svg, video { display: block; max-width: 100%; }
 .welcome__arch-inner { fill: none; stroke: rgba(244, 240, 232, 0.2); stroke-width: 2; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 .welcome__brand { position: relative; }
-.welcome__tagline { position: relative; font-family: var(--f-serif); font-style: italic; font-size: 27px; line-height: 1.2; margin: 14px 0 10px; max-width: 24ch; }
-.welcome__lead { position: relative; color: rgba(244, 240, 232, 0.78); margin: 0 0 26px; max-width: 40ch; }
+.welcome__tagline { position: relative; font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 27px; line-height: 1.2; margin: 14px 0 10px; max-width: 24ch; }
+.welcome__lead { position: relative; color: rgba(244, 240, 232, 0.78); margin: 0 0 12px; max-width: 40ch; }
+.welcome__promise { position: relative; list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 10px; }
+.welcome__promise li { display: flex; align-items: center; gap: 12px; font-family: var(--f-display); font-weight: 600; font-size: 19px; line-height: 1.15; }
+.welcome__promise svg { flex: none; font-size: 20px; color: var(--coral); }
 .welcome__ctas { position: relative; display: grid; gap: 10px; }
 .welcome__section { padding: 32px var(--gutter) 8px; }
 .welcome__footer { display: flex; align-items: center; gap: 8px; padding: 28px var(--gutter) calc(32px + var(--safe-b)); color: var(--muted); font-size: 13px; }
@@ -1079,7 +1082,7 @@ button.menu__link { background: none; border: 0; padding: 0; font: inherit; colo
   .welcome { max-width: none; }
   .welcome__hero {
     display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); column-gap: 64px; align-content: center;
-    grid-template-areas: 'brand arch' 'tagline arch' 'lead arch' 'ctas arch';
+    grid-template-areas: 'brand arch' 'tagline arch' 'lead arch' 'promise arch' 'ctas arch';
     padding-inline: max(48px, calc((100vw - 1160px) / 2)); min-height: 86vh;
   }
   .welcome__arch { grid-area: arch; width: min(100%, 360px); max-height: 460px; margin: 0 auto; align-self: center; }
@@ -1087,6 +1090,8 @@ button.menu__link { background: none; border: 0; padding: 0; font: inherit; colo
   .welcome__brand { grid-area: brand; align-self: end; }
   .welcome__tagline { grid-area: tagline; font-size: 40px; }
   .welcome__lead { grid-area: lead; font-size: 18px; }
+  .welcome__promise { grid-area: promise; gap: 12px; }
+  .welcome__promise li { font-size: 23px; }
   .welcome__ctas { grid-area: ctas; grid-template-columns: repeat(2, minmax(0, 220px)); }
   .welcome__section, .welcome__footer { max-width: 1160px; margin-inline: auto; padding-inline: 48px; }
   .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 40px; }

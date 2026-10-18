@@ -2,7 +2,7 @@ import React from 'react';
 import { ArchMark, ButtonLink, DoorCover, Wordmark, useAsync, useReveal } from '../components/ui';
 import { listCourses, courseLabel, track, PATH_NAME } from '../lib/data';
 import { FounderCard } from '../components/founder';
-import { LuLandmark, LuGraduationCap, LuCompass, LuKeyRound } from 'react-icons/lu';
+import { LuLandmark, LuGraduationCap, LuCompass, LuGlobe, LuUsers } from 'react-icons/lu';
 
 export default function Welcome() {
   const courses = useAsync(() => listCourses(), []);
@@ -31,10 +31,13 @@ export default function Welcome() {
         <div className="welcome__brand">
           <Wordmark tone="ivory" size={44} />
         </div>
-        <p className="welcome__tagline">Cittadini si nasce.<br />Protagonisti si diventa.</p>
-        <p className="welcome__lead">
-          Pochi minuti al giorno per capire come funzionano davvero Comuni, Parlamento ed Europa. Perché chi conosce le regole può cambiare le cose.
-        </p>
+        <h1 className="welcome__tagline">Vuoi fare politica?<br />Inizia da qui.</h1>
+        <p className="welcome__lead">THE LOBBY ti dà tre cose, in un posto solo e gratis:</p>
+        <ul className="welcome__promise">
+          <li><LuGraduationCap aria-hidden="true" /><span>Formazione per giovani politici</span></li>
+          <li><LuGlobe aria-hidden="true" /><span>Le migliori opportunità internazionali</span></li>
+          <li><LuUsers aria-hidden="true" /><span>Networking con altri giovani di talento</span></li>
+        </ul>
         <div className="welcome__ctas">
           <ButtonLink to="/accedi?tab=registrati" variant="primary" block>
             Crea il tuo account
@@ -47,34 +50,34 @@ export default function Welcome() {
       </section>
 
       <section className="welcome__section">
-        <h2 className="h-section">Dentro la Lobby</h2>
+        <h2 className="h-section">Cosa trovi su THE LOBBY</h2>
         <ul className="pillars">
-          <li>
-            <LuLandmark aria-hidden="true" />
-            <div>
-              <strong>Capire le istituzioni</strong>
-              <span>Chi decide cosa, con quali soldi e in quanto tempo.</span>
-            </div>
-          </li>
           <li>
             <LuGraduationCap aria-hidden="true" />
             <div>
-              <strong>Un percorso a tappe</strong>
-              <span>{PATH_NAME}: dalla mappa del potere fino alle candidature, con lezioni da cinque minuti e quiz. Puoi saltare dove vuoi.</span>
+              <strong>Formazione per giovani politici</strong>
+              <span>{PATH_NAME}: lezioni da cinque minuti su Comune, Stato, Europa e attualità, con quiz, simulazioni e certificato. Puoi saltare dove vuoi.</span>
             </div>
           </li>
           <li>
             <LuCompass aria-hidden="true" />
             <div>
-              <strong>Tutte le opportunità, gratis</strong>
-              <span>Bandi, tirocini, programmi e viaggi spesati dagli enti: li cerchiamo noi sulle fonti ufficiali, ogni mattina alle 7.</span>
+              <strong>Le migliori opportunità internazionali</strong>
+              <span>Tirocini, lavori, bandi e viaggi con spese coperte dagli enti: li cerchiamo sulle fonti ufficiali, ogni mattina alle 7. Gratis, anche senza account.</span>
             </div>
           </li>
           <li>
-            <LuKeyRound aria-hidden="true" />
+            <LuUsers aria-hidden="true" />
             <div>
-              <strong>La sala riservata</strong>
-              <span>Premium è gratuito e su selezione: lezioni live su Teams con Andrea, cene e incontri dal vivo.</span>
+              <strong>Networking con altri giovani di talento</strong>
+              <span>Premium è gratuito e su selezione: lezioni live su Teams con Andrea, cene e incontri dal vivo con chi vuole cambiare le cose.</span>
+            </div>
+          </li>
+          <li>
+            <LuLandmark aria-hidden="true" />
+            <div>
+              <strong>Nessun partito</strong>
+              <span>Spieghiamo le regole del gioco, non per chi votare. Tutte le idee sono benvenute.</span>
             </div>
           </li>
         </ul>
