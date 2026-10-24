@@ -16,11 +16,12 @@ const MSG_MIN = 20;
 const MSG_MAX = 1500;
 
 const topicLabel = (t: MeetingTopic) => MEETING_TOPICS.find((x) => x.id === t)?.label || t;
-const modeLabel = (m: MeetingMode) => MEETING_MODES.find((x) => x.id === m)?.label || m;
+const modeLabel = (m: MeetingMode) => (m === 'presenza' ? 'Di persona' : MEETING_MODES.find((x) => x.id === m)?.label || m);
 
 function friendly(err: any) {
   const m = String(err?.message || '');
-  if (m.includes('premium_only')) return 'Gli incontri con Andrea sono riservati a chi è in Premium.';
+  if (m.includes('email_unverified')) return 'Prima conferma la tua email: trovi il link nella mail di benvenuto o nel Profilo.';
+  if (m.includes('bad_mode')) return 'Gli incontri sono online: scegli videochiamata o telefono.';
   if (m.includes('bad_name')) return 'Scrivi nome e cognome.';
   if (m.includes('bad_email')) return 'Controlla l’indirizzo email.';
   if (m.includes('bad_phone')) return 'Il numero di telefono non sembra valido.';
@@ -31,7 +32,7 @@ function friendly(err: any) {
   return 'Invio non riuscito. Controlla la connessione e riprova.';
 }
 
-/** Premium page: book a short meeting with Andrea. The request reaches his email. */
+/** «Chi è Andrea?» page: any member with a confirmed email books a short online meeting with Andrea. The request reaches his email. */
 export function MeetingSection() {
   const { session, displayName } = useAuth();
   const mine = useAsync(() => myMeetings(), [session?.user?.id]);
@@ -77,10 +78,10 @@ export function MeetingSection() {
 
   return (
     <section className="block meet" id="incontro">
-      <h2 className="h-section">Prenota un incontro con Andrea</h2>
+      <h2 className="h-section">Parla con Andrea</h2>
       <p className="muted">
-        Per rivedere un testo, fare le tue domande o chiedere un consiglio. Scegli quanto tempo ti serve: Andrea ti scrive per fissare giorno e ora.
-        Puoi chiedere fino a 3 incontri al mese.
+        Aperto a tutti, gratis. Per rivedere un testo, fare le tue domande o chiedere un consiglio: scegli quanto tempo ti serve, in
+        videochiamata o al telefono, e Andrea ti scrive per fissare giorno e ora. Puoi chiedere fino a 3 incontri al mese.
       </p>
 
       {sent ? (
@@ -194,7 +195,7 @@ export function MeetingsAdminTab() {
   const items = all.filter((m) => m.status === tab);
   return (
     <>
-      <p className="muted">Le richieste di incontro di chi è in Premium. Ti arrivano anche per email: rispondi da lì, o da qui con un tocco.</p>
+      <p className="muted">Le richieste di incontro (aperte a tutti gli iscritti con l’email confermata, solo online). Ti arrivano anche per email: rispondi da lì, o da qui con un tocco.</p>
       <div className="chips" role="group" aria-label="Filtra per stato">
         {(['nuova', 'gestita'] as const).map((s) => (
           <button key={s} className={`chip chip--btn ${tab === s ? 'is-on' : ''}`} onClick={() => setTab(s)} aria-pressed={tab === s}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../lib/auth';
 import { ButtonLink, Screen, TopBar, CountUp } from '../components/ui';
 import { PHOTO_CUT } from '../components/founder';
+import { MeetingSection } from '../components/meeting';
 import { LuLandmark, LuFlag, LuGlobe, LuExternalLink } from 'react-icons/lu';
 
 const STATS = [
@@ -124,6 +125,19 @@ export default function Story() {
           </p>
           <span className="why__sign">Andrea Bonazzi</span>
         </section>
+
+        {session ? (
+          <MeetingSection />
+        ) : (
+          <section className="block" id="incontro">
+            <h2 className="h-section">Parla con Andrea</h2>
+            <p className="muted">
+              Aperto a tutti, gratis: 5, 15 o 30 minuti in videochiamata o al telefono per rivedere un testo, fare domande o
+              chiedere un consiglio. Entra nella Lobby e prenota da questa pagina.
+            </p>
+            <ButtonLink to="/accedi?tab=registrati" variant="secondary" block>Iscriviti e prenota</ButtonLink>
+          </section>
+        )}
 
         <section className="block">
           <h2 className="h-section">Ne hanno parlato</h2>

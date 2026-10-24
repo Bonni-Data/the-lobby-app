@@ -70,7 +70,7 @@ export default function Welcome() {
             <LuUsers aria-hidden="true" />
             <div>
               <strong>Networking con altri giovani di talento</strong>
-              <span>Premium è gratuito e su selezione: lezioni live su Teams con Andrea, cene e incontri dal vivo con chi vuole cambiare le cose.</span>
+              <span>Premium è gratuito e su selezione: lezioni live su Teams con Andrea e cene di networking con chi vuole cambiare le cose.</span>
             </div>
           </li>
           <li>

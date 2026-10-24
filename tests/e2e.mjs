@@ -166,7 +166,8 @@ async function mock(route) {
     return json(200, slug ? all.filter((c) => 'eq.' + c.slug === slug) : all);
   }
   if (path === '/rest/v1/rpc/request_meeting') {
-    if (!approved && !isAdmin) return json(400, { code: 'P0001', message: 'premium_only' });
+    if (!verified && !isAdmin) return json(400, { code: 'P0001', message: 'email_unverified' });
+    if (!['video', 'telefono'].includes(body.p_mode)) return json(400, { code: 'P0001', message: 'bad_mode' });
     if ((body.p_message || '').trim().length < 20) return json(400, { code: 'P0001', message: 'too_short' });
     const m = { id: 'mt' + (meetings.length + 1), name: body.p_name, email: body.p_email, phone: body.p_phone, topic: body.p_topic, message: body.p_message,
       link: body.p_link, minutes: body.p_minutes, mode: body.p_mode, availability: body.p_availability, status: 'nuova', created_at: new Date().toISOString(), handled_at: null };
@@ -825,8 +826,16 @@ await page.goto(base + '#/premium');
 await page.waitForSelector('.feature__link');
 await check(page.locator('.feature__link:has-text("Vai alle cene")').count().then((n) => n === 1), 'premium page links to dinners');
 await check(page.textContent('.premium-hero, .features').then((t) => !/15 iscritti|a 15/.test(t)), 'no seat threshold in the Premium page');
-await page.click('.feature__link:has-text("Prenota un incontro")');
+// 24/10: Premium = solo lezioni live su Teams e cene; gli incontri con Andrea sono aperti a tutti, online
+await check(page.locator('.feature').count().then((n) => n === 2), 'Premium has only live lessons and dinners');
+await check(page.textContent('main').then((t) => !/ospiti|faccia a faccia|di persona/i.test(t)), 'no guests, no in-person meetings in Premium');
+await check(page.textContent('.cmp').then((t) => t.includes('Incontri online con Andrea')), 'meetings listed as free in the comparison');
+await check(page.locator('#incontro form').count().then((n) => n === 0), 'no meeting form in the Premium page');
+approved = false;
+await page.goto(base + '#/andrea');
+await page.reload();
 await page.waitForSelector('#incontro form');
+await check(page.locator('#incontro .chip--btn:has-text("Di persona")').count().then((n) => n === 0), 'meetings are online only');
 await page.click('#incontro .chip--btn:has-text("Rivedere un testo")');
 await page.fill('#incontro textarea', 'Corto');
 await page.click('#incontro button:has-text("Invia la richiesta")');
@@ -840,7 +849,7 @@ await page.fill('#incontro input[placeholder^="Es. sere"]', 'Sere dopo le 18');
 await shot('10j-meeting-form');
 await page.click('#incontro button:has-text("Invia la richiesta")');
 await page.waitForSelector('.meet__done');
-await check(Promise.resolve(meetings.length === 1 && meetings[0].minutes === 30 && meetings[0].mode === 'telefono' && meetings[0].topic === 'testo' && meetings[0].email === 'giulia@example.com'), 'meeting request sent with all fields');
+await check(Promise.resolve(meetings.length === 1 && meetings[0].minutes === 30 && meetings[0].mode === 'telefono' && meetings[0].topic === 'testo' && meetings[0].email === 'giulia@example.com'), 'meeting request sent with all fields (free member)');
 await shot('10k-meeting-sent');
 isAdmin = true;
 await page.goto(base + '#/admin?sezione=incontri');
@@ -852,7 +861,9 @@ await page.click('.meet-card button:has-text("Gestita")');
 await page.waitForSelector('.center-state:has-text("Nessuna richiesta da gestire")');
 await check(Promise.resolve(meetings[0].status === 'gestita'), 'meeting marked as handled');
 isAdmin = false;
+approved = true;
 await page.goto(base + '#/academy');
+await page.reload();
 await page.waitForSelector('.academy-premium');
 await check(page.locator('.preview').count().then((n) => n === 0), 'no preview when premium');
 approved = false;

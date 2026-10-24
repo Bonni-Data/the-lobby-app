@@ -468,7 +468,6 @@ export const MEETING_TOPICS: { id: MeetingTopic; label: string }[] = [
 export const MEETING_MODES: { id: MeetingMode; label: string }[] = [
   { id: 'video', label: 'Videochiamata' },
   { id: 'telefono', label: 'Telefono' },
-  { id: 'presenza', label: 'Di persona' },
 ];
 
 export function requestMeeting(m: MeetingInput) {

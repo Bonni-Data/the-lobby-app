@@ -215,7 +215,7 @@ function render(r: Row, s: Settings): Mail {
         blocks: [
           { p: `${hi} ho letto la tua candidatura e ti apro la porta: da oggi sei in Premium.` },
           ...(p.note ? [{ quote: esc(p.note) } as Block] : []),
-          { p: 'Dentro trovi le lezioni live su Teams con me da prenotare, le cene della Lobby e gli incontri faccia a faccia per rivedere un testo, fare domande o chiedere un consiglio.' },
+          { p: 'Dentro trovi le lezioni live su Teams con me da prenotare e le cene di networking della Lobby.' },
           { button: { label: 'Entra in Premium', url: `${app}#/premium` } },
         ],
       };

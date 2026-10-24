@@ -3,7 +3,6 @@ import { useAuth } from '../lib/auth';
 import { listEvents, listCourses, listLive, isLive, liveIsOver, submitApplication, saveDisplayName, isFullName, EventItem } from '../lib/data';
 import { Button, Screen, Spinner, TopBar, toast, useAsync, formatDate } from '../components/ui';
 import { FounderAvatar } from '../components/founder';
-import { MeetingSection } from '../components/meeting';
 import { CONTACT_EMAIL } from '../config';
 import { Link } from '../lib/router';
 import {
@@ -11,38 +10,24 @@ import {
   LuSprout, LuChevronDown, LuPenLine, LuEye, LuDoorOpen, LuHourglass, LuArrowRight, LuLock, LuRadio, LuGlobe,
 } from 'react-icons/lu';
 
+// 24/10/2026, decisione di Andrea: Premium comprende solo le lezioni live su Teams con lui e le cene di networking.
+// Tutto il resto è aperto a tutti (percorso, opportunità, incontri online con Andrea dalla pagina «Chi è Andrea?»).
 const FEATURES = [
   {
     n: '01',
-    icon: <LuUtensils />,
-    kicker: 'A numero chiuso',
-    title: 'Le cene della Lobby.',
-    text: 'Pochi posti, un tavolo, Andrea a fare gli onori di casa. Persone, storie e percorsi che non trovi in nessun feed, e contatti che restano.',
-    link: { to: '/opportunita?sezione=cene', label: 'Vai alle cene e rispondi presente' },
-  },
-  {
-    n: '02',
-    icon: <LuHandshake />,
-    kicker: 'Dal vivo e online',
-    title: 'Faccia a faccia con Andrea.',
-    text: 'Il founder di THE LOBBY, senza filtri. Prenoti 5, 15 o 30 minuti con lui per rivedere un testo, fare domande dirette o chiedere un consiglio: cosa studiare, a quale porta bussare, come prepararti a un bando o a un colloquio nelle istituzioni.',
-    link: { to: '#incontro', label: 'Prenota un incontro' },
-  },
-  {
-    n: '03',
     icon: <LuGraduationCap />,
     kicker: 'Live su Teams con Andrea',
-    title: 'Le masterclass, dal vivo.',
+    title: 'Le lezioni live.',
     text: 'È la tappa extra del percorso, quella che si fa solo dal vivo. Andrea la tiene in diretta su Microsoft Teams: dietro le quinte delle istituzioni, public speaking avanzato, networking e stakeholder, come farsi strada in un partito, come candidarsi. Si parte con gruppi piccoli: prenoti il posto e ricevi data e link per entrare.',
     link: { to: '/academy', label: 'Vai alla tappa nel percorso' },
   },
   {
-    n: '04',
-    icon: <LuGlobe />,
-    kicker: 'In arrivo',
-    title: 'Masterclass con ospiti.',
-    text: 'Presto in Premium arrivano anche masterclass tenute da esperti internazionali e personaggi pubblici: persone che istituzioni, politica e organizzazioni internazionali le vivono da dentro. Nomi e date li annunciamo qui quando sono confermati.',
-    link: { to: '/academy', label: 'Intanto, continua il percorso' },
+    n: '02',
+    icon: <LuUtensils />,
+    kicker: 'Networking a numero chiuso',
+    title: 'Le cene della Lobby.',
+    text: 'Pochi posti, un tavolo, Andrea a fare gli onori di casa. Persone, storie e percorsi che non trovi in nessun feed, e contatti che restano. Ognuno paga la propria cena.',
+    link: { to: '/opportunita?sezione=cene', label: 'Vai alle cene e rispondi presente' },
   },
 ];
 
@@ -55,21 +40,19 @@ const STEPS = [
 const COMPARE: { label: string; free: string | boolean; premium: string | boolean }[] = [
   { label: 'Tutto il percorso, con quiz e simulazioni', free: true, premium: true },
   { label: 'Tutte le opportunità, ogni mattina', free: true, premium: true },
-  { label: 'Masterclass live su Teams con Andrea', free: false, premium: true },
-  { label: 'Masterclass con esperti internazionali e ospiti (in arrivo)', free: false, premium: true },
-  { label: 'Cene della Lobby', free: false, premium: true },
-  { label: 'Incontri con Andrea', free: false, premium: true },
+  { label: 'Incontri online con Andrea', free: true, premium: true },
+  { label: 'Lezioni live su Teams con Andrea', free: false, premium: true },
+  { label: 'Cene di networking', free: false, premium: true },
 ];
 
 const FAQ = [
   { q: 'Quanto costa?', a: 'Niente. Premium è gratuito: non si compra, si entra su selezione.' },
   { q: 'Chi decide?', a: 'Andrea Bonazzi, founder di THE LOBBY. Legge personalmente ogni candidatura e decide chi è pronto per entrare.' },
   { q: 'Cosa conta nella valutazione?', a: 'Motivazione, concretezza e voglia di crescere. Non serve un curriculum perfetto: racconta cosa hai fatto davvero, anche se ti sembra piccolo, e dove vuoi arrivare.' },
-  { q: 'Cosa resta gratis per tutti?', a: 'Tutto il percorso dell’Academy, con quiz, simulazioni e certificati, e tutte le opportunità. Premium aggiunge solo quello che si può fare dal vivo: le masterclass su Teams, le cene e gli incontri con Andrea, e presto le masterclass con esperti internazionali e personaggi pubblici.' },
-  { q: 'Come sono fatte le masterclass?', a: 'Le tiene Andrea in diretta su Microsoft Teams, in gruppi piccoli. Prenoti il posto dalla pagina del corso e, quando Andrea fissa la data, la trovi lì insieme al link per entrare, e ti arriva anche per email.' },
-  { q: 'Chi terrà le masterclass con ospiti?', a: 'Esperti internazionali e personaggi pubblici, che annunceremo qui quando nomi e date saranno confermati. Saranno riservate a chi è in Premium, come le altre attività dal vivo.' },
+  { q: 'Cosa resta gratis per tutti?', a: 'Tutto il percorso dell’Academy, con quiz, simulazioni e certificati, tutte le opportunità e gli incontri online con Andrea. Premium aggiunge solo due cose che si fanno dal vivo: le lezioni live su Teams con Andrea e le cene di networking.' },
+  { q: 'Come sono fatte le lezioni live?', a: 'Le tiene Andrea in diretta su Microsoft Teams, in gruppi piccoli. Prenoti il posto dalla pagina del corso e, quando Andrea fissa la data, la trovi lì insieme al link per entrare, e ti arriva anche per email.' },
   { q: 'Quando parte una lezione live?', a: 'Andrea apre un’edizione alla volta e fissa la data quando il gruppo è pronto. Chi è iscritto trova nel corso giorno, ora e il link per entrare su Teams, e riceve tutto per email.' },
-  { q: 'Come funzionano gli incontri con Andrea?', a: 'Chi è in Premium può chiedere 5, 15 o 30 minuti con Andrea, in videochiamata, al telefono o di persona: per rivedere un testo, fare domande o chiedere un consiglio. Compili il modulo in questa pagina e Andrea ti scrive per fissare giorno e ora. Puoi chiederne fino a 3 al mese.' },
+  { q: 'E gli incontri con Andrea?', a: 'Sono aperti a tutti, anche fuori da Premium: con l’email confermata chiedi 5, 15 o 30 minuti in videochiamata o al telefono dalla pagina «Chi è Andrea?», per rivedere un testo, fare domande o chiedere un consiglio. Andrea ti scrive per fissare giorno e ora. Puoi chiederne fino a 3 al mese.' },
   { q: 'Dove ricevo la risposta?', a: 'Qui nell’app, in questa pagina. Se Premium viene attivato, si sblocca tutto subito.' },
   { q: 'E se non vengo selezionato?', a: 'Ricevi un riscontro e puoi ricandidarti dopo 30 giorni, quando il tuo percorso sarà cresciuto.' },
   { q: 'Chi paga i viaggi delle opportunità?', a: 'Gli enti che le pubblicano, quando il bando lo prevede. THE LOBBY non organizza né finanzia le opportunità: le cerca, le verifica sulle fonti ufficiali e te le mette tutte in un solo posto. Ti candidi direttamente sul sito dell’ente.' },
@@ -248,8 +231,8 @@ export default function Premium() {
         <p className="premium-hero__sub">Non si compra. Si conquista.</p>
         <ul className="premium-badges">
           <li>Gratuito</li>
-          <li>Su selezione</li>
-          <li>Lezioni live con Andrea</li>
+          <li>Lezioni live su Teams</li>
+          <li>Cene di networking</li>
         </ul>
         {status('top')}
       </section>
@@ -304,8 +287,6 @@ export default function Premium() {
             </li>
           ))}
         </ol>
-
-        {(plan.premium || plan.admin) && <MeetingSection />}
 
         <section className="block">
           <h2 className="h-section">Come si entra</h2>
@@ -404,7 +385,7 @@ export default function Premium() {
           <h2 className="h-section">Prossimi appuntamenti</h2>
           {events.loading && <Spinner />}
           {events.data && events.data.length === 0 && (
-            <p className="muted">Il calendario di cene e incontri è in preparazione. Chi entra in Premium lo vede per primo.</p>
+            <p className="muted">Il calendario delle cene è in preparazione. Chi entra in Premium lo vede per primo.</p>
           )}
           {events.error && <p className="muted">Calendario non disponibile in questo momento.</p>}
           {events.data && events.data.length > 0 && (

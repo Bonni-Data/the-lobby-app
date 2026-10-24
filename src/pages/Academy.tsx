@@ -337,7 +337,7 @@ export default function Academy() {
               <p className="academy-premium__text">
                 {plan.premium
                   ? 'Sei dentro: le masterclass live sono aperte per te. Prenota il posto dalla pagina del corso.'
-                  : 'Il percorso è tutto gratis. Premium aggiunge quello che si può fare solo dal vivo: masterclass su Teams con Andrea, cene a numero chiuso e incontri faccia a faccia. In arrivo anche masterclass con esperti internazionali e personaggi pubblici.'}
+                  : 'Il percorso è tutto gratis, e anche gli incontri online con Andrea. Premium aggiunge solo due cose che si fanno dal vivo: le lezioni live su Teams con Andrea e le cene di networking.'}
               </p>
               <p className="academy-premium__video">
                 <span className="academy-premium__play" aria-hidden="true"><LuRadio /></span>

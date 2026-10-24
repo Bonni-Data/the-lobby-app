@@ -143,8 +143,8 @@ export function Privacy() {
       <h2>8. Minori</h2>
       <p>
         Per iscriverti devi avere almeno 14 anni, l'età prevista in Italia per acconsentire da soli ai servizi online (art.
-        2-quinquies del Codice privacy). Se scopriamo un account di una persona più giovane lo eliminiamo. Le cene e gli incontri
-        dal vivo sono riservati ai maggiorenni.
+        2-quinquies del Codice privacy). Se scopriamo un account di una persona più giovane lo eliminiamo. Le cene
+        sono riservate ai maggiorenni.
       </p>
 
       <h2>9. Sicurezza</h2>
@@ -180,7 +180,8 @@ export function Terms() {
       <ul>
         <li>Un percorso a tappe di corsi da leggere, con quiz, su come funzionano le istituzioni e sulle competenze per muoversi al loro interno.</li>
         <li>Una raccolta, aggiornata ogni giorno, di opportunità pubblicate da enti pubblici, istituzioni europee e organizzazioni internazionali, consultabile da tutti.</li>
-        <li>Con Premium, gratuito e su selezione: lezioni live su Microsoft Teams con Andrea Bonazzi, cene e incontri, come descritto nella pagina Premium.</li>
+        <li>Incontri online con Andrea Bonazzi, in videochiamata o al telefono, per tutti gli iscritti con l'email confermata.</li>
+        <li>Con Premium, gratuito e su selezione: lezioni live su Microsoft Teams con Andrea Bonazzi e cene di networking, come descritto nella pagina Premium.</li>
       </ul>
 
       <h2>3. Natura dei contenuti</h2>
@@ -215,7 +216,7 @@ export function Terms() {
       <h2>6. Free e Premium</h2>
       <ul>
         <li>THE LOBBY è <strong>interamente gratuita</strong>, Premium compreso.</li>
-        <li>Con l'account base accedi a tutto il percorso dell'Academy, ai quiz, alle simulazioni e a tutte le opportunità. Le opportunità sono consultabili anche senza account.</li>
+        <li>Con l'account base accedi a tutto il percorso dell'Academy, ai quiz, alle simulazioni, a tutte le opportunità e agli incontri online con Andrea. Le opportunità sono consultabili anche senza account. Premium comprende solo le lezioni live su Teams e le cene di networking.</li>
         <li>
           L'accesso a Premium è <strong>su selezione</strong>: ti candidi raccontando il tuo percorso e Andrea Bonazzi valuta
           personalmente ogni candidatura, a sua discrezione e senza discriminazioni. Le opinioni politiche e l'eventuale
@@ -236,9 +237,9 @@ export function Terms() {
         <li>L'uso di Teams è soggetto anche ai termini di Microsoft.</li>
       </ul>
 
-      <h2>8. Cene e incontri dal vivo</h2>
+      <h2>8. Cene di networking</h2>
       <ul>
-        <li>Sono riservati ai maggiorenni iscritti a Premium, a numero chiuso, e si partecipa rispondendo all'invito nell'app.</li>
+        <li>Sono riservate ai maggiorenni iscritti a Premium, a numero chiuso, e si partecipa rispondendo all'invito nell'app.</li>
         <li>Eventuali costi, per esempio quello della cena, sono indicati nell'invito prima della conferma e restano a carico di chi partecipa.</li>
         <li>Luoghi e servizi sono gestiti dai rispettivi esercenti, alle loro condizioni.</li>
       </ul>

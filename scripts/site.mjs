@@ -264,7 +264,7 @@ ${stages.map((st) => {
     <h2>${esc(st.title)}</h2>
     <p class="s-skill">Competenza: <strong>${esc(st.skill)}</strong></p>
     ${st.summary ? `<p>${esc(st.summary)}</p>` : ''}
-    ${st.premium ? '<p>In arrivo in questa tappa anche masterclass con esperti internazionali e personaggi pubblici.</p>' : ''}
+    
     <ul class="s-courses">${list.map((x) => courseCard(x.c, x.optional ? '<em>Facoltativo</em>' : '')).join('')}</ul>
   </div>
 </li>`;
@@ -289,7 +289,7 @@ ${cta('Il percorso è gratis', 'Crea l’account in un minuto: salvi i progressi
 <section class="s-hero">
   <span class="s-kicker">Academy</span>
   <h1>I corsi di THE LOBBY</h1>
-  <p class="s-lede">Corsi brevi e gratuiti su come funzionano davvero le istituzioni, dal Comune all'Unione europea, e sulle competenze per muoverti dentro: lezioni da cinque minuti, quiz e simulazioni finali. I corsi di attualità (intelligenza artificiale, legge elettorale, clima, lavoro, fisco, casa, migrazioni, sanità, Europa e digitale) si aggiornano il 1° di ogni mese con le nuove leggi. Le masterclass dal vivo con Andrea sono in Premium, gratuito su selezione, dove arriveranno anche masterclass con esperti internazionali e personaggi pubblici.</p>
+  <p class="s-lede">Corsi brevi e gratuiti su come funzionano davvero le istituzioni, dal Comune all'Unione europea, e sulle competenze per muoverti dentro: lezioni da cinque minuti, quiz e simulazioni finali. I corsi di attualità (intelligenza artificiale, legge elettorale, clima, lavoro, fisco, casa, migrazioni, sanità, Europa e digitale) si aggiornano il 1° di ogni mese con le nuove leggi. In Premium, gratuito su selezione, ci sono solo le lezioni live su Teams con Andrea e le cene di networking.</p>
   <a class="s-btn s-btn--ghost" href="/percorso/">Guarda il percorso consigliato</a>
 </section>
 ${groups.map((g) => `<section class="s-group"><h2>${esc(g.label)}</h2><ul class="s-courses">${g.items.map((c) => courseCard(c)).join('')}</ul></section>`).join('\n')}
