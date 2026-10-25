@@ -1620,3 +1620,9 @@ button.feature__link { background: none; border: 0; padding: 0; cursor: pointer;
 .install-pop__steps strong { color: var(--ivory); }
 .install-pop__later { justify-self: center; background: none; border: 0; padding: 8px 12px; color: rgba(244, 240, 232, .75); font: inherit; font-size: 14.5px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 @media (min-width: 720px) { .install-pop { align-items: center; } .install-pop__card { border-radius: 28px 28px 18px 18px; } }
+
+/* Inviti con un motivo (25/10/2026): sfida dopo il quiz, invito dopo il certificato, amici attivi nelle candidature */
+.invite--challenge { margin: 18px 0 22px; }
+.quiz-result .invite, .cert .invite { text-align: left; margin-top: 18px; }
+.appcard__invites { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.appcard__invites.is-priority { color: var(--coral); font-weight: 700; }

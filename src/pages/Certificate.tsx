@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth';
 import { Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync, toast } from '../components/ui';
 import { Link } from '../lib/router';
 import { LuShare2, LuDownload, LuLinkedin, LuCopy, LuBadgeCheck, LuPencil } from 'react-icons/lu';
+import { InviteCard } from '../components/invite';
 
 export default function Certificate({ id }: { id: string }) {
   const { session } = useAuth();
@@ -111,6 +112,7 @@ function CertView({ c }: { c: Cert }) {
             <Button variant="ghost" onClick={copy}><LuCopy aria-hidden="true" /> Copia il link di verifica</Button>
           </div>
           <p className="tiny muted center">Chi apre il link vede nome, corso e data, e può verificare che il certificato è autentico.</p>
+          <InviteCard moment="certificato" title="Hai finito un corso. Chi porti con te?" text="Manda il tuo link a chi vuole capire come funzionano le istituzioni." />
         </>
       ) : (
         <div className="cert__actions">

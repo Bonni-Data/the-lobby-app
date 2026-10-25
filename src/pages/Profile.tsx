@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { auth, invoke, ApiError } from '../lib/api';
-import { saveDisplayName, isFullName, saveAvatar, removeAvatar, squarePhoto, myInvite, inviteLink, myEmailPrefs, setEmailPrefs, track, EmailPrefs } from '../lib/data';
+import { saveDisplayName, isFullName, saveAvatar, removeAvatar, squarePhoto, myEmailPrefs, setEmailPrefs, track, EmailPrefs } from '../lib/data';
+import { InviteCard } from '../components/invite';
 import { levelFor } from '../lib/game';
 import { useGame } from '../components/game';
 import { Button, Screen, TopBar, toast, useAsync } from '../components/ui';
@@ -181,43 +182,6 @@ export default function Profile() {
         <p className="tiny muted center">The Lobby Academy, versione {APP_VERSION}</p>
       </main>
     </Screen>
-  );
-}
-
-/** Invite a friend: personal link, native share sheet or copy, and how many joined. */
-function InviteCard() {
-  const inv = useAsync(() => myInvite(), []);
-  const code = inv.data?.code;
-  const link = code ? inviteLink(code) : '';
-  const text = 'Sto usando THE LOBBY per capire come funzionano davvero Comune, Parlamento ed Europa, e trovare opportunità gratis. Entra anche tu:';
-
-  async function share() {
-    if (!link) return;
-    track('invite_share');
-    try {
-      if (navigator.share) { await navigator.share({ title: 'THE LOBBY', text, url: link }); return; }
-      await navigator.clipboard.writeText(`${text} ${link}`);
-      toast('Link copiato: mandalo a chi vuoi.');
-    } catch { /* closed */ }
-  }
-  async function copy() {
-    if (!link) return;
-    track('invite_copy');
-    try { await navigator.clipboard.writeText(link); toast('Link copiato.'); } catch { toast('Copia non riuscita: tieni premuto sul link.'); }
-  }
-
-  return (
-    <section className="invite" aria-label="Invita un amico">
-      <span className="invite__arch" aria-hidden="true" />
-      <span className="invite__kicker"><LuUserPlus aria-hidden="true" /> Invita un amico</span>
-      <h2 className="invite__title">La Lobby è più forte in compagnia.</h2>
-      <p className="invite__text">Manda il tuo link a chi vuole capire come funzionano le istituzioni. Quando si iscrive, lo vedi qui.</p>
-      {link && <p className="invite__link"><span>{link.replace('https://', '')}</span><button className="iconbtn" onClick={copy} aria-label="Copia il link"><LuCopy aria-hidden="true" /></button></p>}
-      <div className="invite__row">
-        <Button onClick={share} disabled={!link}><LuShare2 aria-hidden="true" /> Condividi il link</Button>
-        <span className="invite__count"><strong>{inv.data ? inv.data.joined : '–'}</strong> {inv.data?.joined === 1 ? 'persona portata' : 'persone portate'}</span>
-      </div>
-    </section>
   );
 }
 

@@ -316,7 +316,8 @@ async function mock(route) {
   if (path === '/rest/v1/rpc/my_email_prefs') return json(200, emailPrefs);
   if (path === '/rest/v1/rpc/set_email_prefs') { emailPrefs = { digest: body.p_digest, reminders: body.p_reminders }; return json(200, emailPrefs); }
   if (path === '/rest/v1/rpc/email_unsubscribe') { unsubscribed.push(body.p_what); return json(200, body.p_token === '9f1c2d3e-4b5a-4c6d-8e7f-001122334455' ? 'ok' : 'invalid'); }
-  if (path === '/rest/v1/rpc/my_invite') return json(200, { code: 'K7MQ2X', joined: 2 });
+  if (path === '/rest/v1/rpc/my_invite') return json(200, { code: 'K7MQ2X', joined: 2, active: 1 });
+  if (path === '/rest/v1/rpc/premium_applications_ranked') return json(200, apps.map((a, i) => ({ ...a, joined: i === 0 ? 4 : 0, active: i === 0 ? 3 : 0 })));
   if (path === '/rest/v1/rpc/report_content') { reports.push(body); return json(200, 'rep-1'); }
   if (path === '/rest/v1/content_reports') return json(200, reports.map((r, i) => ({ id: 'r' + i, lesson_id: r.p_lesson, message: r.p_message, status: 'nuova', created_at: new Date().toISOString(), lessons: { title: '[TEST] Lezione 1' } })));
   if (path === '/rest/v1/rpc/admin_metrics') return json(200, {
@@ -702,6 +703,7 @@ await check(page.locator('.nchart span').count().then((n) => n === 14), 'signups
 await shot('10f0-admin-numeri');
 await page.click('.section-tabs button:has-text("Candidature")');
 await page.waitForSelector('.appcard');
+await check(page.textContent('.appcard').then((t) => t.includes('in cima alla lista')), 'premium application shows active friends and priority');
 await page.waitForSelector('.email-strip');
 await check(page.textContent('.email-strip:not(.growth-strip)').then((t) => t.includes('Email in preparazione') && t.includes('2 pronte in coda')), 'founder sees email status');
 await check(page.textContent('.growth-strip').then((t) => t.includes('42 iscritti') && t.includes('instagram 9')), 'founder sees growth and sources');
@@ -873,6 +875,7 @@ await page.click('.tabbar__item:has-text("Profilo")');
 await page.waitForSelector('.profile-head');
 await page.waitForSelector('.invite__link');
 await check(page.textContent('.invite').then((t) => t.includes('thelobbyitalia.it/?invito=K7MQ2X') && t.includes('2')), 'invite link and friends count');
+await check(page.textContent('.invite').then((t) => t.includes('Porta 3 amici') && t.includes('1') && t.includes('attiva')), 'invite explains the Premium priority and shows active friends');
 await page.waitForSelector('.mail-prefs .switch input:not([disabled])');
 await page.click('.mail-prefs .switch:has-text("Riepilogo del lunedì")');
 await page.waitForTimeout(300);

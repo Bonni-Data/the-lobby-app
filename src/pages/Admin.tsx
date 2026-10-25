@@ -45,6 +45,11 @@ function Card({ a, onDone }: { a: Application; onDone: () => void }) {
         </div>
         <span className="muted small">{formatDate(a.created_at)}</span>
       </div>
+      {(a.joined ?? 0) > 0 && (
+        <p className={`appcard__invites${(a.active ?? 0) >= 3 ? ' is-priority' : ''}`}>
+          <LuUsers aria-hidden="true" /> Ha portato {a.joined} {a.joined === 1 ? 'amico' : 'amici'}, {a.active ?? 0} {a.active === 1 ? 'attivo' : 'attivi'}{(a.active ?? 0) >= 3 ? ' · in cima alla lista' : ''}
+        </p>
+      )}
       <dl className="appcard__body">
         <dt>Chi è oggi</dt><dd>{a.about}</dd>
         <dt>Cosa ha fatto finora</dt><dd>{a.experience}</dd>

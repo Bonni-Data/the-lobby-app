@@ -67,6 +67,8 @@ export type Application = MyApplication & {
   experience: string;
   goal: string;
   link?: string | null;
+  joined?: number;
+  active?: number;
 };
 export type QuizQuestion = { id: string; position: number; prompt: string; options: string[] };
 export type Quiz = { id: string; title: string; lesson_id: string; quiz_questions: QuizQuestion[] };
@@ -212,8 +214,14 @@ export function sendTestEmail() {
   return rpc<string>('email_send_test', {});
 }
 
+/** Applications with the friends each applicant brought (joined) and how many finished a lesson (active).
+ * Pending ones with at least 3 active friends come first: Andrea reads them first (25/10/2026). */
 export async function listApplications(): Promise<Application[]> {
-  return select<Application>('premium_applications', 'select=*&order=created_at.desc');
+  try {
+    return (await rpc<Application[]>('premium_applications_ranked', {})) || [];
+  } catch {
+    return select<Application>('premium_applications', 'select=*&order=created_at.desc');
+  }
 }
 
 export async function reviewApplication(id: string, decision: 'approved' | 'rejected', note: string) {
@@ -599,7 +607,7 @@ export async function setReportStatus(id: string, status: 'nuova' | 'gestita') {
 
 // ---------- Invite a friend ----------
 export function myInvite() {
-  return rpc<{ code: string; joined: number }>('my_invite', {});
+  return rpc<{ code: string; joined: number; active: number }>('my_invite', {});
 }
 export const inviteLink = (code: string) => `https://thelobbyitalia.it/?invito=${encodeURIComponent(code)}`;
 

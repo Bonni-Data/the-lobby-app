@@ -9,5 +9,8 @@ export const APP_VERSION = '0.4.0';
 /** Public contact for privacy, terms and Premium applications. */
 export const CONTACT_EMAIL = 'thelobbysupport@gmail.com';
 export const APP_URL = 'https://thelobbyitalia.it/';
+/** Numeric id of THE LOBBY's LinkedIn page (linkedin.com/company/<id>/admin). When set, certificates added to LinkedIn
+ * show THE LOBBY's logo and link instead of plain text. Empty until the page exists. */
+export const LINKEDIN_ORG_ID = '';
 export const LEGAL_UPDATED = '16 ottobre 2026';
 export const TERMS_VERSION = '2026-10-15';

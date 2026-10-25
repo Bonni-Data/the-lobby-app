@@ -3,6 +3,7 @@ import { getQuiz, submitQuiz, QuizResult } from '../lib/data';
 import { refreshGame } from '../lib/game';
 import { ArchProgress, Button, ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
 import { LuCheck, LuX } from 'react-icons/lu';
+import { ChallengeCard } from '../components/invite';
 
 export default function Quiz({ id }: { id: string }) {
   const data = useAsync(() => getQuiz(id), [id]);
@@ -114,6 +115,9 @@ export default function Quiz({ id }: { id: string }) {
                 );
               })}
             </ul>
+            {result.max_score > 0 && result.score / result.max_score >= 0.6 && (
+              <ChallengeCard score={result.score} max={result.max_score} quizTitle={quiz.title} />
+            )}
             <div className="lesson-actions">
               <ButtonLink to={back} block>Torna alla lezione</ButtonLink>
               <Button variant="ghost" block onClick={restart}>Rifai il quiz</Button>

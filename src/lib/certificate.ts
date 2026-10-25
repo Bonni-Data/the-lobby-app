@@ -1,5 +1,6 @@
 import type { Certificate } from './game';
 import { CATEGORY_NAME } from './data';
+import { LINKEDIN_ORG_ID } from '../config';
 
 export const CERT_W = 1080;
 export const CERT_H = 1350;
@@ -27,7 +28,7 @@ export function linkedInAddUrl(c: Certificate) {
   const q = new URLSearchParams({
     startTask: 'CERTIFICATION_NAME',
     name: c.course,
-    organizationName: 'THE LOBBY',
+    ...(LINKEDIN_ORG_ID ? { organizationId: LINKEDIN_ORG_ID } : { organizationName: 'THE LOBBY' }),
     issueYear: String(d.getFullYear()),
     issueMonth: String(d.getMonth() + 1),
     certUrl: certificateUrl(c.id),
