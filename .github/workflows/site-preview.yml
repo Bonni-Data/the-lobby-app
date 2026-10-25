@@ -1,8 +1,10 @@
-# THE LOBBY · preview of the public pages, without publishing (manual run on any branch).
+# THE LOBBY · preview of the public pages, without publishing (runs on pushes to the site-preview branch).
 name: Anteprima pagine pubbliche
 
 on:
   workflow_dispatch:
+  push:
+    branches: [site-preview]
 
 jobs:
   build:
