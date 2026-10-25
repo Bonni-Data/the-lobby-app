@@ -11,6 +11,7 @@
 // Pure Node, no dependencies.
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { slugify, oppSlug, newsSlug } from './shared.mjs';
 
 const SITE = 'https://thelobbyitalia.it';
 const SUPABASE_URL = 'https://unyqeshkfkvijehnlnex.supabase.co';
@@ -29,9 +30,6 @@ const POSTS = opt('--posts');
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const strip = (s) => String(s ?? '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
 const clip = (s, n) => { const t = strip(s); return t.length <= n ? t : t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…'; };
-function slugify(s) {
-  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70).replace(/-+$/, '');
-}
 const MONTHS = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 function itDate(iso) {
   if (!iso) return '';
@@ -430,7 +428,6 @@ function jobPlaces(location) {
   return out;
 }
 const JOB_KINDS = new Set(['tirocinio', 'lavoro', 'concorso']);
-const oppSlug = (o) => `${slugify(o.title).slice(0, 60).replace(/-+$/, '')}-${String(o.id).slice(0, 6)}`;
 const oppUrl = (o) => `/opportunita/${oppSlug(o)}/`;
 {
   const opps = data.opportunities || [];
@@ -530,7 +527,7 @@ ${cta('Non perderti le prossime', 'Con l’account gratuito ti arrivano ogni lun
       try {
         const n = JSON.parse(readFileSync(f, 'utf8'));
         if (!n.title || !Array.isArray(n.slides) || !n.slides.length) continue;
-        news.push({ date, ...n, h, slug: `${date}-${slugify(n.title).slice(0, 60).replace(/-+$/, '')}` });
+        news.push({ date, ...n, h, slug: newsSlug(date, n.title) });
       } catch { /* a malformed file never breaks the other pages */ }
     }
   }

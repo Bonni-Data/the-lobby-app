@@ -1,0 +1,47 @@
+# THE LOBBY · daily post on the public Telegram channel.
+# 08:25 UTC (09:25 in winter, 10:25 in summer): after the 08:00 «Dietro la notizia» and the 08:10 UTC rebuild of the public pages,
+# so the links it posts already work. Dormant until the secrets TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID exist
+# (see docs/TELEGRAM.md): without them it only prints what it would send.
+name: Canale Telegram
+
+on:
+  schedule:
+    - cron: '25 8 * * *'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'Solo prova (non pubblica)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - name: Daily explainers from the posts repository
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: Bonni-Data/the-lobby-posts
+          path: posts
+          sparse-checkout: |
+            data
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Post
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/telegram.mjs --posts posts ${{ (github.event_name == 'workflow_dispatch' && inputs.dry) && '--dry' || '' }}
