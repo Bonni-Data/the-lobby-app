@@ -1,10 +1,14 @@
-# THE LOBBY · preview of the public pages, without publishing (runs on pushes to the site-preview branch).
+# THE LOBBY · preview of the public pages, without publishing them on the site.
+# Runs on pushes to the site-preview branch and saves the result on the site-preview-out branch.
 name: Anteprima pagine pubbliche
 
 on:
   workflow_dispatch:
   push:
     branches: [site-preview]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -26,8 +30,12 @@ jobs:
         with:
           node-version: '22'
       - run: node src/scripts/site.mjs --out out --posts posts
-      - uses: actions/upload-artifact@v4
-        with:
-          name: anteprima
-          path: out
-          retention-days: 3
+      - name: Save the preview on site-preview-out
+        working-directory: out
+        run: |
+          git init -q -b site-preview-out
+          git config user.name "THE LOBBY bot"
+          git config user.email "thelobbysupport@gmail.com"
+          git add -A
+          git commit -q -m "Anteprima $(date -u +%Y-%m-%dT%H:%M)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:site-preview-out
