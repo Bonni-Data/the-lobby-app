@@ -7,7 +7,7 @@ import { Button, ErrorState, Spinner, toast, useAsync } from './ui';
 import { VerifyBanner } from './email';
 import { Link } from '../lib/router';
 import {
-  LuCalendarClock, LuCalendarPlus, LuCheck, LuMail, LuRadio, LuUsers, LuVideo, LuFileText, LuArrowRight, LuLock, LuSettings2,
+  LuCalendarClock, LuCalendarPlus, LuCheck, LuMail, LuRadio, LuVideo, LuFileText, LuArrowRight, LuLock, LuSettings2,
 } from 'react-icons/lu';
 
 export const SCRIPTS_URL = 'https://claude.ai/code/artifact/37137b6a-b5c7-4227-b500-d2eab6f696a2';
@@ -19,13 +19,14 @@ export function liveWhen(iso: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/** «8 iscritti su 15» with a progress bar that fills up to the minimum. */
+/** Founder only: «8 iscritti su 15» with a progress bar that fills up to the minimum. */
 export function LiveMeter({ e, tone = 'paper' }: { e: Pick<LiveEdition, 'yes_count' | 'min_seats'>; tone?: 'paper' | 'navy' }) {
-  const pct = Math.min(100, Math.round((e.yes_count / Math.max(1, e.min_seats)) * 100));
+  const yes = e.yes_count ?? 0;
+  const pct = Math.min(100, Math.round((yes / Math.max(1, e.min_seats)) * 100));
   return (
     <div className={`live-meter live-meter--${tone}`}>
-      <span className="live-meter__num"><strong>{e.yes_count}</strong> / {e.min_seats} iscritti</span>
-      <span className="live-meter__bar" role="progressbar" aria-valuenow={e.yes_count} aria-valuemin={0} aria-valuemax={e.min_seats} aria-label="Iscritti alla live">
+      <span className="live-meter__num"><strong>{yes}</strong> / {e.min_seats} iscritti</span>
+      <span className="live-meter__bar" role="progressbar" aria-valuenow={yes} aria-valuemin={0} aria-valuemax={e.min_seats} aria-label="Iscritti alla live">
         <span style={{ width: `${pct}%` }} />
       </span>
     </div>
@@ -101,7 +102,7 @@ export function LivePanel({ course, edition }: { course: Course; edition?: LiveE
     setBusy(true);
     try {
       const res = await rsvpEvent(e!.event_id, r);
-      setE({ ...e!, my_response: res.response, yes_count: res.yes_count });
+      setE({ ...e!, my_response: res.response, yes_count: res.yes_count ?? e!.yes_count });
       setLeaving(false);
       toast(r === 'yes' ? 'Posto prenotato. Data e link Teams arrivano qui e per email.' : 'Iscrizione annullata.');
       refresh();
@@ -165,8 +166,11 @@ export function LivePanel({ course, edition }: { course: Course; edition?: LiveE
   );
 }
 
-/** Course page for members who are not in Premium yet. */
-export function LiveTeaser({ edition }: { edition?: LiveEdition }) {
+/**
+ * Course page for members who are not in Premium yet.
+ * How many people booked is never shown to members (decided by Andrea, 25/10/2026): only the founder sees it.
+ */
+export function LiveTeaser(_props: { edition?: LiveEdition }) {
   return (
     <section className="live-panel live-panel--locked">
       <span className="live-panel__kicker"><LuLock aria-hidden="true" /> Lezione live su Teams con Andrea</span>
@@ -174,9 +178,6 @@ export function LiveTeaser({ edition }: { edition?: LiveEdition }) {
         Questo corso si fa dal vivo, su Microsoft Teams, con Andrea. Chi è in Premium vede il programma completo e prenota il
         posto da qui.
       </p>
-      {edition && edition.yes_count >= 10 && (
-        <p className="live-panel__count"><LuUsers aria-hidden="true" /> {edition.yes_count === 1 ? '1 persona ha già prenotato' : `${edition.yes_count} persone hanno già prenotato`}</p>
-      )}
     </section>
   );
 }
@@ -206,7 +207,7 @@ function LiveAdminCard({ course, e, onChanged }: { course: Course; e: LiveEditio
   useEffect(() => { setWhen(toLocalInput(e.starts_at)); setUrl(e.join_url || ''); }, [e.starts_at, e.join_url]);
 
   const yes = (people || []).filter((p) => p.response === 'yes');
-  const ready = e.yes_count >= e.min_seats;
+  const ready = (e.yes_count ?? 0) >= e.min_seats;
   const over = liveIsOver(e);
   const status = e.starts_at
     ? over ? { cls: 'done', label: 'Svolta: chiudi l’edizione' } : { cls: 'set', label: 'Data fissata' }
@@ -312,7 +313,7 @@ export function LiveAdminTab() {
   const refresh = () => listLive().then(setLive).catch(() => data.reload());
   const courses = data.data?.courses || [];
   const rows = courses.map((c) => ({ c, e: (live || []).find((x) => x.course_id === c.id) }));
-  const ready = rows.filter((r) => r.e && !r.e.starts_at && r.e.yes_count >= r.e.min_seats).length;
+  const ready = rows.filter((r) => r.e && !r.e.starts_at && (r.e.yes_count ?? 0) >= r.e.min_seats).length;
 
   return (
     <>
@@ -322,7 +323,7 @@ export function LiveAdminTab() {
       </p>
       <div className="video-summary">
         {ready > 0 && <span><strong>{ready}</strong> {ready === 1 ? 'pronta da fissare' : 'pronte da fissare'}</span>}
-        <span><strong>{(live || []).reduce((n, e) => n + e.yes_count, 0)}</strong> prenotazioni in tutto</span>
+        <span><strong>{(live || []).reduce((n, e) => n + (e.yes_count ?? 0), 0)}</strong> prenotazioni in tutto</span>
         <a href={SCRIPTS_URL} target="_blank" rel="noopener noreferrer" className="link-quiet"><LuFileText aria-hidden="true" /> Le tue scalette</a>
       </div>
       {data.loading && !data.data && <Spinner />}

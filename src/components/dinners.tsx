@@ -27,15 +27,16 @@ export function DinnerCard({ e: initial }: { e: EventItem }) {
   const [e, setE] = useState(initial);
   const [busy, setBusy] = useState<'' | 'yes' | 'no'>('');
   const d = dateParts(e.starts_at);
-  const left = e.seats != null ? Math.max(0, e.seats - e.yes_count) : null;
-  const full = left === 0 && e.my_response !== 'yes';
+  // How many said yes is never shown to members (decided by Andrea, 25/10/2026): the server only says whether the table is full.
+  const isFull = e.full ?? (e.seats != null && e.yes_count != null && e.yes_count >= e.seats);
+  const full = isFull && e.my_response !== 'yes';
 
   async function answer(r: 'yes' | 'no') {
     if (e.my_response === r) return;
     setBusy(r);
     try {
       const res = await rsvpEvent(e.id, r);
-      setE({ ...e, my_response: res.response, yes_count: res.yes_count });
+      setE({ ...e, my_response: res.response, full: r === 'no' ? false : isFull, yes_count: res.yes_count ?? e.yes_count });
       toast(r === 'yes' ? 'Ci sei. Ti aspettiamo a tavola.' : 'Risposta salvata. Alla prossima.');
     } catch (err) {
       toast(rsvpError(err));
@@ -58,7 +59,7 @@ export function DinnerCard({ e: initial }: { e: EventItem }) {
         {e.summary && <p className="dinner__sum">{e.summary}</p>}
         <p className="dinner__meta">
           {e.location && <span><LuMapPin aria-hidden="true" /> {e.location}</span>}
-          <span><LuUsers aria-hidden="true" /> {e.yes_count} {e.yes_count === 1 ? 'presente' : 'presenti'}{left != null ? ` · ${left} ${left === 1 ? 'posto libero' : 'posti liberi'}` : ''}</span>
+          {e.seats != null && <span><LuUsers aria-hidden="true" /> Tavolo da {e.seats} posti</span>}
         </p>
         <div className="rsvp" role="group" aria-label="La tua risposta">
           <button

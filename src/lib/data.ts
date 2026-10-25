@@ -364,7 +364,10 @@ export type EventItem = {
   starts_at?: string | null;
   location?: string | null;
   seats?: number | null;
-  yes_count: number;
+  /** Only for the founder: members never see how many people booked (decided by Andrea, 25/10/2026). */
+  yes_count?: number | null;
+  /** The table is full (no seats left). */
+  full?: boolean;
   my_response?: 'yes' | 'no' | null;
   locked: boolean;
 };
@@ -375,7 +378,7 @@ export async function listEvents(kind?: EventItem['kind']): Promise<EventItem[]>
 }
 
 export function rsvpEvent(eventId: string, response: 'yes' | 'no') {
-  return rpc<{ response: 'yes' | 'no'; yes_count: number }>('rsvp_event', { p_event: eventId, p_response: response });
+  return rpc<{ response: 'yes' | 'no'; yes_count?: number | null }>('rsvp_event', { p_event: eventId, p_response: response });
 }
 
 export type Attendee = { full_name: string; email: string; response: 'yes' | 'no'; updated_at: string };
@@ -420,7 +423,8 @@ export function courseLabel(c: Course) {
 export type LiveEdition = {
   course_id: string;
   event_id: string;
-  yes_count: number;
+  /** Only for the founder: members never see how many people booked. */
+  yes_count: number | null;
   min_seats: number;
   my_response: 'yes' | 'no' | null;
   starts_at: string | null;

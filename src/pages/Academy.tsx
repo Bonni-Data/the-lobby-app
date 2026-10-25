@@ -23,7 +23,7 @@ function CourseRow({ c, progress, admin, locked, live, optional }: { c: Course; 
   const done = completedIn(c, progress);
   const coming = !isL && c.coming_soon && total === 0;
   const drafts = admin && !isL ? draftCount(c) : 0;
-  const ready = live && !live.starts_at && live.yes_count >= live.min_seats;
+  const ready = live && !live.starts_at && (live.yes_count ?? 0) >= live.min_seats;
   return (
     <li>
       <Link to={`/corso/${c.slug}`} className={`course-row ${coming ? 'is-coming' : ''}`}>

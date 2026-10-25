@@ -135,7 +135,8 @@ async function mock(route) {
   }
   if (path === '/auth/v1/logout') { loggedIn = false; return route.fulfill({ status: 204 }); }
   if (path === '/rest/v1/rpc/live_courses') {
-    return json(200, [{ ...live, join_url: isAdmin || (approved && live.my_response === 'yes') ? liveUrl : null }]);
+    // 25/10: how many booked is only for the founder, like the real live_courses().
+    return json(200, [{ ...live, yes_count: isAdmin ? live.yes_count : null, join_url: isAdmin || (approved && live.my_response === 'yes') ? liveUrl : null }]);
   }
   if (path === '/rest/v1/rpc/live_schedule') {
     if (!isAdmin) return json(400, { code: 'P0001', message: 'forbidden' });
@@ -261,19 +262,19 @@ async function mock(route) {
   }
   if (path === '/rest/v1/premium_applications') return json(200, apps);
   if (path === '/rest/v1/rpc/events_feed') {
-    return json(200, events.map((e) => ({ ...e, locked: !approved, summary: approved ? e.summary : null, location: approved ? e.location : null })));
+    return json(200, events.map((e) => ({ ...e, yes_count: isAdmin ? e.yes_count : null, full: e.seats != null && e.yes_count >= e.seats, locked: !approved, summary: approved ? e.summary : null, location: approved ? e.location : null })));
   }
   if (path === '/rest/v1/rpc/rsvp_event' && body.p_event === live.event_id) {
     if (!approved && !isAdmin) return json(400, { code: 'P0001', message: 'premium_required' });
     if (live.my_response !== body.p_response) live.yes_count += body.p_response === 'yes' ? 1 : live.my_response === 'yes' ? -1 : 0;
     live.my_response = body.p_response;
-    return json(200, { response: live.my_response, yes_count: live.yes_count });
+    return json(200, { response: live.my_response, yes_count: isAdmin ? live.yes_count : null });
   }
   if (path === '/rest/v1/rpc/rsvp_event') {
     if (!approved) return json(400, { code: 'P0001', message: 'premium_required' });
     const e = events.find((x) => x.id === body.p_event);
     e.my_response = body.p_response; e.yes_count = body.p_response === 'yes' ? 1 : 0;
-    return json(200, { response: e.my_response, yes_count: e.yes_count });
+    return json(200, { response: e.my_response, yes_count: isAdmin ? e.yes_count : null });
   }
   if (path === '/rest/v1/rpc/event_attendees' && body.p_event === live.event_id) {
     return json(200, live.my_response === 'yes' ? [{ full_name: 'Giulia Rossi', email: 'giulia@example.com', response: 'yes', updated_at: new Date().toISOString() }] : []);
@@ -491,6 +492,7 @@ await page.goto(base + '#/corso/test-live');
 await page.waitForSelector('.live-panel--locked');
 await check(page.locator('.modules--live').count().then((n) => n === 0), 'live programme hidden without Premium');
 await check(page.locator('.live-panel button:has-text("Prenota")').count().then((n) => n === 0), 'no booking without Premium');
+await check(page.textContent('.live-panel').then((t) => !/prenotato|iscritti/.test(t)), 'no booking count on the live teaser');
 await shot('05a-live-locked');
 await page.goto(base + '#/academy');
 await page.waitForSelector('.course-row');
@@ -822,7 +824,7 @@ await page.reload();
 await page.waitForSelector('.dinner');
 await page.click('.dinner >> nth=0 >> .rsvp__btn--yes');
 await page.waitForSelector('.dinner >> nth=0 >> .rsvp__btn--yes.is-on');
-await check(page.textContent('.dinner >> nth=0').then((t) => t.includes('1 presente')), 'rsvp counted');
+await check(page.textContent('.dinner >> nth=0').then((t) => t.includes('Tavolo da 12 posti') && !/presenti?\b|posti liberi|posto libero/.test(t.replace('Non presente', '').replace('Presente', ''))), 'dinner shows the table size, never how many said yes');
 await shot('10i-cene-premium');
 await page.goto(base + '#/premium');
 await page.waitForSelector('.feature__link');
