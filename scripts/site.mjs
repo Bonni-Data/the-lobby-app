@@ -551,7 +551,7 @@ ${cta('Non perderti le prossime', 'Con l’account gratuito ti arrivano ogni lun
   <h1>${esc(n.title)}</h1>
   ${n.subtitle ? `<p class="s-lede">${esc(n.subtitle)}</p>` : ''}
   <div class="s-prose">
-  ${n.slides.map((x) => `<h2>${esc(x.title)}</h2>${x.tag ? `<p class="s-meta">${esc(String(x.tag).toLowerCase().replace(/^./, (ch) => ch.toUpperCase()))}</p>` : ''}<p>${esc(x.text)}</p>`).join('\n')}
+  ${n.slides.map((x) => `${x.tag ? `<p class="s-kicker">${esc(x.tag)}</p>` : ''}<h2>${esc(x.title)}</h2><p>${esc(x.text)}</p>`).join('\n')}
   </div>
   ${link ? `<aside class="s-cta s-cta--inline"><p class="s-cta__title">${esc(n.cta?.title || 'Capire batte commentare.')}</p><p>Approfondisci gratis con ${link.l ? `la lezione «${esc(link.l.title)}» del corso «${esc(link.c.title)}»` : `il corso «${esc(link.c.title)}»`}: cinque minuti, quiz e certificato.</p><a class="s-btn" href="${link.l ? lessonUrl(link.c, link.l) : courseUrl(link.c)}" data-cta="notizia-lezione">Apri la lezione</a></aside>` : ''}
   ${fonti.length ? `<section class="s-sources"><h2>Fonti</h2><ul>${fonti.map((u) => `<li><a href="${esc(u)}" rel="noopener">${esc(host(u))}</a></li>`).join('')}</ul></section>` : n.source ? `<p class="s-note">${esc(n.source)}</p>` : ''}
