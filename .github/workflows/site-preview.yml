@@ -1,0 +1,31 @@
+# THE LOBBY · preview of the public pages, without publishing (manual run on any branch).
+name: Anteprima pagine pubbliche
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+      - uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: Bonni-Data/the-lobby-posts
+          path: posts
+          sparse-checkout: |
+            data
+            history-notizie.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node src/scripts/site.mjs --out out --posts posts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anteprima
+          path: out
+          retention-days: 3

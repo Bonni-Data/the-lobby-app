@@ -1,12 +1,15 @@
 # THE LOBBY · public pages for Google.
 # Every morning (after the opportunities are refreshed) and whenever the generator changes, rebuild the indexable pages
-# (path, courses, lessons, opportunities, founder, neutrality, sitemap) from the public data and publish them on gh-pages.
+# (path, courses, lessons, opportunities and one page each, daily explainers, teachers, founder, neutrality, sitemap)
+# from the public data and the posts repository, and publish them on gh-pages.
 name: Pagine pubbliche
 
 on:
   schedule:
     # 06:40 UTC = 07:40 in winter, 08:40 in summer: always after the 06:45 (Rome) opportunities refresh has finished.
     - cron: '40 6 * * *'
+    # 08:10 UTC: picks up the «Dietro la notizia» of the day if it was committed late.
+    - cron: '10 8 * * *'
   push:
     branches: [main]
     paths:
@@ -35,13 +38,23 @@ jobs:
         with:
           ref: gh-pages
           path: site
+      - name: Daily explainers («Dietro la notizia») from the posts repository
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: Bonni-Data/the-lobby-posts
+          path: posts
+          sparse-checkout: |
+            data
+            history-notizie.json
+          sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Build public pages
         run: |
           cp src/public/site.css site/site.css
-          node src/scripts/site.mjs --out site
+          node src/scripts/site.mjs --out site --posts posts
       - name: Publish
         id: publish
         working-directory: site

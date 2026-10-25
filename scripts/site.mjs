@@ -2,7 +2,10 @@
 // Builds static HTML for Google (path, courses, lessons, opportunities, founder, neutrality), plus sitemap.xml and robots.txt,
 // from the public data the database exposes to everyone (public.public_site: no personal data).
 //
-//   node scripts/site.mjs --out <dir> [--data <file.json>]
+//   node scripts/site.mjs --out <dir> [--data <file.json>] [--posts <the-lobby-posts checkout>]
+//
+// With --posts it also builds one page per «Dietro la notizia» (history-notizie.json + data/notizia-<date>.json, the same
+// verified texts published on Instagram at 8:00), so people who search a news story on Google find the explanation.
 //
 // Without --data it fetches the data from Supabase with the public anon key (used by the daily GitHub Action).
 // Pure Node, no dependencies.
@@ -20,6 +23,7 @@ const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null; };
 const OUT = opt('--out') || 'dist';
 const DATA = opt('--data');
+const POSTS = opt('--posts');
 
 /* ---------- helpers ---------- */
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -143,7 +147,7 @@ ${body}
 </main>
 <footer class="s-foot">
   <nav aria-label="Esplora">
-    <a href="/percorso/">Il percorso</a><a href="/corsi/">I corsi</a><a href="/opportunita/">Opportunità</a><a href="/andrea/">Chi è Andrea?</a><a href="/neutralita/">Neutralità</a>
+    <a href="/percorso/">Il percorso</a><a href="/corsi/">I corsi</a><a href="/opportunita/">Opportunità</a><a href="/notizie/">Notizie spiegate</a><a href="/docenti/">Per i docenti</a><a href="/andrea/">Chi è Andrea?</a><a href="/neutralita/">Neutralità</a>
   </nav>
   <nav aria-label="Note legali"><a href="/#/privacy">Privacy</a><a href="/#/termini">Termini</a><a href="${INSTAGRAM}" rel="noopener">Instagram</a></nav>
   <p>THE LOBBY · l'academy gratuita su Comuni, Parlamento ed Europa, fondata da Andrea Bonazzi. Non è affiliata ad alcun partito.</p>
@@ -384,19 +388,65 @@ ${live ? cta('Le masterclass sono in Premium', 'Premium è gratuito: ti candidi 
   });
 }
 
-// ----- /opportunita/
+// ----- /opportunita/ and one page per opportunity
+// Each opportunity gets its own page (shareable, indexable). Traineeships, jobs and EU competitions with a known city also
+// carry JobPosting data, so they can appear in Google's job search (Google Jobs, active in Italy). Google's rules for job
+// sites: one posting per page, the title as the organisation wrote it, the details visible on the page, expired postings
+// gone (expired opportunities leave the feed every morning, so their page disappears and answers 404).
+const COUNTRY = [
+  [/bruxelles|belgio|bruges/i, 'BE'], [/lussemburgo/i, 'LU'], [/strasburgo|parigi|francia/i, 'FR'],
+  [/firenze|roma|milano|torino|napoli|bologna|venezia|genova|ispra|\bitalia\b/i, 'IT'], [/francoforte|berlino|monaco di baviera|germania/i, 'DE'],
+  [/madrid|torrej[oó]n|spagna|barcellona/i, 'ES'], [/ginevra|svizzera|zurigo|berna/i, 'CH'], [/varsavia|natolin|lublino|polonia/i, 'PL'],
+  [/vienna|austria/i, 'AT'], [/l'aia|\baia\b|paesi bassi|amsterdam/i, 'NL'], [/lisbona|portogallo/i, 'PT'], [/stati uniti|new york|washington/i, 'US'],
+  [/atene|grecia/i, 'GR'], [/dublino|irlanda/i, 'IE'], [/copenaghen|danimarca/i, 'DK'], [/stoccolma|svezia/i, 'SE'], [/helsinki|finlandia/i, 'FI'],
+];
+function jobPlaces(location) {
+  if (!location || /online|remoto|varie|da definire|estero/i.test(location)) return [];
+  // top-level parts, ignoring separators inside parentheses: "Istituzioni UE (Bruxelles, Lussemburgo)", "Torrejón de Ardoz (Madrid)"
+  const parts = [];
+  let depth = 0, cur = '';
+  const src = String(location);
+  for (let i = 0; i < src.length; i++) {
+    const ch = src.charAt(i);
+    if (ch === '(') depth += 1;
+    if (ch === ')') depth = Math.max(0, depth - 1);
+    if (depth === 0 && (ch === ',' || /^\s(e|o)\s/i.test(src.slice(i, i + 3)))) { parts.push(cur); cur = ''; if (ch !== ',') i += 2; continue; }
+    cur += ch;
+  }
+  parts.push(cur);
+  const out = [];
+  const add = (txt) => {
+    const city = txt.trim();
+    const hit = COUNTRY.find(([re]) => re.test(city));
+    if (!hit || !city || /^(uffici|altre|sedi|istituzioni)/i.test(city)) return false;
+    out.push({ '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: city, addressCountry: hit[1] } });
+    return true;
+  };
+  for (const part of parts.map((x) => x.trim()).filter(Boolean)) {
+    const inner = (part.match(/\(([^)]*)\)/) || [])[1];
+    const outer = part.replace(/\(.*?\)/g, '').trim();
+    if (!add(outer) && inner) inner.split(/,|\s+e\s+|\s+o\s+/i).forEach(add);
+  }
+  return out;
+}
+const JOB_KINDS = new Set(['tirocinio', 'lavoro', 'concorso']);
+const oppSlug = (o) => `${slugify(o.title).slice(0, 60).replace(/-+$/, '')}-${String(o.id).slice(0, 6)}`;
+const oppUrl = (o) => `/opportunita/${oppSlug(o)}/`;
 {
   const opps = data.opportunities || [];
-  const card = (o) => `<li class="s-opp s-opp--${esc(o.tag)}">
-  <span class="s-opp__tags"><em>${esc(TAG[o.tag] || 'Opportunità')}</em>${o.category ? `<em>${esc(KIND[o.category] || o.category)}</em>` : ''}</span>
-  <h2>${esc(o.title)}</h2>
-  ${o.organization ? `<p class="s-opp__org">${esc(o.organization)}${o.location ? ` · ${esc(o.location)}` : ''}</p>` : ''}
-  ${o.summary ? `<p>${esc(o.summary)}</p>` : ''}
-  <dl>
+  const notOpen = (o) => o.opens_on && o.opens_on > today;
+  const when = (o) => notOpen(o) ? itDate(o.opens_on) : o.deadline ? `${itDate(o.deadline)}${o.deadline_note ? ` · ${esc(o.deadline_note)}` : ''}` : 'candidature sempre aperte';
+  const facts = (o) => `<dl>
     ${o.covered ? `<dt>Offerto dall'ente</dt><dd>${esc(o.covered)}</dd>` : ''}
     ${o.requirements ? `<dt>Requisiti</dt><dd>${esc(o.requirements)}</dd>` : ''}
-    <dt>${o.opens_on && o.opens_on > today ? 'Apre il' : 'Scadenza'}</dt><dd>${o.opens_on && o.opens_on > today ? itDate(o.opens_on) : o.deadline ? `${itDate(o.deadline)}${o.deadline_note ? ` · ${esc(o.deadline_note)}` : ''}` : 'candidature sempre aperte'}</dd>
-  </dl>
+    <dt>${notOpen(o) ? 'Apre il' : 'Scadenza'}</dt><dd>${when(o)}</dd>
+  </dl>`;
+  const card = (o) => `<li class="s-opp s-opp--${esc(o.tag)}">
+  <span class="s-opp__tags"><em>${esc(TAG[o.tag] || 'Opportunità')}</em>${o.category ? `<em>${esc(KIND[o.category] || o.category)}</em>` : ''}</span>
+  <h2><a href="${oppUrl(o)}">${esc(o.title)}</a></h2>
+  ${o.organization ? `<p class="s-opp__org">${esc(o.organization)}${o.location ? ` · ${esc(o.location)}` : ''}</p>` : ''}
+  ${o.summary ? `<p>${esc(o.summary)}</p>` : ''}
+  ${facts(o)}
   ${o.url ? `<a class="s-btn s-btn--ghost" href="${esc(o.url)}" rel="noopener" target="_blank">Candidati sul sito ufficiale</a>` : ''}
 </li>`;
   const body = `
@@ -414,10 +464,184 @@ ${cta('Ricevile ogni lunedì', 'Con l’account gratuito ti arrivano ogni luned�
     title: `Opportunità per giovani: bandi UE, tirocini e viaggi spesati (${opps.length} aperte) · THE LOBBY`,
     description: 'Bandi, tirocini al Parlamento europeo, concorsi EPSO, volontariato e viaggi con spese coperte dagli enti: le opportunità per giovani aperte oggi, verificate sulle fonti ufficiali. Gratis.',
     crumbs: [{ name: 'Opportunità', path: '/opportunita/' }],
-    jsonld: [{ '@type': 'ItemList', name: 'Opportunità per giovani aperte oggi', itemListElement: opps.map((o, i) => ({ '@type': 'ListItem', position: i + 1, name: o.title, url: o.url || SITE + '/opportunita/' })) }],
+    jsonld: [{ '@type': 'ItemList', name: 'Opportunità per giovani aperte oggi', itemListElement: opps.map((o, i) => ({ '@type': 'ListItem', position: i + 1, name: o.title, url: SITE + oppUrl(o) })) }],
     body,
   }));
   urls.push(['/opportunita/', today, '0.9']);
+
+  for (const o of opps) {
+    const path = oppUrl(o);
+    const places = jobPlaces(o.location);
+    const isJob = JOB_KINDS.has(o.category) && places.length && !notOpen(o) && o.summary && o.organization;
+    const related = opps.filter((x) => x.id !== o.id && x.tag === o.tag).slice(0, 3);
+    const checked = o.checked_at ? itDate(o.checked_at) : '';
+    const descHtml = [
+      o.summary && `<p>${esc(o.summary)}</p>`,
+      o.requirements && `<p><strong>Requisiti:</strong> ${esc(o.requirements)}</p>`,
+      o.covered && `<p><strong>Offerto dall'ente:</strong> ${esc(o.covered)}</p>`,
+      o.location && `<p><strong>Dove:</strong> ${esc(o.location)}</p>`,
+      `<p><strong>${notOpen(o) ? 'Apre il' : 'Scadenza'}:</strong> ${when(o)}</p>`,
+      o.url && `<p>Ci si candida sul sito ufficiale di ${esc(o.organization || 'chi pubblica il bando')}: ${esc(o.url)}</p>`,
+    ].filter(Boolean).join('');
+    const jsonld = [];
+    if (isJob) {
+      let origin = '';
+      try { origin = new URL(o.url).origin; } catch { origin = ''; }
+      jsonld.push({
+        '@type': 'JobPosting', title: o.title, description: descHtml, datePosted: ymd(o.created_at || today),
+        ...(o.deadline ? { validThrough: `${o.deadline}T23:59:00+01:00` } : {}),
+        ...(o.category === 'tirocinio' ? { employmentType: 'INTERN' } : {}),
+        hiringOrganization: { '@type': 'Organization', name: o.organization, ...(origin ? { sameAs: origin } : {}) },
+        jobLocation: places.length === 1 ? places[0] : places,
+        directApply: false, url: SITE + path,
+      });
+    }
+    const obody = `
+<article class="s-lesson">
+  <span class="s-kicker">${esc(TAG[o.tag] || 'Opportunità')}${o.category ? ` · ${esc(KIND[o.category] || o.category)}` : ''}</span>
+  <h1>${esc(o.title)}</h1>
+  ${o.organization ? `<p class="s-lede">${esc(o.organization)}${o.location ? ` · ${esc(o.location)}` : ''}</p>` : ''}
+  ${o.summary ? `<p class="s-text">${esc(o.summary)}</p>` : ''}
+  <div class="s-opp s-opp--${esc(o.tag)} s-opp--page">${facts(o)}
+  ${o.url ? `<a class="s-btn" href="${esc(o.url)}" rel="noopener" target="_blank" data-cta="opp-ufficiale">Candidati sul sito ufficiale</a>` : ''}</div>
+  <p class="s-note">${checked ? `Ricontrollata sulla fonte ufficiale il ${checked}. ` : ''}THE LOBBY non organizza né finanzia questa opportunità: la raccoglie dalla fonte ufficiale${o.source ? ` (${esc(o.source)})` : ''}. Viaggi, rimborsi, borse e compensi sono offerti dall'ente che la pubblica. Prima di candidarti verifica sempre i dettagli sulla pagina ufficiale.</p>
+  ${related.length ? `<section class="s-box"><h2>Altre opportunità come questa</h2><ul class="s-goals">${related.map((x) => `<li><a href="${oppUrl(x)}">${esc(x.title)}</a>${x.deadline ? ` · scade il ${itDate(x.deadline)}` : ''}</li>`).join('')}</ul><p><a href="/opportunita/">Tutte le ${opps.length} opportunità aperte oggi</a></p></section>` : ''}
+</article>
+${cta('Non perderti le prossime', 'Con l’account gratuito ti arrivano ogni lunedì le opportunità della settimana, verificate sulle fonti ufficiali. E intanto impari come funzionano Comune, Stato ed Europa.', 'opp-page')}`;
+    write(`opportunita/${oppSlug(o)}/index.html`, page({
+      path, stamp,
+      title: `${o.title}${o.deadline ? ` · scadenza ${itDate(o.deadline)}` : ''} · THE LOBBY`,
+      description: clip(`${o.summary || o.title} ${o.requirements ? `Requisiti: ${o.requirements}.` : ''}`, 158),
+      crumbs: [{ name: 'Opportunità', path: '/opportunita/' }, { name: o.title, path }],
+      jsonld, body: obody,
+    }));
+    urls.push([path, ymd(o.checked_at || o.created_at || today), '0.7']);
+  }
+}
+
+// ----- /notizie/ : «Dietro la notizia», one page per day
+{
+  const news = [];
+  if (POSTS && existsSync(join(POSTS, 'history-notizie.json'))) {
+    const hist = JSON.parse(readFileSync(join(POSTS, 'history-notizie.json'), 'utf8'));
+    for (const [date, h] of Object.entries(hist)) {
+      const f = join(POSTS, 'data', `notizia-${date}.json`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !existsSync(f)) continue;
+      try {
+        const n = JSON.parse(readFileSync(f, 'utf8'));
+        if (!n.title || !Array.isArray(n.slides) || !n.slides.length) continue;
+        news.push({ date, ...n, h, slug: `${date}-${slugify(n.title).slice(0, 60).replace(/-+$/, '')}` });
+      } catch { /* a malformed file never breaks the other pages */ }
+    }
+  }
+  news.sort((a, b) => b.date.localeCompare(a.date));
+  const newsUrl = (n) => `/notizie/${n.slug}/`;
+  const lessonFor = (n) => {
+    const c = n.h?.course && bySlug.get(n.h.course);
+    const l = c && n.h.lesson && c.lessons.find((x) => x.title === n.h.lesson);
+    return c && l ? { c, l } : c ? { c } : null;
+  };
+  const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+  for (const n of news) {
+    const link = lessonFor(n);
+    const fonti = (n.h?.fonti || []).filter((u) => /^https?:\/\//.test(u));
+    const nbody = `
+<article class="s-lesson">
+  <span class="s-kicker">Dietro la notizia · ${itDate(n.date)}</span>
+  <h1>${esc(n.title)}</h1>
+  ${n.subtitle ? `<p class="s-lede">${esc(n.subtitle)}</p>` : ''}
+  <div class="s-prose">
+  ${n.slides.map((x) => `<h2>${esc(x.title)}</h2>${x.tag ? `<p class="s-meta">${esc(String(x.tag).toLowerCase().replace(/^./, (ch) => ch.toUpperCase()))}</p>` : ''}<p>${esc(x.text)}</p>`).join('\n')}
+  </div>
+  ${link ? `<aside class="s-cta s-cta--inline"><p class="s-cta__title">${esc(n.cta?.title || 'Capire batte commentare.')}</p><p>Approfondisci gratis con ${link.l ? `la lezione «${esc(link.l.title)}» del corso «${esc(link.c.title)}»` : `il corso «${esc(link.c.title)}»`}: cinque minuti, quiz e certificato.</p><a class="s-btn" href="${link.l ? lessonUrl(link.c, link.l) : courseUrl(link.c)}" data-cta="notizia-lezione">Apri la lezione</a></aside>` : ''}
+  ${fonti.length ? `<section class="s-sources"><h2>Fonti</h2><ul>${fonti.map((u) => `<li><a href="${esc(u)}" rel="noopener">${esc(host(u))}</a></li>`).join('')}</ul></section>` : n.source ? `<p class="s-note">${esc(n.source)}</p>` : ''}
+  <p class="s-note">Ogni mattina alle 8 THE LOBBY spiega il meccanismo dietro una notizia del giorno, con i fatti verificati su almeno due fonti e le regole su una fonte ufficiale. Nessun giudizio su partiti o persone: <a href="/neutralita/">la nostra linea</a>.</p>
+</article>
+${cta('Ogni giorno una notizia, spiegata', 'Segui THE LOBBY su Instagram o entra nell’app: lezioni da cinque minuti per capire le notizie, gratis.', 'notizia')}`;
+    write(`notizie/${n.slug}/index.html`, page({
+      path: newsUrl(n), stamp, type: 'article',
+      title: `${n.title} · Dietro la notizia · THE LOBBY`,
+      description: clip(`${n.subtitle || ''} ${n.slides[1]?.text || n.slides[0].text}`, 158),
+      crumbs: [{ name: 'Notizie spiegate', path: '/notizie/' }, { name: n.title, path: newsUrl(n) }],
+      jsonld: [{
+        '@type': 'Article', headline: clip(n.title, 110), description: clip(n.subtitle || n.slides[0].text, 300), datePublished: n.date, dateModified: n.date,
+        inLanguage: 'it', url: SITE + newsUrl(n), image: `${SITE}/img/og.png`, author: { '@id': `${SITE}/#org` }, publisher: { ...ORG },
+        ...(fonti.length ? { citation: fonti } : {}),
+      }],
+      body: nbody,
+    }));
+    urls.push([newsUrl(n), n.date, '0.7']);
+  }
+  const body = `
+<section class="s-hero">
+  <span class="s-kicker">Dietro la notizia · ogni mattina alle 8</span>
+  <h1>Le notizie spiegate: cosa c'è dietro</h1>
+  <p class="s-lede">Tutti ne parlano, pochi sanno come funziona. Ogni giorno prendiamo una notizia e spieghiamo il meccanismo che c'è dietro: chi decide, con quali regole, in quali tempi. Fatti verificati, nessun tifo.</p>
+  <a class="s-btn s-btn--ghost" href="${INSTAGRAM}" rel="noopener">Seguici su Instagram</a>
+</section>
+${news.length ? `<ul class="s-courses">${news.map((n) => `<li class="s-course"><a href="${newsUrl(n)}"><span class="s-course__tags"><em>${esc(itDate(n.date))}</em></span><strong>${esc(n.title)}</strong>${n.subtitle ? `<span>${esc(n.subtitle)}</span>` : ''}</a></li>`).join('')}</ul>` : '<p class="s-text">La prima notizia spiegata arriva domattina alle 8.</p>'}
+${cta('Capire batte commentare', 'Lezioni da cinque minuti su Comune, Stato ed Europa, con quiz e certificato. Gratis.', 'notizie')}`;
+  write('notizie/index.html', page({
+    path: '/notizie/', stamp,
+    title: 'Dietro la notizia: le notizie spiegate ogni giorno · THE LOBBY',
+    description: 'Ogni mattina una notizia del giorno spiegata in modo semplice: il meccanismo che c’è dietro, chi decide e con quali regole. Fatti verificati, nessun tifo. Gratis.',
+    crumbs: [{ name: 'Notizie spiegate', path: '/notizie/' }],
+    jsonld: [{ '@type': 'ItemList', name: 'Dietro la notizia', itemListElement: news.map((n, i) => ({ '@type': 'ListItem', position: i + 1, name: n.title, url: SITE + newsUrl(n) })) }],
+    body,
+  }));
+  urls.push(['/notizie/', news[0]?.date || today, '0.8']);
+}
+
+// ----- /docenti/ : free lessons for civic education (Legge 92/2019, Linee guida DM 183/2024)
+{
+  const groups = [
+    { title: 'Costituzione, istituzioni e legalità', note: 'Comune, Parlamento, governo, Unione europea, come nasce una legge, come si vota.',
+      slugs: ['chi-decide-cosa', 'come-nasce-una-legge', 'comune-senza-segreti', 'europa-in-20-minuti', 'storia-politica-italia', 'tuel-regole-del-gioco', 'farsi-sentire', 'rappresentante-di-lista', 'nuova-legge-elettorale', 'entrare-nelle-istituzioni', 'europa-futuro', 'migrazioni-regole-numeri'] },
+    { title: 'Sviluppo economico, finanza e sostenibilità', note: 'I conti dello Stato, il fisco, il lavoro, il welfare, il clima e l’energia.',
+      slugs: ['conti-dello-stato', 'italia-in-numeri', 'fisco-senza-paura', 'lavoro-che-cambia', 'welfare-politiche-sociali', 'clima-ambiente-regole', 'comunita-energetiche', 'casa-citta-giovani', 'sanita-territorio'] },
+    { title: 'Cittadinanza digitale', note: 'Le regole dell’intelligenza artificiale e la partecipazione online.',
+      slugs: ['intelligenza-artificiale-regole', 'digitale-democrazia'] },
+    { title: 'Orientamento e competenze', note: 'Opportunità europee per i giovani e le basi per parlare in pubblico.',
+      slugs: ['mappa-opportunita', 'bandi-europei', 'public-speaking-basi'] },
+  ].map((g) => ({ ...g, items: g.slugs.map((s) => bySlug.get(s)).filter((c) => c && c.access === 'free' && c.lessons.length) })).filter((g) => g.items.length);
+  const n = groups.reduce((t, g) => t + g.items.length, 0);
+  const lessons = groups.reduce((t, g) => t + g.items.reduce((u, c) => u + c.lessons.length, 0), 0);
+  const body = `
+<section class="s-hero">
+  <span class="s-kicker">Per i docenti · educazione civica</span>
+  <h1>Lezioni pronte per l'educazione civica, gratis</h1>
+  <p class="s-lede">${n} corsi e ${lessons} lezioni da cinque minuti su Costituzione, istituzioni, Unione europea, economia e cittadinanza digitale, con quiz, simulazioni e certificato finale. Gratuiti, senza pubblicità, indipendenti da qualsiasi partito.</p>
+  <a class="s-btn" href="#corsi">Guarda le lezioni per tema</a>
+</section>
+<section class="s-box">
+  <h2>Come usarle in classe</h2>
+  <ol class="s-goals">
+    <li><strong>Proietta la lezione</strong>: cinque minuti di testo chiaro, con le fonti ufficiali in fondo. Ogni lezione ha domande di verifica a metà.</li>
+    <li><strong>Fate il quiz insieme</strong>, in classe o a casa: ogni corso si chiude con una simulazione in cui gli studenti prendono decisioni da amministratori.</li>
+    <li><strong>Il certificato</strong>: chi finisce il corso lo riceve nell'app e può aggiungerlo al profilo LinkedIn. L'account è gratuito dai 14 anni; per le classi più giovani proietta le lezioni dal tuo account.</li>
+  </ol>
+  <p>Le ore di educazione civica sono almeno 33 l'anno (legge 92/2019) e le Linee guida del 2024 mettono al centro Costituzione, istituzioni, Unione europea, sviluppo economico e cittadinanza digitale: i temi qui sotto seguono quella divisione.</p>
+</section>
+<div id="corsi"></div>
+${groups.map((g) => `<section class="s-group"><h2>${esc(g.title)}</h2><p class="s-text">${esc(g.note)}</p><ul class="s-courses">${g.items.map((c) => courseCard(c)).join('')}</ul></section>`).join('\n')}
+<section class="s-box">
+  <h2>Per parlare di attualità</h2>
+  <p>Ogni mattina spieghiamo il meccanismo dietro una notizia del giorno, con i fatti verificati e nessun giudizio su partiti o persone: <a href="/notizie/">le notizie spiegate</a>. I corsi di attualità si aggiornano il 1° di ogni mese con le nuove leggi.</p>
+</section>
+<section class="s-box">
+  <h2>Ti manca qualcosa?</h2>
+  <p>Scrivici a <a href="mailto:thelobbysupport@gmail.com">thelobbysupport@gmail.com</a>: dicci il tema o la classe e proviamo a prepararlo. Se trovi un errore in una lezione, segnalalo direttamente dalla lezione: lo verifichiamo e lo correggiamo. <a href="/neutralita/">La nostra linea sulla neutralità</a>.</p>
+</section>
+${cta('Crea il tuo account docente, è gratis', 'Con l’account vedi le lezioni complete, i quiz e le simulazioni, e puoi proiettarli in classe.', 'docenti')}`;
+  write('docenti/index.html', page({
+    path: '/docenti/', stamp,
+    title: 'Educazione civica: lezioni pronte e gratuite per docenti · THE LOBBY',
+    description: `${lessons} lezioni da cinque minuti per l’educazione civica: Costituzione, istituzioni, Unione europea, economia e cittadinanza digitale, con quiz e certificato. Gratis e senza partiti.`,
+    crumbs: [{ name: 'Per i docenti', path: '/docenti/' }],
+    jsonld: [{ '@type': 'ItemList', name: 'Lezioni di educazione civica per tema', itemListElement: groups.flatMap((g) => g.items).map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + courseUrl(c), name: c.title })) }],
+    body,
+  }));
+  urls.push(['/docenti/', today, '0.8']);
 }
 
 // ----- /andrea/
