@@ -118,3 +118,9 @@ if (fresh.length) {
 } else {
   console.log('Nessuna opportunità nuova nelle ultime 24 ore.');
 }
+
+// One line in the run summary (readable without opening the logs).
+if (process.env.GITHUB_ACTIONS) {
+  const sent = !DRY && TOKEN && CHAT ? 'pubblicato' : DRY ? 'prova, non pubblicato' : 'non pubblicato: mancano i segreti';
+  console.log(`::notice title=Canale Telegram::${today} · notizia: ${news ? 'sì' : 'no'} · opportunità nuove: ${fresh.length} su ${opps.length} · ${sent}`);
+}
