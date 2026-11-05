@@ -44,7 +44,7 @@ const PUBLIC = ['/', '/accedi', '/password', '/privacy', '/termini', '/andrea', 
 function Routes() {
   const { path } = useLocation();
   const { session } = useAuth();
-  const isPublic = PUBLIC.includes(path) || path.startsWith('/certificato/');
+  const isPublic = PUBLIC.includes(path) || path.startsWith('/attestato/') || path.startsWith('/certificato/');
 
   useEffect(() => {
     if (!session && !isPublic) navigate('/accedi', true);
@@ -76,6 +76,8 @@ function Routes() {
   if ((p = match('/lezione/:id', path))) return <Lesson id={p.id} />;
   if ((p = match('/quiz/:id', path))) return <Quiz id={p.id} />;
   if ((p = match('/simulazione/:slug', path))) return <Simulation slug={p.slug} />;
+  if ((p = match('/attestato/:id', path))) return <Certificate id={p.id} />;
+  // old links shared before 5/11/2026 keep working
   if ((p = match('/certificato/:id', path))) return <Certificate id={p.id} />;
   return (
     <Screen>

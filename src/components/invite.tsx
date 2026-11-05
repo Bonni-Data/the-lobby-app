@@ -111,7 +111,7 @@ export async function drawQuizResult(score: number, max: number, quizTitle: stri
   ctx.fillText('E tu quanto fai?', cx, 1030 + lines.length * 66 + 120);
   ctx.fillStyle = 'rgba(244,240,232,0.82)';
   ctx.font = '500 40px "Inter", system-ui, sans-serif';
-  ctx.fillText('Lezioni da 5 minuti, quiz e certificato. Gratis.', cx, H - 250);
+  ctx.fillText('Lezioni da 5 minuti, quiz e attestato. Gratis.', cx, H - 250);
   ctx.fillStyle = IVORY;
   ctx.font = '700 48px "Inter", system-ui, sans-serif';
   ctx.fillText('thelobbyitalia.it', cx, H - 170);

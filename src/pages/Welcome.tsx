@@ -56,7 +56,7 @@ export default function Welcome() {
             <LuGraduationCap aria-hidden="true" />
             <div>
               <strong>Formazione per giovani politici</strong>
-              <span>{PATH_NAME}: lezioni da cinque minuti su Comune, Stato, Europa e attualità, con quiz, simulazioni e certificato. Puoi saltare dove vuoi.</span>
+              <span>{PATH_NAME}: lezioni da cinque minuti su Comune, Stato, Europa e attualità, con quiz, simulazioni e attestato. Puoi saltare dove vuoi.</span>
             </div>
           </li>
           <li>

@@ -11,7 +11,7 @@ const IVORY = '#f4f0e8';
 const STONE = '#bdb6a8';
 
 export function certificateUrl(id: string) {
-  return `${location.origin}${location.pathname}#/certificato/${id}`;
+  return `${location.origin}${location.pathname}#/attestato/${id}`;
 }
 
 export function certificateCode(id: string) {
@@ -22,7 +22,7 @@ export function certificateDate(iso: string) {
   return new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-/** LinkedIn «Aggiungi licenza o certificazione», prefilled. */
+/** LinkedIn «Aggiungi licenza o certificazione» (the LinkedIn section where course attestati go), prefilled. */
 export function linkedInAddUrl(c: Certificate) {
   const d = new Date(c.completed_at);
   const q = new URLSearchParams({
@@ -88,7 +88,7 @@ function spaced(ctx: CanvasRenderingContext2D, px: number) {
   try { (ctx as any).letterSpacing = `${px}px`; } catch { /* older browsers */ }
 }
 
-/** The certificate as a 1080×1350 PNG (Instagram portrait, fine for LinkedIn too). */
+/** The attestato (certificate of completion, no legal value) as a 1080×1350 PNG (Instagram portrait, fine for LinkedIn too). */
 export async function drawCertificate(c: Certificate): Promise<Blob> {
   await fontsReady();
   const canvas = document.createElement('canvas');
@@ -130,13 +130,13 @@ export async function drawCertificate(c: Certificate): Promise<Blob> {
   ctx.fillStyle = CORAL;
   spaced(ctx, 5);
   ctx.font = '600 24px "Inter", system-ui, sans-serif';
-  ctx.fillText('CERTIFICATO DI COMPLETAMENTO', cx, 172);
+  ctx.fillText('ATTESTATO DI COMPLETAMENTO', cx, 172);
   spaced(ctx, 0);
 
   // Who
   ctx.fillStyle = 'rgba(244,240,232,0.78)';
   ctx.font = 'italic 400 34px "Fraunces", Georgia, serif';
-  ctx.fillText('Si certifica che', cx, 470);
+  ctx.fillText('Si attesta che', cx, 470);
   ctx.fillStyle = IVORY;
   const namePx = fit(ctx, c.name, (px) => `italic 500 ${px}px "Fraunces", Georgia, serif`, 80, 46, 720);
   ctx.fillText(c.name, cx, 470 + 30 + namePx);
@@ -177,6 +177,9 @@ export async function drawCertificate(c: Certificate): Promise<Blob> {
   ctx.font = '400 22px "Inter", system-ui, sans-serif';
   const host = `${location.host}${location.pathname.replace(/\/$/, '')}`;
   ctx.fillText(`Verifica su ${host} · codice ${certificateCode(c.id)}`, cx, CERT_H - 60);
+  // Private attestato: say plainly that it has no legal value (decision of 5 November 2026).
+  ctx.font = '400 19px "Inter", system-ui, sans-serif';
+  ctx.fillText('Attestato privato senza valore legale: non è un titolo di studio né una qualifica professionale.', cx, CERT_H - 28);
 
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas'))), 'image/png'));
 }

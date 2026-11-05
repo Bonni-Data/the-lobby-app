@@ -166,16 +166,16 @@ function Finale({ c, done, total, sim }: { c: CourseT; done: number; total: numb
         </div>
       )}
       <div className={`finale-card finale-card--cert ${cert ? '' : 'is-locked'}`}>
-        <span className="finale-card__kicker"><LuAward aria-hidden="true" /> Certificato</span>
+        <span className="finale-card__kicker"><LuAward aria-hidden="true" /> Attestato</span>
         {cert ? (
           <>
             <strong className="finale-card__title">È tuo.</strong>
             <p className="finale-card__text">Condividilo su Instagram e LinkedIn: chi apre il link può verificare che è autentico.</p>
-            <ButtonLink to={`/certificato/${cert.cert_id}`} variant="secondary">Apri il certificato <LuArrowRight aria-hidden="true" /></ButtonLink>
+            <ButtonLink to={`/attestato/${cert.cert_id}`} variant="secondary">Apri l’attestato <LuArrowRight aria-hidden="true" /></ButtonLink>
           </>
         ) : (
           <>
-            <strong className="finale-card__title">Completa il corso, ricevi il certificato.</strong>
+            <strong className="finale-card__title">Completa il corso, ricevi l’attestato.</strong>
             <p className="finale-card__text"><LuSparkles aria-hidden="true" /> {total - done > 0 ? `Mancano ${total - done} ${total - done === 1 ? 'lezione' : 'lezioni'}.` : 'Ci siamo quasi.'} Vale +{XP.course} XP.</p>
           </>
         )}

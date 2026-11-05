@@ -40,14 +40,14 @@ export default function Achievements() {
               </section>
 
               <section className="block">
-                <h2 className="h-section">I tuoi certificati</h2>
+                <h2 className="h-section">I tuoi attestati</h2>
                 {s.courses.length === 0 ? (
-                  <p className="muted">Completa tutte le lezioni di un corso: ricevi un certificato da condividere su Instagram e LinkedIn, con un link che ne verifica l’autenticità.</p>
+                  <p className="muted">Completa tutte le lezioni di un corso: ricevi un attestato di completamento da condividere su Instagram e LinkedIn, con un link che ne verifica l’autenticità.</p>
                 ) : (
                   <ul className="certs">
                     {s.courses.map((c) => (
                       <li key={c.cert_id}>
-                        <Link to={`/certificato/${c.cert_id}`} className="certs__row">
+                        <Link to={`/attestato/${c.cert_id}`} className="certs__row">
                           <LuAward aria-hidden="true" />
                           <span><strong>{title(c.course_id)?.title || 'Corso completato'}</strong><small>{formatDate(c.completed_at)}</small></span>
                           <LuArrowRight aria-hidden="true" />
@@ -96,7 +96,7 @@ export default function Achievements() {
                   <li><span>Sfida dentro la lezione, giusta al primo colpo</span><b>+{XP.check}</b></li>
                   <li><span>Quiz: ogni risposta giusta</span><b>+{XP.quizPerAnswer}</b></li>
                   <li><span>Quiz senza errori, bonus</span><b>+{XP.quizPerfect}</b></li>
-                  <li><span>Corso completato, con certificato</span><b>+{XP.course}</b></li>
+                  <li><span>Corso completato, con attestato</span><b>+{XP.course}</b></li>
                   <li><span>Simulazione finale</span><b>fino a +{XP.sim}</b></li>
                 </ul>
                 <p className="muted small">Ogni cosa conta una volta sola: rifare un quiz migliora il punteggio, non lo raddoppia. La serie cresce se impari qualcosa di nuovo ogni giorno.</p>

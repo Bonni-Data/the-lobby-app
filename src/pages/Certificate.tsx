@@ -12,12 +12,12 @@ export default function Certificate({ id }: { id: string }) {
   const data = useAsync(() => getCertificate(id), [id, session?.user?.id]);
   return (
     <Screen nav={!!session}>
-      <TopBar back={session ? '/traguardi' : undefined} title="Certificato" />
+      <TopBar back={session ? '/traguardi' : undefined} title="Attestato" />
       <main className="page">
         {data.loading && <Spinner />}
-        {data.error && <ErrorState message="Non riusciamo a verificare il certificato adesso." onRetry={data.reload} />}
+        {data.error && <ErrorState message="Non riusciamo a verificare l’attestato adesso." onRetry={data.reload} />}
         {!data.loading && !data.error && !data.data && (
-          <Empty title="Certificato non trovato" text="Il codice non corrisponde a nessun certificato rilasciato da THE LOBBY." action={<ButtonLink to="/">Scopri THE LOBBY</ButtonLink>} />
+          <Empty title="Attestato non trovato" text="Il codice non corrisponde a nessun attestato rilasciato da THE LOBBY." action={<ButtonLink to="/">Scopri THE LOBBY</ButtonLink>} />
         )}
         {data.data && <CertView c={data.data} />}
       </main>
@@ -44,15 +44,15 @@ function CertView({ c }: { c: Cert }) {
     return () => { alive = false; if (url) URL.revokeObjectURL(url); };
   }, [c.id, c.name]);
 
-  const file = blob ? new File([blob], `the-lobby-certificato-${c.slug}.png`, { type: 'image/png' }) : null;
+  const file = blob ? new File([blob], `the-lobby-attestato-${c.slug}.png`, { type: 'image/png' }) : null;
   const canShareFile = !!file && typeof navigator !== 'undefined' && !!(navigator as any).canShare?.({ files: [file] });
   const url = certificateUrl(c.id);
   const text = `Ho completato il corso «${c.course}» su THE LOBBY, l’accademia di politica e istituzioni di Andrea Bonazzi.`;
 
   async function share() {
     try {
-      if (canShareFile) await navigator.share({ files: [file!], title: 'Il mio certificato THE LOBBY', text: `${text} ${url}` });
-      else if ((navigator as any).share) await navigator.share({ title: 'Il mio certificato THE LOBBY', text, url });
+      if (canShareFile) await navigator.share({ files: [file!], title: 'Il mio attestato THE LOBBY', text: `${text} ${url}` });
+      else if ((navigator as any).share) await navigator.share({ title: 'Il mio attestato THE LOBBY', text, url });
       else copy();
     } catch {
       /* the member closed the share sheet */
@@ -63,7 +63,7 @@ function CertView({ c }: { c: Cert }) {
     if (!blob) return;
     const a = document.createElement('a');
     a.href = src;
-    a.download = `the-lobby-certificato-${c.slug}.png`;
+    a.download = `the-lobby-attestato-${c.slug}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -72,7 +72,7 @@ function CertView({ c }: { c: Cert }) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(url);
-      toast('Link del certificato copiato.');
+      toast('Link dell’attestato copiato.');
     } catch {
       toast(url);
     }
@@ -81,10 +81,10 @@ function CertView({ c }: { c: Cert }) {
   return (
     <section className="cert">
       {!c.mine && (
-        <p className="cert__verified"><LuBadgeCheck aria-hidden="true" /> Certificato autentico, rilasciato da THE LOBBY</p>
+        <p className="cert__verified"><LuBadgeCheck aria-hidden="true" /> Attestato autentico, rilasciato da THE LOBBY</p>
       )}
       <div className="cert__frame">
-        {src ? <img src={src} alt={`Certificato: ${c.name} ha completato il corso ${c.course} il ${certificateDate(c.completed_at)}`} /> : failed ? null : <Spinner label="Preparo il certificato" />}
+        {src ? <img src={src} alt={`Attestato: ${c.name} ha completato il corso ${c.course} il ${certificateDate(c.completed_at)}`} /> : failed ? null : <Spinner label="Preparo l’attestato" />}
         {failed && (
           <div className="cert__fallback">
             <strong>{c.name}</strong>
@@ -99,11 +99,12 @@ function CertView({ c }: { c: Cert }) {
         <div><dt>Completato il</dt><dd>{certificateDate(c.completed_at)}</dd></div>
         <div><dt>Codice</dt><dd>{certificateCode(c.id)}</dd></div>
       </dl>
+      <p className="tiny muted center">Attestato rilasciato da THE LOBBY: non ha valore legale e non è un titolo di studio né una qualifica professionale.</p>
 
       {c.mine ? (
         <>
           {c.name === 'Membro della Lobby' && (
-            <p className="cert__hint"><LuPencil aria-hidden="true" /> Vuoi il tuo nome sul certificato? <Link to="/profilo">Aggiungilo dal Profilo</Link>, poi torna qui.</p>
+            <p className="cert__hint"><LuPencil aria-hidden="true" /> Vuoi il tuo nome sull’attestato? <Link to="/profilo">Aggiungilo dal Profilo</Link>, poi torna qui.</p>
           )}
           <div className="cert__actions">
             <Button onClick={share} disabled={!blob}><LuShare2 aria-hidden="true" /> {canShareFile ? 'Condividi (Instagram, WhatsApp…)' : 'Condividi'}</Button>
@@ -111,7 +112,7 @@ function CertView({ c }: { c: Cert }) {
             <a className="btn btn--secondary" href={linkedInAddUrl(c)} target="_blank" rel="noopener noreferrer"><LuLinkedin aria-hidden="true" /> Aggiungi al profilo LinkedIn</a>
             <Button variant="ghost" onClick={copy}><LuCopy aria-hidden="true" /> Copia il link di verifica</Button>
           </div>
-          <p className="tiny muted center">Chi apre il link vede nome, corso e data, e può verificare che il certificato è autentico.</p>
+          <p className="tiny muted center">Chi apre il link vede nome, corso e data, e può verificare che l’attestato è autentico.</p>
           <InviteCard moment="certificato" title="Hai finito un corso. Chi porti con te?" text="Manda il tuo link a chi vuole capire come funzionano le istituzioni." />
         </>
       ) : (

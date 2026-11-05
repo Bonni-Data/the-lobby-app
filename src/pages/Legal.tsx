@@ -47,7 +47,7 @@ export function Privacy() {
         <li><strong>Account:</strong> nome e cognome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
         <li><strong>Foto profilo:</strong> facoltativa. Se la carichi, la ritagliamo in un quadrato piccolo sul tuo dispositivo e la salviamo a un indirizzo pubblico ma non elencato, raggiungibile solo da chi lo conosce. La cambi o la rimuovi quando vuoi dal Profilo, e viene cancellata con l'account.</li>
         <li><strong>Accesso con Google:</strong> se lo scegli, Google ci comunica nome, indirizzo email, identificativo dell'account ed eventualmente l'immagine del profilo. Non riceviamo mai la tua password Google.</li>
-        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e certificati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
+        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e attestati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
         <li><strong>Richieste di incontro con Andrea:</strong> nome, email, telefono se lo indichi, di cosa hai bisogno, il testo e l'eventuale link che condividi, durata, modalità e disponibilità.</li>
         <li><strong>Candidatura a Premium:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
         <li><strong>Email:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna) e le tue preferenze (riepilogo del lunedì e promemoria, attivi o disattivati).</li>
@@ -102,9 +102,9 @@ export function Privacy() {
         salvo obblighi di legge.
       </p>
       <p>
-        <strong>Certificati.</strong> Quando completi un corso ricevi un certificato con un link di verifica. Se scegli di
+        <strong>Attestati.</strong> Quando completi un corso ricevi un attestato di completamento con un link di verifica. È un attestato privato di THE LOBBY: non ha valore legale e non è un titolo di studio né una qualifica professionale. Se scegli di
         condividerlo, chi apre il link vede il nome del tuo profilo, il corso e la data: nient'altro. Il link è un codice casuale
-        che conosce solo chi lo riceve da te; se elimini l'account, il certificato smette di esistere.
+        che conosce solo chi lo riceve da te; se elimini l'account, l'attestato smette di esistere.
       </p>
       <p>
         <strong>Ascolta la lezione.</strong> La lettura ad alta voce usa la sintesi vocale del tuo browser o del tuo sistema

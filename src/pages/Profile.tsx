@@ -138,8 +138,8 @@ export default function Profile() {
         <ul className="menu">
           <li>
             <Link to="/traguardi" className="menu__link">
-              <span><LuTrophy /> Traguardi e certificati</span>
-              <em className="is-premium">{level ? `${level.name} · ${game!.badges.length} traguardi` : 'Livelli, serie, certificati'}</em>
+              <span><LuTrophy /> Traguardi e attestati</span>
+              <em className="is-premium">{level ? `${level.name} · ${game!.badges.length} traguardi` : 'Livelli, serie, attestati'}</em>
             </Link>
           </li>
           <li>

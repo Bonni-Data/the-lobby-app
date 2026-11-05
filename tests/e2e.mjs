@@ -593,7 +593,7 @@ await page.click('.levelup button:has-text("Continua")');
 await page.evaluate(() => localStorage.setItem('lobby.lesson.mode', 'cards'));
 await page.goto(base + '#/corso/test-comune');
 await page.waitForSelector('.finale-card--sim');
-await check(page.locator('.finale-card--cert a:has-text("Apri il certificato")').count().then((n) => n === 1), 'certificate unlocked on course page');
+await check(page.locator('.finale-card--cert a:has-text("Apri l’attestato")').count().then((n) => n === 1), 'certificate unlocked on course page');
 await shot('08c-course-finale');
 await page.click('.finale-card--sim a');
 await page.waitForSelector('.sim-intro');
@@ -614,10 +614,11 @@ await check(page.textContent('.sim-end .pill--xp').then((t) => t.includes('+50 X
 await shot('08f-sim-end');
 await page.click('button:has-text("Rigioca")');
 await page.waitForSelector('.sim-scene');
-await page.goto(base + '#/certificato/' + game.certId);
+await page.goto(base + '#/attestato/' + game.certId);
 await page.waitForSelector('.cert__frame img');
 await check(page.getAttribute('.cert a[href*="linkedin.com/profile/add"]', 'href').then((h) => h.includes('organizationName=THE+LOBBY') && h.includes('certUrl=')), 'LinkedIn add-to-profile link');
 await check(page.evaluate(() => { const i = document.querySelector('.cert__frame img'); return i.naturalWidth === 1080 && i.naturalHeight === 1350; }), 'certificate image 1080x1350');
+await check(page.textContent('.cert').then((t) => t.includes('non ha valore legale')), 'attestato says it has no legal value');
 await shot('08g-certificate');
 await page.goto(base + '#/traguardi');
 await page.waitForSelector('.rank__name');
@@ -906,7 +907,7 @@ await page.waitForSelector('.legal h2');
 await check(page.textContent('.legal').then((t) => t.includes('Non le organizza, non le finanzia')), 'terms opportunity clause');
 await shot('14-termini');
 
-// 10f. A shared certificate is public and verifiable
+// 10f. A shared certificate is public and verifiable (old #/certificato/ links keep working)
 await page.goto(base + '#/certificato/' + game.certId);
 await page.waitForSelector('.cert__verified');
 await check(page.locator('.cert a[href*="linkedin"]').count().then((n) => n === 0), 'public certificate has no owner actions');
