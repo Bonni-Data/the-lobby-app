@@ -272,7 +272,7 @@ ${stages.map((st) => {
 </li>`;
 }).join('\n')}
 </ol>
-${cta('Il percorso è gratis', 'Crea l’account in un minuto: salvi i progressi, fai i quiz, guadagni i traguardi e ricevi il certificato a fine corso.', 'percorso')}`;
+${cta('Il percorso è gratis', 'Crea l’account in un minuto: salvi i progressi, fai i quiz, guadagni i traguardi e ricevi l’attestato di completamento a fine corso.', 'percorso')}`;
   write('percorso/index.html', page({
     path: '/percorso/', stamp,
     title: 'Il percorso: da cittadino a protagonista · THE LOBBY',
@@ -550,7 +550,7 @@ ${cta('Non perderti le prossime', 'Con l’account gratuito ti arrivano ogni lun
   <div class="s-prose">
   ${n.slides.map((x) => `${x.tag ? `<p class="s-kicker">${esc(x.tag)}</p>` : ''}<h2>${esc(x.title)}</h2><p>${esc(x.text)}</p>`).join('\n')}
   </div>
-  ${link ? `<aside class="s-cta s-cta--inline"><p class="s-cta__title">${esc(n.cta?.title || 'Capire batte commentare.')}</p><p>Approfondisci gratis con ${link.l ? `la lezione «${esc(link.l.title)}» del corso «${esc(link.c.title)}»` : `il corso «${esc(link.c.title)}»`}: cinque minuti, quiz e certificato.</p><a class="s-btn" href="${link.l ? lessonUrl(link.c, link.l) : courseUrl(link.c)}" data-cta="notizia-lezione">Apri la lezione</a></aside>` : ''}
+  ${link ? `<aside class="s-cta s-cta--inline"><p class="s-cta__title">${esc(n.cta?.title || 'Capire batte commentare.')}</p><p>Approfondisci gratis con ${link.l ? `la lezione «${esc(link.l.title)}» del corso «${esc(link.c.title)}»` : `il corso «${esc(link.c.title)}»`}: cinque minuti, quiz e attestato.</p><a class="s-btn" href="${link.l ? lessonUrl(link.c, link.l) : courseUrl(link.c)}" data-cta="notizia-lezione">Apri la lezione</a></aside>` : ''}
   ${fonti.length ? `<section class="s-sources"><h2>Fonti</h2><ul>${fonti.map((u) => `<li><a href="${esc(u)}" rel="noopener">${esc(host(u))}</a></li>`).join('')}</ul></section>` : n.source ? `<p class="s-note">${esc(n.source)}</p>` : ''}
   <p class="s-note">Ogni mattina alle 8 THE LOBBY spiega il meccanismo dietro una notizia del giorno, con i fatti verificati su almeno due fonti e le regole su una fonte ufficiale. Nessun giudizio su partiti o persone: <a href="/neutralita/">la nostra linea</a>.</p>
 </article>
@@ -577,7 +577,7 @@ ${cta('Ogni giorno una notizia, spiegata', 'Segui THE LOBBY su Instagram o entra
   <a class="s-btn s-btn--ghost" href="${INSTAGRAM}" rel="noopener">Seguici su Instagram</a>
 </section>
 ${news.length ? `<ul class="s-courses">${news.map((n) => `<li class="s-course"><a href="${newsUrl(n)}"><span class="s-course__tags"><em>${esc(itDate(n.date))}</em></span><strong>${esc(n.title)}</strong>${n.subtitle ? `<span>${esc(n.subtitle)}</span>` : ''}</a></li>`).join('')}</ul>` : '<p class="s-text">La prima notizia spiegata arriva domattina alle 8.</p>'}
-${cta('Capire batte commentare', 'Lezioni da cinque minuti su Comune, Stato ed Europa, con quiz e certificato. Gratis.', 'notizie')}`;
+${cta('Capire batte commentare', 'Lezioni da cinque minuti su Comune, Stato ed Europa, con quiz e attestato. Gratis.', 'notizie')}`;
   write('notizie/index.html', page({
     path: '/notizie/', stamp,
     title: 'Dietro la notizia: le notizie spiegate ogni giorno · THE LOBBY',
@@ -607,7 +607,7 @@ ${cta('Capire batte commentare', 'Lezioni da cinque minuti su Comune, Stato ed E
 <section class="s-hero">
   <span class="s-kicker">Per i docenti · educazione civica</span>
   <h1>Lezioni pronte per l'educazione civica, gratis</h1>
-  <p class="s-lede">${n} corsi e ${lessons} lezioni da cinque minuti su Costituzione, istituzioni, Unione europea, economia e cittadinanza digitale, con quiz, simulazioni e certificato finale. Gratuiti, senza pubblicità, indipendenti da qualsiasi partito.</p>
+  <p class="s-lede">${n} corsi e ${lessons} lezioni da cinque minuti su Costituzione, istituzioni, Unione europea, economia e cittadinanza digitale, con quiz, simulazioni e attestato finale di completamento. Gratuiti, senza pubblicità, indipendenti da qualsiasi partito.</p>
   <a class="s-btn" href="#corsi">Guarda le lezioni per tema</a>
 </section>
 <section class="s-box">
@@ -615,7 +615,7 @@ ${cta('Capire batte commentare', 'Lezioni da cinque minuti su Comune, Stato ed E
   <ol class="s-goals">
     <li><strong>Proietta la lezione</strong>: cinque minuti di testo chiaro, con le fonti ufficiali in fondo. Ogni lezione ha domande di verifica a metà.</li>
     <li><strong>Fate il quiz insieme</strong>, in classe o a casa: ogni corso si chiude con una simulazione in cui gli studenti prendono decisioni da amministratori.</li>
-    <li><strong>Il certificato</strong>: chi finisce il corso lo riceve nell'app e può aggiungerlo al profilo LinkedIn. L'account è gratuito dai 14 anni; per le classi più giovani proietta le lezioni dal tuo account.</li>
+    <li><strong>L'attestato</strong>: chi finisce il corso riceve nell'app un attestato di completamento (privato, senza valore legale: non sostituisce le valutazioni della scuola) e può aggiungerlo al profilo LinkedIn. L'account è gratuito dai 14 anni; per le classi più giovani proietta le lezioni dal tuo account.</li>
   </ol>
   <p>Le ore di educazione civica sono almeno 33 l'anno (legge 92/2019) e le Linee guida del 2024 mettono al centro Costituzione, istituzioni, Unione europea, sviluppo economico e cittadinanza digitale: i temi qui sotto seguono quella divisione.</p>
 </section>
@@ -633,7 +633,7 @@ ${cta('Crea il tuo account docente, è gratis', 'Con l’account vedi le lezioni
   write('docenti/index.html', page({
     path: '/docenti/', stamp,
     title: 'Educazione civica: lezioni pronte e gratuite per docenti · THE LOBBY',
-    description: `${lessons} lezioni da cinque minuti per l’educazione civica: Costituzione, istituzioni, Unione europea, economia e cittadinanza digitale, con quiz e certificato. Gratis e senza partiti.`,
+    description: `${lessons} lezioni da cinque minuti per l’educazione civica: Costituzione, istituzioni, Unione europea, economia e cittadinanza digitale, con quiz e attestato. Gratis e senza partiti.`,
     crumbs: [{ name: 'Per i docenti', path: '/docenti/' }],
     jsonld: [{ '@type': 'ItemList', name: 'Lezioni di educazione civica per tema', itemListElement: groups.flatMap((g) => g.items).map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + courseUrl(c), name: c.title })) }],
     body,
