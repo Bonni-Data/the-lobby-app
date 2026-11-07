@@ -157,7 +157,7 @@ function render(r: Row, s: Settings): Mail {
         title: 'Benvenuto nella Lobby.',
         blocks: [
           { p: `${hi} manca un ultimo passo: conferma che questa email è tua.` },
-          { p: 'Ci serve per mandarti le date delle lezioni live, i link per entrare e la risposta alla tua candidatura Premium.' },
+          { p: 'Ci serve per mandarti le date delle lezioni live, i link per entrare e la risposta alla tua candidatura agli eventi.' },
           { button: { label: 'Conferma la mia email', url: `${app}#/verifica?t=${encodeURIComponent(p.token)}` } },
           { small: 'Il link vale 7 giorni. Se non ti sei iscritto tu, ignora questa email.' },
         ],
@@ -210,21 +210,21 @@ function render(r: Row, s: Settings): Mail {
     }
     case 'premium_ok':
       return {
-        subject: 'Sei dentro: Premium attivato',
+        subject: 'Sei dentro: accesso agli eventi attivato',
         title: 'La porta è aperta.',
         blocks: [
-          { p: `${hi} ho letto la tua candidatura e ti apro la porta: da oggi sei in Premium.` },
+          { p: `${hi} ho letto la tua candidatura e ti apro la porta: da oggi partecipi agli eventi della Lobby.` },
           ...(p.note ? [{ quote: esc(p.note) } as Block] : []),
-          { p: 'Dentro trovi le lezioni live su Teams con me da prenotare e le cene di networking della Lobby.' },
-          { button: { label: 'Entra in Premium', url: `${app}#/premium` } },
+          { p: 'Nella sezione Eventi trovi le lezioni live su Teams con me da prenotare e le cene di networking della Lobby.' },
+          { button: { label: 'Vai agli eventi', url: `${app}#/eventi` } },
         ],
       };
     case 'premium_no':
       return {
-        subject: 'La tua candidatura Premium',
+        subject: 'La tua candidatura agli eventi',
         title: 'Non ancora, ma ci sei vicino.',
         blocks: [
-          { p: `${hi} grazie per esserti raccontato. Per ora non ti apro ancora la porta di Premium.` },
+          { p: `${hi} grazie per esserti raccontato. Per ora non ti apro ancora la porta degli eventi.` },
           ...(p.note ? [{ quote: esc(p.note) } as Block] : []),
           { p: 'Tra 30 giorni puoi ricandidarti, con qualche passo in più da raccontare. Intanto il percorso dell’Academy e tutte le opportunità sono lì per te.' },
           { button: { label: 'Continua con i corsi', url: `${app}#/academy` } },
@@ -232,8 +232,8 @@ function render(r: Row, s: Settings): Mail {
       };
     case 'candidatura':
       return {
-        subject: `Nuova candidatura Premium: ${p.name}`,
-        title: 'Nuova candidatura Premium.',
+        subject: `Nuova candidatura agli eventi: ${p.name}`,
+        title: 'Nuova candidatura agli eventi.',
         blocks: [
           { facts: [['Nome', esc(p.name)], ['Email', esc(p.email)], ['Chi è oggi', esc(p.about)], ['Cosa ha fatto', esc(p.experience)], ['Prossimo livello', esc(p.goal)], ['Link', esc(p.link || '-')]] },
           { button: { label: 'Valuta nell’Area founder', url: `${app}#/admin?sezione=candidature` } },

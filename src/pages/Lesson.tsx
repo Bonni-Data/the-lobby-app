@@ -568,7 +568,7 @@ function PageView(p: Shared) {
         <span className="lesson-cover__arch" aria-hidden="true" />
         <span className="lesson-cover__kicker">Lezione {p.idx + 1} di {p.total}</span>
         <span className="lesson-cover__note">
-          {lesson.course_modules.courses.access_level === 'premium' ? 'Lezione Premium' : 'Lezione'} da leggere in {p.minutes} minuti
+          {lesson.course_modules.courses.access_level === 'premium' ? 'Lezione riservata' : 'Lezione'} da leggere in {p.minutes} minuti
         </span>
       </div>
       <div className="page">

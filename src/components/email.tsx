@@ -90,7 +90,7 @@ export function GrowthStrip() {
       <div className="email-strip__body">
         <strong>{d.members} iscritti · +{d.last_7d} in 7 giorni</strong>
         <span>
-          {d.premium} in Premium{d.pending ? ` · ${d.pending} candidature da valutare` : ''}
+          {d.premium} ammessi agli eventi{d.pending ? ` · ${d.pending} candidature da valutare` : ''}
           {d.sources.length > 0 && <> · da: {d.sources.map((s) => `${s.source} ${s.n}`).join(', ')} (30 giorni)</>}
         </span>
       </div>

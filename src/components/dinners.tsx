@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EventItem, rsvpEvent, listEvents } from '../lib/data';
 import { useAuth } from '../lib/auth';
-import { ButtonLink, Spinner, ErrorState, toast, useAsync } from './ui';
+import { Button, Spinner, ErrorState, toast, useAsync } from './ui';
 import { LuMapPin, LuUsers, LuCheck, LuX, LuLock, LuUtensils } from 'react-icons/lu';
 
 function dateParts(iso?: string | null) {
@@ -19,7 +19,7 @@ function rsvpError(err: any) {
   const m = String(err?.message || '');
   if (m.includes('full')) return 'Posti esauriti per questa cena.';
   if (m.includes('past_event')) return 'Questa cena è già passata.';
-  if (m.includes('premium_required')) return 'Le cene sono riservate a Premium.';
+  if (m.includes('premium_required')) return 'Le cene sono riservate a chi è ammesso agli eventi.';
   return 'Risposta non salvata. Riprova.';
 }
 
@@ -84,29 +84,31 @@ export function DinnerCard({ e: initial }: { e: EventItem }) {
   );
 }
 
-/** The "Cene" section of Opportunità: full list with RSVP for Premium, a locked teaser for everyone else. */
-export function DinnersSection() {
+/** The dinners inside «Eventi»: full list with RSVP for those admitted to the events, a locked teaser for everyone else. */
+export function DinnersSection({ onApply }: { onApply?: () => void }) {
   const { plan } = useAuth();
   const data = useAsync(() => listEvents('cena'), [plan.premium]);
   const items = data.data || [];
 
   if (!plan.premium) {
+    const pending = plan.application?.status === 'pending';
     return (
       <section className="dinners-locked">
         <span className="dinners-locked__icon" aria-hidden="true"><LuLock /></span>
-        <h2 className="dinners-locked__title">Le cene della Lobby</h2>
         <p>
-          Tavoli a numero chiuso con Andrea: persone, storie e percorsi che non trovi online. Gli avvisi delle cene si pubblicano
-          qui e si risponde con un tocco, presente o non presente.
+          Tavoli a numero chiuso con Andrea: persone, storie e percorsi che non trovi online. Solo per maggiorenni, e ognuno paga
+          la propria cena. Chi è ammesso agli eventi trova qui gli inviti e risponde con un tocco, presente o non presente.
         </p>
         {items.length > 0 && (
           <p className="dinners-locked__count">
             {items.length === 1 ? 'C’è 1 cena in calendario.' : `Ci sono ${items.length} cene in calendario.`}
           </p>
         )}
-        <ButtonLink to="/premium" variant="primary">
-          {plan.application?.status === 'pending' ? 'Candidatura in valutazione' : 'Candidati a Premium'}
-        </ButtonLink>
+        {pending ? (
+          <p className="dinners-locked__count">La tua candidatura è in valutazione.</p>
+        ) : onApply ? (
+          <Button onClick={onApply}>Candidati agli eventi</Button>
+        ) : null}
       </section>
     );
   }

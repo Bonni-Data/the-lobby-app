@@ -664,12 +664,16 @@ await check(page.locator('.opp-list li').count().then((n) => n === 3), 'home sho
 await check(page.textContent('.block__head:has-text("Opportunità")').then((t) => t.includes('Vedi tutte (5)')), 'home links to all opportunities');
 await shot('10b-home-opps');
 
-// 9c. Premium page + application
-await page.click('.tabbar__item:has-text("Premium")');
+// 9c. Eventi page (ex Premium, 7/11/2026) + application
+await check(page.locator('.tabbar__item:has-text("Premium")').count().then((n) => n === 0), 'no Premium item in the menu');
+await page.click('.tabbar__item:has-text("Eventi")');
 await page.waitForSelector('.premium-hero');
-await check(page.textContent('.premium-hero').then((t) => t.includes('Gratuito') && !t.includes('€')), 'premium is free, no price');
-await shot('10c-premium');
-await page.click('.premium-hero button:has-text("Candidati a Premium")');
+await check(page.textContent('.premium-hero').then((t) => t.includes('Gratuiti') && t.includes('Eventi') && !t.includes('€')), 'events are free, no price');
+await check(page.textContent('body').then((t) => !t.includes('Premium')), 'the word Premium never appears in the Eventi page');
+await check(page.locator('#cene .dinners-locked').count().then((n) => n === 1), 'dinners are inside Eventi, locked for free members');
+await check(page.locator('#live .live-strip').count().then((n) => n === 1), 'live lessons are inside Eventi');
+await shot('10c-eventi');
+await page.click('.premium-hero button:has-text("Candidati agli eventi")');
 await page.click('button:has-text("Invia la candidatura")');
 await page.waitForSelector('.apply .alert');
 await check(page.textContent('.apply .alert').then((t) => t.includes('almeno 30')), 'min length enforced');
@@ -715,7 +719,7 @@ await page.waitForTimeout(300);
 await check(Promise.resolve(mailer.tests === 1), 'test email requested');
 await shot('10f-admin');
 await page.fill('.appcard textarea', 'Percorso solido, benvenuta.');
-await page.click('button:has-text("Attiva Premium")');
+await page.click('button:has-text("Ammetti agli eventi")');
 await page.waitForSelector('.chip--btn:has-text("Da valutare (0)")');
 await check(Promise.resolve(apps[0].status === 'approved' && apps[0].reviewer_note === 'Percorso solido, benvenuta.'), 'application approved with note');
 
@@ -799,9 +803,9 @@ await page.waitForSelector('.live-panel a:has-text("Entra su Teams")');
 await check(page.getAttribute('.live-panel a:has-text("Entra su Teams")', 'href').then((h) => h === 'https://teams.microsoft.com/l/meetup-join/test'), 'member gets the Teams link');
 await check(page.locator('.live-panel button:has-text("Aggiungi al calendario")').count().then((n) => n === 1), 'calendar button');
 await shot('10g7-live-scheduled');
-await page.goto(base + '#/premium');
+await page.goto(base + '#/eventi');
 await page.waitForSelector('.live-strip li');
-await check(page.textContent('.live-strip').then((t) => t.includes('In calendario')), 'premium page lists live courses');
+await check(page.textContent('.live-strip').then((t) => t.includes('In calendario')), 'Eventi page lists live courses');
 isAdmin = true;
 await page.goto(base + '#/admin?sezione=live');
 await page.reload();
@@ -813,12 +817,14 @@ await check(Promise.resolve(liveClosed === 1), 'edition closed and reopened');
 isAdmin = false;
 approved = false;
 
-// 9f. Dinners: locked for free members, RSVP for Premium
+// 9f. Dinners (inside Eventi): locked for free members, RSVP for those admitted; old links still work
 isAdmin = false;
 approved = false;
 await page.goto(base + '#/opportunita?sezione=cene');
 await page.reload();
 await page.waitForSelector('.dinners-locked');
+await check(page.evaluate(() => location.hash).then((h) => h.startsWith('#/eventi')), 'old dinners link opens Eventi');
+await check(page.locator('.opp-card, .section-tabs button:has-text("Cene")').count().then((n) => n === 0), 'no dinners tab left in Opportunità');
 await shot('10h-cene-locked');
 approved = true;
 await page.reload();
@@ -826,16 +832,17 @@ await page.waitForSelector('.dinner');
 await page.click('.dinner >> nth=0 >> .rsvp__btn--yes');
 await page.waitForSelector('.dinner >> nth=0 >> .rsvp__btn--yes.is-on');
 await check(page.textContent('.dinner >> nth=0').then((t) => t.includes('Tavolo da 12 posti') && !/presenti?\b|posti liberi|posto libero/.test(t.replace('Non presente', '').replace('Presente', ''))), 'dinner shows the table size, never how many said yes');
-await shot('10i-cene-premium');
+await shot('10i-cene-eventi');
 await page.goto(base + '#/premium');
-await page.waitForSelector('.feature__link');
-await check(page.locator('.feature__link:has-text("Vai alle cene")').count().then((n) => n === 1), 'premium page links to dinners');
-await check(page.textContent('.premium-hero, .features').then((t) => !/15 iscritti|a 15/.test(t)), 'no seat threshold in the Premium page');
-// 24/10: Premium = solo lezioni live su Teams e cene; gli incontri con Andrea sono aperti a tutti, online
-await check(page.locator('.feature').count().then((n) => n === 2), 'Premium has only live lessons and dinners');
-await check(page.textContent('main').then((t) => !/ospiti|faccia a faccia|di persona/i.test(t)), 'no guests, no in-person meetings in Premium');
+await page.waitForSelector('#cene .dinner');
+await check(page.locator('.tabbar__item.is-active:has-text("Eventi")').count().then((n) => n === 1), 'old /premium link opens Eventi');
+await check(page.textContent('main').then((t) => !/15 iscritti|a 15/.test(t)), 'no seat threshold in the Eventi page');
+// Eventi = solo lezioni live su Teams e cene; gli incontri con Andrea sono aperti a tutti, online
+await check(page.locator('main > .block > h2.h-section:has-text("cene"), main > .block > h2.h-section:has-text("live")').count().then((n) => n === 2), 'Eventi has only live lessons and dinners');
+await check(page.textContent('main').then((t) => !/ospiti|faccia a faccia|di persona/i.test(t)), 'no guests, no in-person meetings in Eventi');
+await check(page.locator('#candidatura').count().then((n) => n === 0), 'no application form once admitted');
 await check(page.textContent('.cmp').then((t) => t.includes('Incontri online con Andrea')), 'meetings listed as free in the comparison');
-await check(page.locator('#incontro form').count().then((n) => n === 0), 'no meeting form in the Premium page');
+await check(page.locator('#incontro form').count().then((n) => n === 0), 'no meeting form in the Eventi page');
 approved = false;
 await page.goto(base + '#/andrea');
 await page.reload();

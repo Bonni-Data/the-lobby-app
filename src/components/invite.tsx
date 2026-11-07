@@ -42,8 +42,8 @@ export function InviteCard({ moment = 'profilo', title, text }: { moment?: strin
       <p className="invite__text">
         {text || 'Manda il tuo link a chi vuole capire come funzionano le istituzioni.'}{' '}
         {left > 0
-          ? `Porta ${PRIORITY_FRIENDS} amici che completano almeno una lezione e la tua candidatura al Premium passa in cima alla lista.`
-          : 'Hai portato almeno 3 amici attivi: la tua candidatura al Premium è in cima alla lista.'}
+          ? `Porta ${PRIORITY_FRIENDS} amici che completano almeno una lezione e la tua candidatura agli eventi passa in cima alla lista.`
+          : 'Hai portato almeno 3 amici attivi: la tua candidatura agli eventi è in cima alla lista.'}
       </p>
       {link && <p className="invite__link"><span>{link.replace('https://', '')}</span><button className="iconbtn" onClick={copy} aria-label="Copia il link"><LuCopy aria-hidden="true" /></button></p>}
       <div className="invite__row">

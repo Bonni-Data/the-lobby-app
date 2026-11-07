@@ -230,7 +230,7 @@ const courseUrl = (c) => `/corsi/${c.slug}/`;
 const lessonUrl = (c, l) => `/corsi/${c.slug}/${l.slug}/`;
 function courseTags(c) {
   const t = [];
-  t.push(c.access === 'premium' ? (c.format === 'live' ? 'Live · Premium' : 'Premium') : 'Gratis');
+  t.push(c.access === 'premium' ? (c.format === 'live' ? 'Live · Eventi' : 'Su selezione') : 'Gratis');
   t.push(LEVEL[c.level] || 'Base');
   if (c.format !== 'live' && c.lessons.length) t.push(`${c.lessons.length} lezioni · ${Math.max(1, c.minutes)} min`);
   return t;
@@ -262,7 +262,7 @@ ${stages.map((st) => {
   return `<li class="s-stage${st.premium ? ' is-premium' : ''}" id="tappa-${esc(st.id)}">
   <span class="s-stage__n" aria-hidden="true">${st.premium ? '★' : n}</span>
   <div>
-    <span class="s-kicker">${st.premium ? 'Tappa extra · Premium, gratuito su selezione' : `Tappa ${n}`}</span>
+    <span class="s-kicker">${st.premium ? 'Tappa extra · Eventi, gratuiti su selezione' : `Tappa ${n}`}</span>
     <h2>${esc(st.title)}</h2>
     <p class="s-skill">Competenza: <strong>${esc(st.skill)}</strong></p>
     ${st.summary ? `<p>${esc(st.summary)}</p>` : ''}
@@ -291,7 +291,7 @@ ${cta('Il percorso è gratis', 'Crea l’account in un minuto: salvi i progressi
 <section class="s-hero">
   <span class="s-kicker">Academy</span>
   <h1>I corsi di THE LOBBY</h1>
-  <p class="s-lede">Corsi brevi e gratuiti su come funzionano davvero le istituzioni, dal Comune all'Unione europea, e sulle competenze per muoverti dentro: lezioni da cinque minuti, quiz e simulazioni finali. I corsi di attualità (intelligenza artificiale, legge elettorale, clima, lavoro, fisco, casa, migrazioni, sanità, Europa e digitale) si aggiornano il 1° di ogni mese con le nuove leggi. In Premium, gratuito su selezione, ci sono solo le lezioni live su Teams con Andrea e le cene di networking.</p>
+  <p class="s-lede">Corsi brevi e gratuiti su come funzionano davvero le istituzioni, dal Comune all'Unione europea, e sulle competenze per muoverti dentro: lezioni da cinque minuti, quiz e simulazioni finali. I corsi di attualità (intelligenza artificiale, legge elettorale, clima, lavoro, fisco, casa, migrazioni, sanità, Europa e digitale) si aggiornano il 1° di ogni mese con le nuove leggi. Negli Eventi, gratuiti e su selezione, ci sono solo le lezioni live su Teams con Andrea e le cene di networking.</p>
   <a class="s-btn s-btn--ghost" href="/percorso/">Guarda il percorso consigliato</a>
 </section>
 ${groups.map((g) => `<section class="s-group"><h2>${esc(g.label)}</h2><ul class="s-courses">${g.items.map((c) => courseCard(c)).join('')}</ul></section>`).join('\n')}
@@ -319,13 +319,13 @@ for (const c of courses) {
   <span class="s-kicker">${esc(CATS[c.category] || 'Italia')} · ${esc(LEVEL[c.level] || 'Base')}${live ? ' · Live su Teams' : ''}</span>
   <h1>${esc(c.title)}</h1>
   ${c.subtitle ? `<p class="s-lede">${esc(c.subtitle)}</p>` : ''}
-  <p class="s-meta">${live ? 'Masterclass dal vivo con Andrea Bonazzi su Microsoft Teams, riservata a Premium (gratuito, su selezione).' : `${c.lessons.length} lezioni · circa ${Math.max(1, c.minutes)} minuti · ${c.access === 'free' ? 'gratis' : 'Premium'} · con Andrea Bonazzi`}</p>
+  <p class="s-meta">${live ? 'Masterclass dal vivo con Andrea Bonazzi su Microsoft Teams, riservata a chi è ammesso agli eventi (gratuiti, su selezione).' : `${c.lessons.length} lezioni · circa ${Math.max(1, c.minutes)} minuti · ${c.access === 'free' ? 'gratis' : 'su selezione'} · con Andrea Bonazzi`}</p>
   <a class="s-btn" href="/#/accedi?tab=registrati" data-cta="corso-hero">${live ? 'Entra nella Lobby' : 'Inizia il corso gratis'}</a>
 </section>
 ${c.description ? `<p class="s-text">${esc(c.description)}</p>` : ''}
 ${(c.objectives || []).length ? `<section class="s-box"><h2>Alla fine saprai</h2><ul class="s-goals">${c.objectives.map((o) => `<li>${esc(o)}</li>`).join('')}</ul></section>` : ''}
 ${c.lessons.length ? `<section class="s-program"><h2>Programma</h2>${(c.modules || []).map((m) => `<h3>${esc(m.title)}</h3><ol class="s-lessons">${(m.lessons || []).map((l) => `<li><a href="${lessonUrl(c, l)}"><strong>${esc(l.title)}</strong>${l.summary ? `<span>${esc(l.summary)}</span>` : ''}<em>${Math.max(1, Number(l.minutes) || 1)} min</em></a></li>`).join('')}</ol>`).join('')}</section>` : ''}
-${live ? cta('Le masterclass sono in Premium', 'Premium è gratuito: ti candidi raccontando il tuo percorso e Andrea valuta personalmente ogni candidatura. Intanto il percorso base è tutto aperto.', 'corso-live') : cta()}`;
+${live ? cta('Le masterclass sono negli Eventi', 'Gli eventi sono gratuiti: ti candidi raccontando il tuo percorso e Andrea valuta personalmente ogni candidatura. Intanto il percorso base è tutto aperto.', 'corso-live') : cta()}`;
   const jsonCourse = {
     '@type': 'Course', name: c.title, description: clip(c.description || c.subtitle || c.title, 300), url: SITE + courseUrl(c),
     inLanguage: 'it', provider: { '@id': `${SITE}/#org` }, isAccessibleForFree: c.access === 'free', educationalLevel: LEVEL[c.level] || 'Base',
@@ -362,7 +362,7 @@ ${live ? cta('Le masterclass sono in Premium', 'Premium è gratuito: ti candidi 
     <p>Il resto della lezione, le sfide e il quiz sono nell'app. Ti serve solo un account: un minuto e sei dentro.</p>
     <a class="s-btn" href="/#/accedi?tab=registrati" data-cta="lezione">Crea l'account e continua</a>
     <a class="s-cta__alt" href="/#/lezione/${esc(l.id)}" data-cta="lezione-login">Hai già un account? Apri la lezione</a>
-  </aside>` : `<p class="s-text">${c.format === 'live' ? 'Questa lezione fa parte di una masterclass dal vivo con Andrea, riservata a Premium (gratuito, su selezione).' : 'Questa lezione è nell’app di THE LOBBY.'}</p>${cta()}`}
+  </aside>` : `<p class="s-text">${c.format === 'live' ? 'Questa lezione fa parte di una masterclass dal vivo con Andrea, riservata a chi è ammesso agli eventi (gratuiti, su selezione).' : 'Questa lezione è nell’app di THE LOBBY.'}</p>${cta()}`}
   ${sources.length ? `<section class="s-sources"><h2>Fonti</h2><ul>${sources.map((x) => `<li><a href="${esc(x.url)}" rel="noopener">${esc(x.title || x.url)}</a></li>`).join('')}</ul></section>` : ''}
   <nav class="s-pager" aria-label="Altre lezioni">
     ${prev ? `<a href="${lessonUrl(c, prev)}"><small>Lezione precedente</small>${esc(prev.title)}</a>` : '<span></span>'}

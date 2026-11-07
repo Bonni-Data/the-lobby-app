@@ -31,7 +31,7 @@ function CourseRow({ c, progress, admin, locked, live, optional }: { c: Course; 
         <div className="course-row__body">
           <span className="course-row__level">
             {LEVEL_LABEL[c.level]}
-            {c.access_level === 'premium' && <em className="course-row__lock">{locked ? <LuLock aria-hidden="true" /> : <LuKeyRound aria-hidden="true" />} Premium</em>}
+            {c.access_level === 'premium' && <em className="course-row__lock">{locked ? <LuLock aria-hidden="true" /> : <LuKeyRound aria-hidden="true" />} Eventi</em>}
             {isL && <em className="chip chip--live"><LuRadio aria-hidden="true" /> Live</em>}
             {coming && !locked && <em className="chip chip--soon">In arrivo</em>}
             {optional && <em className="chip chip--soon">Facoltativo</em>}
@@ -71,7 +71,7 @@ function PreviewCard({ c, outline, live }: { c: Course; outline: OutlineLesson[]
     <li className="preview">
       <Link to={`/corso/${c.slug}`} className="preview__link">
         <div className="preview__head">
-          <span className="preview__level">{LEVEL_LABEL[c.level]} · Premium{isL ? ' · Live' : ''}</span>
+          <span className="preview__level">{LEVEL_LABEL[c.level]}{isL ? ' · Live' : ' · Su selezione'}</span>
           <span className="preview__lock">{isL ? <><LuRadio aria-hidden="true" /> Live su Teams</> : <><LuBookOpen aria-hidden="true" /> Lezioni e quiz</>}</span>
         </div>
         <h3 className="preview__title">{c.title}</h3>
@@ -83,7 +83,7 @@ function PreviewCard({ c, outline, live }: { c: Course; outline: OutlineLesson[]
         )}
         {isL && (
           <span className="preview__label">
-            Dal vivo con Andrea su Teams · prenotazioni riservate a Premium
+            Dal vivo con Andrea su Teams · prenotazioni riservate a chi è ammesso agli eventi
           </span>
         )}
         {!isL && outline.length === 0 && c.course_modules.length > 0 && (
@@ -127,7 +127,7 @@ function StageCard({ st, n, data, plan, isNext }: {
       </div>
       <div className="stage__body">
         <span className="stage__kicker">
-          {st.premium ? 'Tappa extra · Premium' : `Tappa ${n}`}
+          {st.premium ? 'Tappa extra · Eventi' : `Tappa ${n}`}
           {st.state === 'done' && <em className="chip chip--done">Completata</em>}
           {isNext && <em className="chip chip--now">Sei qui</em>}
         </span>
@@ -151,7 +151,7 @@ function StageCard({ st, n, data, plan, isNext }: {
           </ul>
         )}
         {lockedPremium && (
-          <ButtonLink to="/premium" variant="secondary">Candidati a Premium, è gratis</ButtonLink>
+          <ButtonLink to="/eventi" variant="secondary">Candidati agli eventi, è gratis</ButtonLink>
         )}
       </div>
     </li>
@@ -332,12 +332,12 @@ export default function Academy() {
           <>
             <section className="academy-premium" id="premium">
               <span className="academy-premium__arch" aria-hidden="true" />
-              <span className="academy-premium__kicker"><LuKeyRound aria-hidden="true" /> Area Premium</span>
+              <span className="academy-premium__kicker"><LuKeyRound aria-hidden="true" /> Eventi</span>
               <h2 className="academy-premium__title">Dal vivo con Andrea.</h2>
               <p className="academy-premium__text">
                 {plan.premium
-                  ? 'Sei dentro: le masterclass live sono aperte per te. Prenota il posto dalla pagina del corso.'
-                  : 'Il percorso è tutto gratis, e anche gli incontri online con Andrea. Premium aggiunge solo due cose che si fanno dal vivo: le lezioni live su Teams con Andrea e le cene di networking.'}
+                  ? 'Sei dentro: le lezioni live e le cene sono aperte per te. Prenota il posto dalla pagina del corso.'
+                  : 'Il percorso è tutto gratis, e anche gli incontri online con Andrea. Gli eventi sono le due cose che si fanno dal vivo: le lezioni live su Teams con Andrea e le cene di networking.'}
               </p>
               <p className="academy-premium__video">
                 <span className="academy-premium__play" aria-hidden="true"><LuRadio /></span>
@@ -347,7 +347,7 @@ export default function Academy() {
 
             {!plan.premium && (
               <div className="academy-premium__cta">
-                <ButtonLink to="/premium" block>{pending ? 'Candidatura in valutazione' : 'Candidati a Premium, è gratis'}</ButtonLink>
+                <ButtonLink to="/eventi" block>{pending ? 'Candidatura in valutazione' : 'Candidati agli eventi, è gratis'}</ButtonLink>
               </div>
             )}
           </>

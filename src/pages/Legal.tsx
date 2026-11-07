@@ -47,9 +47,9 @@ export function Privacy() {
         <li><strong>Account:</strong> nome e cognome, indirizzo email, password (conservata solo in forma cifrata dal fornitore di autenticazione: nessuno può leggerla), data di iscrizione, accettazione dei Termini e stato di conferma dell'email.</li>
         <li><strong>Foto profilo:</strong> facoltativa. Se la carichi, la ritagliamo in un quadrato piccolo sul tuo dispositivo e la salviamo a un indirizzo pubblico ma non elencato, raggiungibile solo da chi lo conosce. La cambi o la rimuovi quando vuoi dal Profilo, e viene cancellata con l'account.</li>
         <li><strong>Accesso con Google:</strong> se lo scegli, Google ci comunica nome, indirizzo email, identificativo dell'account ed eventualmente l'immagine del profilo. Non riceviamo mai la tua password Google.</li>
-        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e attestati, stato del tuo accesso Premium, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
+        <li><strong>Utilizzo del servizio:</strong> lezioni iniziate e completate, risposte alle sfide dentro le lezioni, risultati dei quiz e delle simulazioni, punti, livello, serie di giorni, traguardi e attestati, stato del tuo accesso agli eventi, risposte agli inviti alle cene e prenotazioni alle lezioni live.</li>
         <li><strong>Richieste di incontro con Andrea:</strong> nome, email, telefono se lo indichi, di cosa hai bisogno, il testo e l'eventuale link che condividi, durata, modalità e disponibilità.</li>
-        <li><strong>Candidatura a Premium:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
+        <li><strong>Candidatura agli eventi:</strong> i testi che scrivi su di te, sul tuo percorso e sui tuoi obiettivi, l'eventuale link che indichi, l'esito e l'eventuale messaggio del founder.</li>
         <li><strong>Email:</strong> un registro delle email che ti inviamo (tipo di messaggio, data, esito della consegna) e le tue preferenze (riepilogo del lunedì e promemoria, attivi o disattivati).</li>
         <li><strong>Statistiche d'uso interne:</strong> quali pagine e funzioni usi dentro THE LOBBY (per esempio apertura del percorso, clic su un'opportunità, condivisione), collegate al tuo account. Per chi visita il sito senza account contiamo solo il numero di visite, senza alcun identificativo: nessun cookie, nessun indirizzo IP salvato, nessuno strumento di terze parti.</li>
         <li><strong>Inviti:</strong> il tuo codice invito e, se ti iscrivi dal link di un amico, il suo codice, per mostrargli quante persone ha portato (solo il numero, mai i nomi).</li>
@@ -68,7 +68,7 @@ export function Privacy() {
       <h2>3. Perché li trattiamo e su quale base</h2>
       <ul>
         <li><strong>Creare e gestire il tuo account, farti seguire corsi, quiz, opportunità e lezioni live.</strong> Base: esecuzione del contratto (art. 6.1.b GDPR).</li>
-        <li><strong>Valutare la tua candidatura a Premium e, se approvata, attivarti l'accesso.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi: nessuna decisione è presa da un sistema automatico.</li>
+        <li><strong>Valutare la tua candidatura agli eventi e, se approvata, attivarti l'accesso.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La valutazione la fa personalmente Andrea Bonazzi: nessuna decisione è presa da un sistema automatico.</li>
         <li><strong>Organizzare gli incontri che chiedi ad Andrea.</strong> Base: esecuzione di misure richieste da te (art. 6.1.b). La richiesta arriva via email ad Andrea, che ti scrive per fissare giorno e ora.</li>
         <li><strong>Inviarti le email di servizio:</strong> conferma dell'indirizzo, recupero password, prenotazioni, date e link delle lezioni live, promemoria, esito della candidatura. Base: esecuzione del contratto (art. 6.1.b). Non sono pubblicità.</li>
         <li><strong>Accompagnarti nel percorso:</strong> l'email di benvenuto, il riepilogo del lunedì con le opportunità della settimana e qualche promemoria (la prima lezione, la serie di giorni, un rientro dopo una pausa). Riguardano solo il servizio a cui ti sei iscritto. Base: legittimo interesse a farti usare il servizio che hai scelto (art. 6.1.f e art. 130, comma 4, del Codice privacy). Li disattivi quando vuoi dal Profilo o con un clic in fondo a ogni email.</li>
@@ -78,7 +78,7 @@ export function Privacy() {
         <li><strong>Rispettare obblighi di legge</strong> e richieste delle autorità. Base: obbligo legale (art. 6.1.c).</li>
       </ul>
       <p>
-        Fornire i dati dell'account è necessario per usare THE LOBBY; la candidatura a Premium è facoltativa. Non vendiamo i tuoi
+        Fornire i dati dell'account è necessario per usare THE LOBBY; la candidatura agli eventi è facoltativa. Non vendiamo i tuoi
         dati, non li usiamo per pubblicità e non li cediamo a nessuno.
       </p>
       <p>
@@ -122,7 +122,7 @@ export function Privacy() {
       <h2>6. Per quanto tempo li conserviamo</h2>
       <ul>
         <li><strong>Account e utilizzo:</strong> finché l'account è attivo. Se lo elimini dall'app, i dati vengono cancellati subito; le copie tecniche di sicurezza dei fornitori vengono sovrascritte nei giorni successivi.</li>
-        <li><strong>Candidature a Premium:</strong> 12 mesi dalla decisione, per gestire eventuali nuove candidature; prima, se elimini l'account o ce lo chiedi.</li>
+        <li><strong>Candidature agli eventi:</strong> 12 mesi dalla decisione, per gestire eventuali nuove candidature; prima, se elimini l'account o ce lo chiedi.</li>
         <li><strong>Richieste di incontro:</strong> 12 mesi dalla richiesta; prima, se elimini l'account o ce lo chiedi.</li>
         <li><strong>Registro delle email di servizio:</strong> 12 mesi. I link di conferma scaduti o usati: 30 giorni.</li>
         <li><strong>Statistiche d'uso interne:</strong> 13 mesi, poi vengono cancellate in automatico.</li>
@@ -181,7 +181,7 @@ export function Terms() {
         <li>Un percorso a tappe di corsi da leggere, con quiz, su come funzionano le istituzioni e sulle competenze per muoversi al loro interno.</li>
         <li>Una raccolta, aggiornata ogni giorno, di opportunità pubblicate da enti pubblici, istituzioni europee e organizzazioni internazionali, consultabile da tutti.</li>
         <li>Incontri online con Andrea Bonazzi, in videochiamata o al telefono, per tutti gli iscritti con l'email confermata.</li>
-        <li>Con Premium, gratuito e su selezione: lezioni live su Microsoft Teams con Andrea Bonazzi e cene di networking, come descritto nella pagina Premium.</li>
+        <li>Gli eventi, gratuiti e su selezione: lezioni live su Microsoft Teams con Andrea Bonazzi e cene di networking, come descritto nella pagina Eventi.</li>
       </ul>
 
       <h2>3. Natura dei contenuti</h2>
@@ -213,17 +213,17 @@ export function Terms() {
         candidatura si presenta direttamente all'ente; THE LOBBY non garantisce l'esito.
       </p>
 
-      <h2>6. Free e Premium</h2>
+      <h2>6. Accesso libero ed eventi</h2>
       <ul>
-        <li>THE LOBBY è <strong>interamente gratuita</strong>, Premium compreso.</li>
-        <li>Con l'account base accedi a tutto il percorso dell'Academy, ai quiz, alle simulazioni, a tutte le opportunità e agli incontri online con Andrea. Le opportunità sono consultabili anche senza account. Premium comprende solo le lezioni live su Teams e le cene di networking.</li>
+        <li>THE LOBBY è <strong>interamente gratuita</strong>, eventi compresi.</li>
+        <li>Con l'account base accedi a tutto il percorso dell'Academy, ai quiz, alle simulazioni, a tutte le opportunità e agli incontri online con Andrea. Le opportunità sono consultabili anche senza account. Gli eventi comprendono solo le lezioni live su Teams e le cene di networking.</li>
         <li>
-          L'accesso a Premium è <strong>su selezione</strong>: ti candidi raccontando il tuo percorso e Andrea Bonazzi valuta
+          L'accesso agli eventi è <strong>su selezione</strong>: ti candidi raccontando il tuo percorso e Andrea Bonazzi valuta
           personalmente ogni candidatura, a sua discrezione e senza discriminazioni. Le opinioni politiche e l'eventuale
           appartenenza a un partito non contano nella valutazione. L'esito ti arriva nell'app e per email; se non vieni
           selezionato puoi ricandidarti dopo 30 giorni.
         </li>
-        <li>L'accesso Premium è personale e può essere revocato in caso di violazione di questi termini.</li>
+        <li>L'accesso agli eventi è personale e può essere revocato in caso di violazione di questi termini.</li>
         <li>Se in futuro alcune funzioni diventassero a pagamento te lo diremo prima: nulla ti verrà mai addebitato senza il tuo consenso esplicito.</li>
       </ul>
 
@@ -239,7 +239,7 @@ export function Terms() {
 
       <h2>8. Cene di networking</h2>
       <ul>
-        <li>Sono riservate ai maggiorenni iscritti a Premium, a numero chiuso, e si partecipa rispondendo all'invito nell'app.</li>
+        <li>Sono riservate ai maggiorenni ammessi agli eventi, a numero chiuso, e si partecipa rispondendo all'invito nell'app.</li>
         <li>Eventuali costi, per esempio quello della cena, sono indicati nell'invito prima della conferma e restano a carico di chi partecipa.</li>
         <li>Luoghi e servizi sono gestiti dai rispettivi esercenti, alle loro condizioni.</li>
       </ul>
@@ -266,7 +266,7 @@ export function Terms() {
 
       <h2>12. Sospensione e chiusura</h2>
       <p>
-        In caso di violazioni gravi o ripetute di questi termini possiamo sospendere l'accesso a Premium o chiudere l'account,
+        In caso di violazioni gravi o ripetute di questi termini possiamo sospendere l'accesso agli eventi o chiudere l'account,
         comunicandoti il motivo. Tu puoi chiudere l'account in qualsiasi momento dal Profilo.
       </p>
 
@@ -334,7 +334,7 @@ export function Neutrality() {
       <p>
         I dati di chi usa THE LOBBY non vengono mai usati per attività politiche, elettorali o di propaganda, non vengono comunicati
         a partiti, movimenti, candidati o comitati e non vengono usati per l'impegno politico personale di chi gestisce il progetto.
-        Nella candidatura a Premium le opinioni politiche e l'appartenenza a un partito non contano e non te le chiediamo.
+        Nella candidatura agli eventi le opinioni politiche e l'appartenenza a un partito non contano e non te le chiediamo.
       </p>
 
       <h2>5. Fonti e correzioni</h2>

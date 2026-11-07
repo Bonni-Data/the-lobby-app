@@ -13,7 +13,7 @@ export function DraftPanel({ course, onPublished, compact }: { course: Course; o
     setBusy(true);
     try {
       const n = await publishCourse(course.slug);
-      const who = course.access_level === 'premium' ? 'tutti i Premium' : 'tutti';
+      const who = course.access_level === 'premium' ? 'chi è ammesso agli eventi' : 'tutti';
       toast(n === 1 ? `Pubblicato: 1 lezione ora visibile a ${who}.` : `Pubblicato: ${n} lezioni ora visibili a ${who}.`);
       setConfirm(false);
       onPublished();
@@ -30,12 +30,12 @@ export function DraftPanel({ course, onPublished, compact }: { course: Course; o
       {!compact && (
         <p className="draft-panel__text">
           {drafts} {drafts === 1 ? 'lezione da validare' : 'lezioni da validare'} su {lessonCount(course)}, con i quiz.
-          Rileggi testi e domande: quando sei soddisfatto, pubblica e il corso diventa visibile a {course.access_level === 'premium' ? 'tutti i Premium' : 'tutti'}.
+          Rileggi testi e domande: quando sei soddisfatto, pubblica e il corso diventa visibile a {course.access_level === 'premium' ? 'chi è ammesso agli eventi' : 'tutti'}.
         </p>
       )}
       {confirm ? (
         <div className="draft-panel__confirm">
-          <span>Pubblico «{course.title}» per {course.access_level === 'premium' ? 'tutti i Premium' : 'tutti'}?</span>
+          <span>Pubblico «{course.title}» per {course.access_level === 'premium' ? 'chi è ammesso agli eventi' : 'tutti'}?</span>
           <div className="draft-panel__btns">
             <Button onClick={publish} loading={busy}><LuSend aria-hidden="true" /> Sì, pubblica</Button>
             <Button variant="ghost" onClick={() => setConfirm(false)} disabled={busy}>Annulla</Button>

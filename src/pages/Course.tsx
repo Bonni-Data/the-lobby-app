@@ -54,7 +54,7 @@ export default function Course({ slug }: { slug: string }) {
                   </Link>
                 )}
                 <span className="course-hero__level">
-                  {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'}{coming && ' · In arrivo'}
+                  {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Su selezione'}{coming && ' · In arrivo'}
                 </span>
                 <h1 className="course-hero__title">{c.title}</h1>
                 {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
@@ -68,7 +68,7 @@ export default function Course({ slug }: { slug: string }) {
                   </div>
                 )}
                 {locked ? (
-                  <ButtonLink to="/premium" block><LuKeyRound aria-hidden="true" /> Sblocca con Premium</ButtonLink>
+                  <ButtonLink to="/eventi" block><LuKeyRound aria-hidden="true" /> Candidati agli eventi</ButtonLink>
                 ) : next ? (
                   <ButtonLink to={`/lezione/${next.id}`} block>{done === 0 ? 'Inizia il corso' : 'Continua'}</ButtonLink>
                 ) : total > 0 ? (
@@ -94,7 +94,7 @@ export default function Course({ slug }: { slug: string }) {
                 <section className="block">
                   <h2 className="h-section">Programma</h2>
                   {locked ? (
-                    <p className="muted">Anteprima: le lezioni si sbloccano entrando in Premium, gratuito e su selezione.</p>
+                    <p className="muted">Anteprima: le lezioni si sbloccano con l’accesso agli eventi, gratuito e su selezione.</p>
                   ) : total === 0 && (
                     <p className="muted">Ecco il programma: le lezioni arrivano a breve.</p>
                   )}
@@ -191,13 +191,13 @@ function LiveCourse({ c, live, locked }: { c: CourseT; live?: LiveEdition; locke
       <section className="course-hero">
         <div className="course-hero__arch" aria-hidden="true" />
         <span className="course-hero__level">
-          {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]}{c.access_level === 'premium' && ' · Premium'} · Live
+          {CATEGORY_NAME[categoryOf(c)]} · {LEVEL_LABEL[c.level]} · Live
         </span>
         <h1 className="course-hero__title">{c.title}</h1>
         {c.subtitle && <p className="course-hero__sub">{c.subtitle}</p>}
         <TeacherLine tone="ivory" />
         <p className="course-hero__done"><LuRadio aria-hidden="true" /> Dal vivo su Microsoft Teams con Andrea</p>
-        {locked && <ButtonLink to="/premium" block><LuKeyRound aria-hidden="true" /> Sblocca con Premium</ButtonLink>}
+        {locked && <ButtonLink to="/eventi" block><LuKeyRound aria-hidden="true" /> Candidati agli eventi</ButtonLink>}
       </section>
 
       <div className="page">
@@ -218,7 +218,7 @@ function LiveCourse({ c, live, locked }: { c: CourseT; live?: LiveEdition; locke
         <section className="block">
           <h2 className="h-section">Il programma della live</h2>
           {locked ? (
-            <p className="muted live-locked"><LuLock aria-hidden="true" /> Il programma completo è riservato a chi è in Premium, gratuito e su selezione.</p>
+            <p className="muted live-locked"><LuLock aria-hidden="true" /> Il programma completo è riservato a chi è ammesso agli eventi, gratuiti e su selezione.</p>
           ) : (
             <ol className="modules modules--live">
               {c.course_modules.map((m, i) => (

@@ -14,7 +14,7 @@ import Lesson from './pages/Lesson';
 import Quiz from './pages/Quiz';
 import Opportunities from './pages/Opportunities';
 import Profile from './pages/Profile';
-import Premium from './pages/Premium';
+import Eventi from './pages/Eventi';
 import { Privacy, Terms, Neutrality } from './pages/Legal';
 import Unsubscribe from './pages/Unsubscribe';
 import Admin from './pages/Admin';
@@ -63,7 +63,8 @@ function Routes() {
   if (path === '/academy') return <Academy />;
   if (path === '/opportunita') return <Opportunities />;
   if (path === '/profilo') return <Profile />;
-  if (path === '/premium') return <Premium />;
+  // /premium resta come vecchio indirizzo (link nelle email già inviate)
+  if (path === '/eventi' || path === '/premium') return <Eventi />;
   if (path === '/admin') return <Admin />;
   if (path === '/andrea') return <Story />;
   if (path === '/privacy') return <Privacy />;

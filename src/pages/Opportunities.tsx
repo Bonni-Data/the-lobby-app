@@ -3,17 +3,16 @@ import { listOpportunities, track, OppTag } from '../lib/data';
 import { useAuth } from '../lib/auth';
 import { ButtonLink, Empty, ErrorState, Screen, Spinner, TopBar, useAsync } from '../components/ui';
 import { OppCard, YouthCardPinned } from '../components/opps';
-import { DinnersSection } from '../components/dinners';
 import { useLocation, navigate } from '../lib/router';
-import { LuLock } from 'react-icons/lu';
 
 const FILTERS: ('tutte' | OppTag)[] = ['tutte', 'viaggio', 'lavoro', 'sviluppo'];
 const FILTER_LABEL: Record<string, string> = { tutte: 'Tutte', viaggio: 'Viaggi', lavoro: 'Lavoro', sviluppo: 'Sviluppo' };
 
 export default function Opportunities() {
-  const { plan, session } = useAuth();
+  const { session } = useAuth();
   const { query } = useLocation();
-  const section = query.get('sezione') === 'cene' && session ? 'cene' : 'bandi';
+  // 7/11/2026: le cene sono passate nella sezione «Eventi»; i vecchi link /opportunita?sezione=cene portano lì.
+  useEffect(() => { if (query.get('sezione') === 'cene' && session) navigate('/eventi', true); }, [session]);
   const data = useAsync(() => listOpportunities(), []);
   const [tag, setTag] = useState<'tutte' | OppTag>('tutte');
   useEffect(() => { track(session ? 'page' : 'visit', { page: 'opportunita' }); }, []);
@@ -32,16 +31,6 @@ export default function Opportunities() {
             <ButtonLink to="/accedi?tab=registrati" block>Crea il tuo account gratis</ButtonLink>
           </aside>
         )}
-        {session && <div className="section-tabs" role="tablist" aria-label="Sezioni">
-          <button role="tab" aria-selected={section === 'bandi'} className={section === 'bandi' ? 'is-on' : ''} onClick={() => navigate('/opportunita', true)}>
-            Bandi e programmi
-          </button>
-          <button role="tab" aria-selected={section === 'cene'} className={section === 'cene' ? 'is-on' : ''} onClick={() => navigate('/opportunita?sezione=cene', true)}>
-            Cene {!plan.premium && <LuLock aria-label="riservata a Premium" />}
-          </button>
-        </div>}
-
-        {section === 'cene' ? <DinnersSection /> : (<>
         <p className="muted">
           Bandi, tirocini, programmi e viaggi pubblicati da istituzioni ed enti, raccolti in un solo posto e aggiornati ogni mattina
           alle 7. Tutti gratis, per tutti.
@@ -78,7 +67,6 @@ export default function Opportunities() {
             sulla pagina ufficiale.
           </p>
         )}
-        </>)}
       </main>
     </Screen>
   );

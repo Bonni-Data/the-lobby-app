@@ -416,7 +416,7 @@ export const categoryOf = (c: Course): CategoryId => (c.category as CategoryId) 
 export const isLive = (c: Pick<Course, 'format'>) => c.format === 'live';
 
 export function courseLabel(c: Course) {
-  return CATEGORY_NAME[categoryOf(c)] + (c.access_level === 'premium' ? ' · Premium' : '') + (isLive(c) ? ' · Live' : c.coming_soon && lessonCount(c) === 0 ? ' · In arrivo' : '');
+  return CATEGORY_NAME[categoryOf(c)] + (c.access_level === 'premium' && !isLive(c) ? ' · Su selezione' : '') + (isLive(c) ? ' · Live' : c.coming_soon && lessonCount(c) === 0 ? ' · In arrivo' : '');
 }
 
 // ---------- Live courses (Teams with Andrea, start at 15 bookings) ----------

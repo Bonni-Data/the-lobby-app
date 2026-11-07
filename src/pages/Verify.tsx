@@ -33,7 +33,7 @@ export default function Verify() {
           <>
             <LuCircleCheck className="verify__icon verify__icon--ok" aria-hidden="true" />
             <h1 className="h-title">Email confermata.</h1>
-            <p>Da ora ti scriviamo qui per le date delle live, i link per entrare e la risposta alla tua candidatura Premium.</p>
+            <p>Da ora ti scriviamo qui per le date delle live, i link per entrare e la risposta alla tua candidatura agli eventi.</p>
             <Link to={session ? '/home' : '/accedi'} className="btn btn--primary btn--block">{session ? 'Entra nella Lobby' : 'Accedi'}</Link>
           </>
         )}

@@ -166,7 +166,7 @@ export async function drawCertificate(c: Certificate): Promise<Blob> {
   ctx.fillStyle = IVORY;
   ctx.font = '600 40px "Barlow Condensed", "Arial Narrow", sans-serif';
   const area = c.category ? CATEGORY_NAME[c.category] : '';
-  ctx.fillText([`${c.lessons} lezioni`, `${c.minutes} minuti`, area && `area ${area}`, c.premium ? 'Premium' : ''].filter(Boolean).join('  ·  '), cx, y);
+  ctx.fillText([`${c.lessons} lezioni`, `${c.minutes} minuti`, area && `area ${area}`, c.premium ? 'Corso dal vivo' : ''].filter(Boolean).join('  ·  '), cx, y);
   y += 54;
   ctx.fillStyle = 'rgba(244,240,232,0.78)';
   ctx.font = '400 28px "Inter", system-ui, sans-serif';

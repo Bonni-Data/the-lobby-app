@@ -7,7 +7,7 @@ import { FounderBox } from '../components/founder';
 import { VerifyBanner } from '../components/email';
 import { LevelCard } from '../components/game';
 import { Link } from '../lib/router';
-import { LuKeyRound, LuArrowRight } from 'react-icons/lu';
+import { LuCalendarDays, LuArrowRight } from 'react-icons/lu';
 
 export default function Home() {
   const { displayName, plan } = useAuth();
@@ -136,11 +136,11 @@ export default function Home() {
               </section>
 
               {!plan.premium && (
-                <Link to="/premium" className="teaser">
+                <Link to="/eventi" className="teaser">
                   <span className="teaser__arch" aria-hidden="true" />
-                  <span className="teaser__kicker"><LuKeyRound aria-hidden="true" /> Premium · gratuito, su selezione</span>
-                  <strong className="teaser__title">La sala riservata.</strong>
-                  <span className="teaser__text">Lezioni live su Teams con Andrea e cene di networking a numero chiuso. Non si compra: si conquista.</span>
+                  <span className="teaser__kicker"><LuCalendarDays aria-hidden="true" /> Eventi · gratuiti, su selezione</span>
+                  <strong className="teaser__title">Dal vivo, con Andrea.</strong>
+                  <span className="teaser__text">Lezioni live su Teams con Andrea e cene di networking a numero chiuso. Non si comprano: si conquistano.</span>
                   <span className="teaser__go">{plan.application?.status === 'pending' ? 'Candidatura in valutazione' : 'Candidati'} <LuArrowRight aria-hidden="true" /></span>
                 </Link>
               )}

@@ -83,7 +83,7 @@ export function NumbersTab() {
         <Tile n={m.visits_7d} label="visite senza account" hint="ultimi 7 giorni" />
         <Tile n={m.opp_clicks_7d} label="clic sulle opportunità" hint="ultimi 7 giorni" />
         <Tile n={m.invited} label="arrivati da un invito" />
-        <Tile n={m.applications_pending} label="candidature da valutare" hint={`${m.premium} in Premium`} />
+        <Tile n={m.applications_pending} label="candidature da valutare" hint={`${m.premium} ammessi agli eventi`} />
       </ul>
 
       {m.signups_by_day.length > 0 && (

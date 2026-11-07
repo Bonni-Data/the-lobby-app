@@ -59,7 +59,7 @@ function ics(course: Course, e: LiveEdition) {
 function rsvpError(err: any) {
   const m = String(err?.message || '');
   if (m.includes('past_event')) return 'Questa edizione si è già svolta.';
-  if (m.includes('premium_required')) return 'Le lezioni live sono riservate a chi è in Premium.';
+  if (m.includes('premium_required')) return 'Le lezioni live sono riservate a chi è ammesso agli eventi.';
   if (m.includes('email_not_verified')) return 'Conferma prima la tua email: è lì che arrivano data e link della live.';
   return 'Prenotazione non salvata. Riprova.';
 }
@@ -175,7 +175,7 @@ export function LiveTeaser(_props: { edition?: LiveEdition }) {
     <section className="live-panel live-panel--locked">
       <span className="live-panel__kicker"><LuLock aria-hidden="true" /> Lezione live su Teams con Andrea</span>
       <p className="live-panel__text">
-        Questo corso si fa dal vivo, su Microsoft Teams, con Andrea. Chi è in Premium vede il programma completo e prenota il
+        Questo corso si fa dal vivo, su Microsoft Teams, con Andrea. Chi è ammesso agli eventi vede il programma completo e prenota il
         posto da qui.
       </p>
     </section>

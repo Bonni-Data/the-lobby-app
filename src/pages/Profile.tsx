@@ -143,10 +143,10 @@ export default function Profile() {
             </Link>
           </li>
           <li>
-            <Link to="/premium" className="menu__link">
-              <span><LuKeyRound /> Piano</span>
+            <Link to="/eventi" className="menu__link">
+              <span><LuKeyRound /> Eventi</span>
               <em className={plan.premium ? 'is-premium' : ''}>
-                {plan.premium ? 'Premium' : plan.application?.status === 'pending' ? 'Free · candidatura in valutazione' : 'Free · candidati a Premium'}
+                {plan.premium ? 'Accesso attivo' : plan.application?.status === 'pending' ? 'Candidatura in valutazione' : 'Candidati, è gratis'}
               </em>
             </Link>
           </li>
@@ -219,7 +219,7 @@ function EmailSettings() {
         <input type="checkbox" checked={!!cur?.reminders} disabled={!cur || saving} onChange={() => toggle('reminders')} />
         <span><strong>Promemoria</strong><small>La prima lezione, la serie di giorni di fila, un saluto se ti assenti a lungo.</small></span>
       </label>
-      <p className="tiny muted">Le email di servizio (password, lezioni live, Premium) arrivano sempre.</p>
+      <p className="tiny muted">Le email di servizio (password, lezioni live, eventi) arrivano sempre.</p>
     </section>
   );
 }

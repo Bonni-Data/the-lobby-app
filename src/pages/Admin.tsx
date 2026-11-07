@@ -27,7 +27,7 @@ function Card({ a, onDone }: { a: Application; onDone: () => void }) {
     setBusy(decision);
     try {
       await reviewApplication(a.id, decision, note.trim());
-      toast(decision === 'approved' ? `Premium attivato per ${a.full_name}.` : `Risposta inviata a ${a.full_name}.`);
+      toast(decision === 'approved' ? `Accesso agli eventi attivato per ${a.full_name}.` : `Risposta inviata a ${a.full_name}.`);
       onDone();
     } catch {
       toast('Operazione non riuscita. Riprova.');
@@ -63,13 +63,13 @@ function Card({ a, onDone }: { a: Application; onDone: () => void }) {
             <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Es. Ottimo percorso, ti aspetto alla prossima cena." />
           </label>
           <div className="appcard__btns">
-            <Button onClick={() => decide('approved')} loading={busy === 'approved'} disabled={!!busy}>Attiva Premium</Button>
+            <Button onClick={() => decide('approved')} loading={busy === 'approved'} disabled={!!busy}>Ammetti agli eventi</Button>
             <Button variant="secondary" onClick={() => decide('rejected')} loading={busy === 'rejected'} disabled={!!busy}>Non ancora</Button>
           </div>
         </div>
       ) : (
         <p className="appcard__done">
-          {a.status === 'approved' ? 'Premium attivato' : 'Non ancora'} il {formatDate(a.reviewed_at)}
+          {a.status === 'approved' ? 'Ammesso agli eventi' : 'Non ancora'} il {formatDate(a.reviewed_at)}
           {a.reviewer_note ? ` · “${a.reviewer_note}”` : ''}
         </p>
       )}
@@ -124,7 +124,7 @@ function DinnersTab() {
         location: form.location.trim(),
         seats: form.seats ? Math.max(1, parseInt(form.seats, 10)) : null,
       });
-      toast('Cena pubblicata: la vedono subito tutti i Premium.');
+      toast('Cena pubblicata: la vedono subito tutti gli ammessi agli eventi.');
       setForm({ title: '', when: '', location: '', seats: '', summary: '' });
       list.reload();
     } catch {
@@ -173,7 +173,7 @@ function CoursesTab() {
   const live = text.filter((c) => draftCount(c) === 0 && lessonCount(c) > 0);
   return (
     <>
-      <p className="muted">Testi e quiz dei corsi da leggere, gratuiti e Premium, scritti per te da validare. Li vedi solo tu finché non premi Pubblica. I corsi live li gestisci dalla sezione Live.</p>
+      <p className="muted">Testi e quiz dei corsi da leggere, gratuiti e riservati agli eventi, scritti per te da validare. Li vedi solo tu finché non premi Pubblica. I corsi live li gestisci dalla sezione Live.</p>
       {list.loading && <Spinner />}
       {list.error && <ErrorState message={list.error} onRetry={list.reload} />}
       {list.data && drafts.length === 0 && (
@@ -186,7 +186,7 @@ function CoursesTab() {
             <div className="appcard__head">
               <div>
                 <strong className="appcard__name">{c.title}</strong>
-                <span className="muted small">{c.access_level === 'premium' ? 'Premium · ' : ''}{draftCount(c) === 1 ? '1 lezione' : `${draftCount(c)} lezioni`} con quiz in bozza</span>
+                <span className="muted small">{c.access_level === 'premium' ? 'Eventi · ' : ''}{draftCount(c) === 1 ? '1 lezione' : `${draftCount(c)} lezioni`} con quiz in bozza</span>
               </div>
               <Link to={`/corso/${c.slug}`} className="link-quiet">Rileggi <LuArrowRight aria-hidden="true" /></Link>
             </div>
@@ -239,7 +239,7 @@ export default function Admin() {
               <button role="tab" aria-selected={area === 'live'} className={area === 'live' ? 'is-on' : ''} onClick={() => setArea('live')}>Live</button>
             </div>
             {area === 'numeri' ? <NumbersTab /> : area === 'incontri' ? <MeetingsAdminTab /> : area === 'cene' ? <DinnersTab /> : area === 'corsi' ? <CoursesTab /> : area === 'live' ? <LiveAdminTab /> : (<>
-            <p className="muted">Leggi il percorso di chi vuole entrare in Premium e decidi tu chi è pronto per il prossimo livello.</p>
+            <p className="muted">Leggi il percorso di chi vuole partecipare agli eventi e decidi tu chi è pronto per il prossimo livello.</p>
             <div className="chips" role="group" aria-label="Filtra per stato">
               {TABS.map((t) => (
                 <button key={t.id} className={`chip chip--btn ${tab === t.id ? 'is-on' : ''}`} onClick={() => setTab(t.id)} aria-pressed={tab === t.id}>
